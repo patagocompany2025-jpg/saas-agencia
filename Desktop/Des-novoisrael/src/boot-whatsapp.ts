@@ -2,14 +2,11 @@ import {
   default as makeWASocket, 
   DisconnectReason, 
   useMultiFileAuthState,
-  WASocket,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
-  Browsers,
-  proto
+  Browsers
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
-import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import pino from 'pino';
 import qrcode from 'qrcode-terminal';
@@ -54,7 +51,7 @@ async function connectToWhatsApp() {
     keepAliveIntervalMs: 30_000,
     markOnlineOnConnect: true,
     generateHighQualityLinkPreview: true,
-    getMessage: async (key) => {
+    getMessage: async (_key) => {
       return {
         conversation: 'Mensagem não encontrada'
       };

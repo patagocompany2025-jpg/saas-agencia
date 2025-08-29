@@ -6,17 +6,14 @@ import {
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
   Browsers,
-  proto,
-  MessageUpsertType
+  proto
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import { existsSync, mkdirSync } from 'fs';
 import pino from 'pino';
 import qrcode from 'qrcode-terminal';
 import OpenAI from 'openai';
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
+
 import { config } from 'dotenv';
 
 // Carregar variáveis de ambiente
@@ -57,7 +54,7 @@ interface MessageContext {
 
 // Configuração do logger
 const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
+  level: process.env['LOG_LEVEL'] || 'info',
   transport: {
     target: 'pino-pretty',
     options: {
@@ -70,7 +67,7 @@ const logger = pino({
 
 // Configuração OpenAI
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env['OPENAI_API_KEY']
 });
 
 // Sistema de detecção de perfis
@@ -233,7 +230,7 @@ class GPTProcessor {
       const userPrompt = this.buildUserPrompt(message, context, history);
 
       const completion = await openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || 'gpt-4',
+        model: process.env['OPENAI_MODEL'] || 'gpt-4',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -287,7 +284,7 @@ PRODUTOS DISPONÍVEIS:
 - Envelopes de dízimo: R$ 25 (100 unidades)`;
   }
 
-  private buildUserPrompt(message: string, context: MessageContext, history: string[]): string {
+  private buildUserPrompt(message: string, _context: MessageContext, history: string[]): string {
     const recentHistory = history.slice(-6).join('\n');
     
     return `Histórico recente da conversa:
@@ -360,7 +357,7 @@ class MegaVendedorAI {
         keepAliveIntervalMs: 30_000,
         markOnlineOnConnect: true,
         generateHighQualityLinkPreview: true,
-        getMessage: async (key) => {
+        getMessage: async (_key) => {
           return {
             conversation: 'Mensagem não encontrada'
           };
@@ -446,32 +443,32 @@ class MegaVendedorAI {
     });
 
     // Handler adicional para capturar mensagens
-    this.sock.ev.on('messages.set', async (m) => {
-      try {
-        logger.info(`📥 Evento messages.set recebido`);
-        
-        if (!m.messages || m.messages.length === 0) {
-          return;
-        }
+    // this.sock.ev.on('messages.set', async (m) => {
+    //   try {
+    //     logger.info(`📥 Evento messages.set recebido`);
+    //     
+    //     if (!m.messages || m.messages.length === 0) {
+    //       return;
+    //     }
 
-        const msg = m.messages[0];
-        
-        if (!msg || !msg.key || msg.key.fromMe) {
-          return;
-        }
+    //     const msg = m.messages[0];
+    //     
+    //     if (!msg || !msg.key || msg.key.fromMe) {
+    //       return;
+    //     }
 
-        const hasText = msg.message?.conversation || 
-                       msg.message?.extendedTextMessage?.text;
+    //     const hasText = msg.message?.conversation || 
+    //                    msg.message?.extendedTextMessage?.text;
 
-        if (hasText) {
-          logger.info(`📨 Processando mensagem do histórico de ${msg.key.remoteJid}`);
-          await this.handleIncomingMessage(msg);
-        }
-        
-      } catch (error) {
-        logger.error('❌ Erro no handler messages.set:', error);
-      }
-    });
+    //     if (hasText) {
+    //       logger.info(`📨 Processando mensagem do histórico de ${msg.key.remoteJid}`);
+    //       await this.handleIncomingMessage(msg);
+    //     }
+    //     
+    //   } catch (error) {
+    //     logger.error('❌ Erro no handler messages.set:', error);
+    //   }
+    // });
 
     // Salvar credenciais
     this.sock.ev.on('creds.update', saveCreds);

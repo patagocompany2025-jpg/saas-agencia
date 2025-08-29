@@ -7,7 +7,7 @@ export class GPTNovoIsraelService {
 
   constructor() {
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: process.env['OPENAI_API_KEY'],
     });
 
     this.systemPrompt = `Você é o Mega Vendedor AI da Novo Israel, uma empresa evangélica especializada em produtos cristãos.
@@ -88,10 +88,10 @@ Lembre-se: Você não é apenas um vendedor, mas um instrumento de Deus para abe
       });
 
       const completion = await this.openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || 'gpt-4',
+        model: process.env['OPENAI_MODEL'] || 'gpt-4',
         messages,
-        max_tokens: parseInt(process.env.OPENAI_MAX_TOKENS || '500'),
-        temperature: parseFloat(process.env.OPENAI_TEMPERATURE || '0.7'),
+        max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '500'),
+        temperature: parseFloat(process.env['OPENAI_TEMPERATURE'] || '0.7'),
         presence_penalty: 0.1,
         frequency_penalty: 0.1
       });
@@ -134,7 +134,7 @@ Lembre-se: Você não é apenas um vendedor, mas um instrumento de Deus para abe
     return enhancedMessage;
   }
 
-  private postProcessResponse(response: string, profile: CustomerProfile, context: MessageContext): string {
+  private postProcessResponse(response: string, profile: CustomerProfile, _context: MessageContext): string {
     // Adicionar emojis apropriados baseado no perfil
     let processedResponse = response;
 
@@ -176,10 +176,10 @@ Lembre-se: Você não é apenas um vendedor, mas um instrumento de Deus para abe
 
     const today = new Date();
     const index = today.getDate() % verses.length;
-    return verses[index];
+    return verses[index]!;
   }
 
-  private getFallbackResponse(message: string, profile: CustomerProfile): string {
+  private getFallbackResponse(message: string, _profile: CustomerProfile): string {
     const lowerMessage = message.toLowerCase();
 
     if (lowerMessage.includes('produto') || lowerMessage.includes('bíblia') || lowerMessage.includes('camiseta')) {
@@ -242,7 +242,7 @@ Digite "catálogo" para ver nossos produtos ou me diga o que você está procura
       Responda de forma natural e evangelística.`;
 
       const completion = await this.openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || 'gpt-4',
+        model: process.env['OPENAI_MODEL'] || 'gpt-4',
         messages: [
           { role: 'system', content: this.systemPrompt },
           { role: 'user', content: prompt }

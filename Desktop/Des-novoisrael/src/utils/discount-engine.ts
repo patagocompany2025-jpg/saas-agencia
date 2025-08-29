@@ -1,3 +1,4 @@
+
 import { CustomerProfile } from '../baileys/handlers/message-handler';
 
 export interface DiscountInfo {
@@ -208,7 +209,7 @@ export class DiscountEngine {
   }
 
   // Validar código de desconto
-  validateDiscountCode(code: string, profile: CustomerProfile): DiscountInfo | null {
+  validateDiscountCode(_code: string, _profile: CustomerProfile): DiscountInfo | null {
     // Implementar validação de códigos de desconto
     // Por enquanto, retorna null
     return null;

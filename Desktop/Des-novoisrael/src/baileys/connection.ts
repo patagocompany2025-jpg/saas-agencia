@@ -1,7 +1,6 @@
 import { 
   default as makeWASocket, 
   DisconnectReason, 
-  useMultiFileAuthState,
   WASocket,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
@@ -10,7 +9,6 @@ import {
   proto
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
-import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import pino from 'pino';
 import { MessageHandler } from './handlers/message-handler';
@@ -73,7 +71,7 @@ export class WhatsAppConnection {
         keepAliveIntervalMs: 30_000,
         markOnlineOnConnect: true,
         generateHighQualityLinkPreview: true,
-        getMessage: async (key) => {
+        getMessage: async (_key) => {
           return {
             conversation: 'Mensagem não encontrada'
           };

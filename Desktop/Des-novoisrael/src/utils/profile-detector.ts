@@ -177,7 +177,7 @@ export class ProfileDetector {
   }
 
   private getDominantProfile(scores: any): 'pastor' | 'jovem' | 'mae' | 'fiel' | 'novo' {
-    const maxScore = Math.max(...Object.values(scores));
+    const maxScore = Math.max(...Object.values(scores) as number[]);
     
     if (maxScore === 0) {
       return 'novo';
@@ -192,8 +192,8 @@ export class ProfileDetector {
     return 'novo';
   }
 
-  private calculateConfidence(scores: any, dominantProfile: string): number {
-    const maxScore = Math.max(...Object.values(scores));
+  private calculateConfidence(scores: any, _dominantProfile: string): number {
+    const maxScore = Math.max(...Object.values(scores) as number[]);
     const totalScore = Object.values(scores).reduce((sum: number, score: any) => sum + score, 0);
     
     if (totalScore === 0) {

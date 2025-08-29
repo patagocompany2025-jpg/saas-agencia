@@ -86,7 +86,7 @@ export class CartManager {
     
     if (existingItemIndex >= 0) {
       // Atualizar quantidade do item existente
-      cart.items[existingItemIndex].quantity += item.quantity;
+      cart.items[existingItemIndex]!.quantity += item.quantity;
     } else {
       // Adicionar novo item
       cart.items.push({
@@ -115,7 +115,7 @@ export class CartManager {
         cart.items.splice(itemIndex, 1);
       } else {
         // Atualizar quantidade
-        cart.items[itemIndex].quantity = quantity;
+        cart.items[itemIndex]!.quantity = quantity;
       }
       
       this.recalculateCart(cart);

@@ -173,7 +173,7 @@ export class ProductCatalog {
       if (!catalog[product.category]) {
         catalog[product.category] = [];
       }
-      catalog[product.category].push(product);
+      catalog[product.category]!.push(product);
     });
     
     return catalog;
@@ -185,21 +185,21 @@ export class ProductCatalog {
     
     // BÍBLIAS
     message += `📖 *BÍBLIAS:*\n`;
-    catalog.biblia?.forEach(product => {
+    catalog['biblia']?.forEach(product => {
       message += `• ${product.name} - R$ ${product.price.toFixed(2)}\n`;
       message += `  ${product.description.substring(0, 60)}...\n\n`;
     });
     
     // ENVELOPES
     message += `📮 *ENVELOPES DÍZIMO:*\n`;
-    catalog.envelopes?.forEach(product => {
+    catalog['envelopes']?.forEach(product => {
       message += `• ${product.name} - R$ ${product.price.toFixed(2)}\n`;
       message += `  ${product.description.substring(0, 60)}...\n\n`;
     });
     
     // CAMISETAS
     message += `👕 *CAMISETAS FÉ:*\n`;
-    catalog.camisetas?.forEach(product => {
+    catalog['camisetas']?.forEach(product => {
       const sizes = product.sizes?.join(', ') || '';
       message += `• ${product.name} - R$ ${product.price.toFixed(2)}\n`;
       message += `  Tamanhos: ${sizes}\n`;
@@ -208,7 +208,7 @@ export class ProductCatalog {
     
     // KITS
     message += `🎁 *MATERIAIS CAMPANHA:*\n`;
-    catalog.kits?.forEach(product => {
+    catalog['kits']?.forEach(product => {
       message += `• ${product.name} - R$ ${product.price.toFixed(2)}\n`;
       message += `  ${product.description.substring(0, 60)}...\n\n`;
     });

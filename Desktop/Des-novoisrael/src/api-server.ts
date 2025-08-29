@@ -19,13 +19,13 @@ app.use(express.json());
 const megaVendedor = new MegaVendedorAI();
 
 // Middleware de logging
-app.use((req, res, next) => {
+app.use((req, _res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - ${req.ip}`);
-  next();
+  return next();
 });
 
 // Health Check
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   const status = megaVendedor.getStatus();
   const health = {
     status: 'ok',
@@ -37,13 +37,13 @@ app.get('/health', (req, res) => {
     version: '1.0.0'
   };
   
-  res.json(health);
+  return res.json(health);
 });
 
 // Status detalhado
-app.get('/status', (req, res) => {
+app.get('/status', (_req, res) => {
   const status = megaVendedor.getStatus();
-  res.json({
+  return res.json({
     ...status,
     timestamp: new Date().toISOString(),
     version: '1.0.0'
@@ -57,7 +57,7 @@ app.get('/profile/:customerId', (req, res) => {
     const profile = megaVendedor.getProfile(customerId);
     
     if (profile) {
-      res.json({
+      return res.json({
         success: true,
         profile: {
           ...profile,
@@ -65,13 +65,13 @@ app.get('/profile/:customerId', (req, res) => {
         }
       });
     } else {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         message: 'Perfil não encontrado'
       });
     }
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Erro interno do servidor',
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -86,7 +86,7 @@ app.get('/cart/:customerId', (req, res) => {
     const cart = megaVendedor.getCart(customerId);
     
     if (cart) {
-      res.json({
+      return res.json({
         success: true,
         cart: {
           ...cart,
@@ -95,13 +95,13 @@ app.get('/cart/:customerId', (req, res) => {
         }
       });
     } else {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         message: 'Carrinho não encontrado'
       });
     }
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Erro interno do servidor',
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -110,11 +110,11 @@ app.get('/cart/:customerId', (req, res) => {
 });
 
 // Obter carrinhos abandonados
-app.get('/abandoned-carts', (req, res) => {
+app.get('/abandoned-carts', (_req, res) => {
   try {
     const abandonedCarts = megaVendedor.getAbandonedCarts();
     
-    res.json({
+    return res.json({
       success: true,
       count: abandonedCarts.length,
       carts: abandonedCarts.map(cart => ({
@@ -124,7 +124,7 @@ app.get('/abandoned-carts', (req, res) => {
       }))
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Erro interno do servidor',
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -147,18 +147,18 @@ app.post('/send-message', async (req, res) => {
     const success = await megaVendedor.sendMessage(customerId, message);
     
     if (success) {
-      res.json({
+      return res.json({
         success: true,
         message: 'Mensagem enviada com sucesso'
       });
     } else {
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         message: 'Falha ao enviar mensagem'
       });
     }
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Erro interno do servidor',
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -182,7 +182,7 @@ app.post('/simulate-message', async (req, res) => {
     const profile = megaVendedor.getProfile(customerId);
     const cart = megaVendedor.getCart(customerId);
     
-    res.json({
+    return res.json({
       success: true,
       message: 'Mensagem simulada com sucesso',
       data: {
@@ -200,7 +200,7 @@ app.post('/simulate-message', async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Erro interno do servidor',
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -220,19 +220,19 @@ app.post('/test-message-processing', async (req, res) => {
       });
     }
     
-    // Detectar perfil usando a lógica real
-    const detectedProfile = megaVendedor['profileDetector'].detectProfile(message, customerId);
+    // Simular o processamento completo
+    const profile = megaVendedor.getProfile(customerId);
     const cart = megaVendedor.getCart(customerId);
     
     // Criar contexto simulado
     const context = {
       customerId,
-      profile: detectedProfile,
+      profile: profile || { id: customerId, profile: 'fiel', confidence: 0.7, discount: 0.05, lastInteraction: new Date(), totalPurchases: 0 },
       cart: cart || { customerId, items: [], total: 0, discount: 0, createdAt: new Date(), lastActivity: new Date() },
       conversationHistory: []
     };
     
-    res.json({
+    return res.json({
       success: true,
       message: 'Processamento de mensagem testado',
       data: {
@@ -244,7 +244,7 @@ app.post('/test-message-processing', async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Erro interno do servidor',
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -253,12 +253,12 @@ app.post('/test-message-processing', async (req, res) => {
 });
 
 // Estatísticas do sistema
-app.get('/stats', (req, res) => {
+app.get('/stats', (_req, res) => {
   try {
     const status = megaVendedor.getStatus();
     const abandonedCarts = megaVendedor.getAbandonedCarts();
     
-    res.json({
+    return res.json({
       success: true,
       stats: {
         uptime: process.uptime(),
@@ -271,7 +271,7 @@ app.get('/stats', (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Erro interno do servidor',
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -280,8 +280,8 @@ app.get('/stats', (req, res) => {
 });
 
 // Endpoint de teste
-app.get('/test', (req, res) => {
-  res.json({
+app.get('/test', (_req, res) => {
+  return res.json({
     success: true,
     message: 'Mega Vendedor AI API funcionando!',
     timestamp: new Date().toISOString(),
@@ -290,9 +290,9 @@ app.get('/test', (req, res) => {
 });
 
 // Middleware de tratamento de erros
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Erro na API:', err);
-  res.status(500).json({
+  return res.status(500).json({
     success: false,
     message: 'Erro interno do servidor',
           error: process.env['NODE_ENV'] === 'development' ? err.message : 'Internal server error'
@@ -300,8 +300,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // Middleware para rotas não encontradas
-app.use('*', (req, res) => {
-  res.status(404).json({
+app.use('*', (_req, res) => {
+  return res.status(404).json({
     success: false,
     message: 'Endpoint não encontrado',
     availableEndpoints: [
