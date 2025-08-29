@@ -1,0 +1,65 @@
+$envContent = @"
+# ===================================
+# CONFIGURAÇÕES DO SERVIDOR
+# ===================================
+PORT=3001
+NODE_ENV=development
+
+# ===================================
+# OPENAI CONFIGURATION
+# ===================================
+OPENAI_API_KEY=sua_openai_key_aqui
+OPENAI_MODEL=gpt-4
+OPENAI_MAX_TOKENS=500
+OPENAI_TEMPERATURE=0.7
+
+# ===================================
+# EVOLUTION API (WHATSAPP)
+# ===================================
+EVOLUTION_API_KEY=sua_evolution_key_aqui
+EVOLUTION_API_URL=https://sua-evolution-api.com
+WEBHOOK_URL=https://e15ba32f1235.ngrok-free.app/webhook
+
+# ===================================
+# CONFIGURAÇÕES DA EMPRESA
+# ===================================
+COMPANY_NAME=Novo Israel
+WHATSAPP_NUMBER=5521999999999
+
+# ===================================
+# CONFIGURAÇÕES DE DESCONTO
+# ===================================
+PASTOR_DISCOUNT=20
+CLIENTE_NOVO_DISCOUNT=10
+CARRINHO_ABANDONADO_DISCOUNT=15
+
+# ===================================
+# BAILEYS CONFIGURAÇÃO
+# ===================================
+WHATSAPP_SESSION_ID=novo-israel-bot
+QR_CODE_TIMEOUT=60000
+MESSAGE_RETRY_COUNT=3
+MAX_MESSAGES_PER_MINUTE=45
+
+# ===================================
+# NOVO ISRAEL
+# ===================================
+COMPANY_PHONE=5521999999999
+WEBSITE_URL=https://lojanovoisrael.com.br
+
+# ===================================
+# DESCONTOS DETALHADOS
+# ===================================
+PASTOR_DISCOUNT=0.20
+YOUNG_DISCOUNT=0.10
+MOM_DISCOUNT=0.15
+GENERAL_DISCOUNT=0.05
+
+# ===================================
+# SISTEMA
+# ===================================
+LOG_LEVEL=info
+"@
+
+Set-Content -Path ".env" -Value $envContent -Encoding UTF8
+Write-Host "Arquivo .env atualizado com sucesso!"
