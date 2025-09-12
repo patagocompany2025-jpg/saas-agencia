@@ -1,0 +1,47 @@
+# Agente de Operações - Dependências Simplificadas (SQLite)
+
+# Framework Web
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Banco de Dados (SQLite)
+sqlalchemy==2.0.23
+alembic==1.13.1
+
+# Cache e Filas (opcional)
+redis==5.0.1
+celery==5.3.4
+kombu==5.3.4
+
+# HTTP e APIs
+httpx==0.25.2
+aiohttp==3.9.1
+requests==2.31.0
+
+# Processamento de Dados
+pandas==2.1.4
+numpy==1.25.2
+openpyxl==3.1.2
+
+# Logging e Monitoramento
+structlog==23.2.0
+prometheus-client==0.19.0
+
+# Testes
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+
+# Utilitários
+python-dotenv==1.0.0
+python-multipart==0.0.6
+email-validator==2.1.0
+phonenumbers==8.13.25
+
+# Desenvolvimento
+black==23.11.0
+isort==5.12.0
+flake8==6.1.0
+mypy==1.7.1
