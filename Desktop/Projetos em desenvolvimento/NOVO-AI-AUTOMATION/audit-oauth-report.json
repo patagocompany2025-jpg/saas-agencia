@@ -1,0 +1,98 @@
+{
+  "ok": true,
+  "checks": [
+    {
+      "item": ".gitignore .env*",
+      "ok": true
+    },
+    {
+      "item": ".gitignore tokens.json",
+      "ok": true
+    },
+    {
+      "item": ".gitignore node_modules",
+      "ok": true
+    },
+    {
+      "item": ".env.dev existe",
+      "ok": true
+    },
+    {
+      "item": ".env.prod existe",
+      "ok": true
+    },
+    {
+      "item": "file:scripts/oauth-server.js",
+      "ok": true
+    },
+    {
+      "item": "file:scripts/make-auth-url.js",
+      "ok": true
+    },
+    {
+      "item": "file:scripts/exchange-code.js",
+      "ok": true
+    },
+    {
+      "item": "file:src/lib/tokenManager.js",
+      "ok": true
+    },
+    {
+      "item": "file:src/jobs/refreshCron.js",
+      "ok": true
+    },
+    {
+      "item": "file:src/lib/apiClient.js",
+      "ok": true
+    },
+    {
+      "item": "file:server.js",
+      "ok": true
+    },
+    {
+      "item": "script:dev:env",
+      "ok": true
+    },
+    {
+      "item": "script:prod:env",
+      "ok": true
+    },
+    {
+      "item": "script:oauth:callback",
+      "ok": true
+    },
+    {
+      "item": "script:oauth:url",
+      "ok": true
+    },
+    {
+      "item": "script:oauth:exchange",
+      "ok": true
+    },
+    {
+      "item": "script:start",
+      "ok": true
+    },
+    {
+      "item": "rota /health/oauth",
+      "ok": true
+    },
+    {
+      "item": "cron de refresh",
+      "ok": true
+    },
+    {
+      "item": "env/tokens não rastreados",
+      "ok": true
+    },
+    {
+      "item": "sem segredos em arquivos rastreados",
+      "ok": true
+    },
+    {
+      "item": "HTTP /health/oauth",
+      "ok": true
+    }
+  ],
+  "fixes": []
+}
