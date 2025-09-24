@@ -16,7 +16,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useSession } from 'next-auth/react';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -30,7 +30,7 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { data: session, signOut } = useSession();
 
   return (
     <div className="flex h-full w-64 flex-col bg-gray-900 text-white">
@@ -79,7 +79,7 @@ export function Sidebar() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={logout}
+          onClick={() => signOut()}
           className="mt-2 w-full justify-start text-gray-300 hover:text-white hover:bg-gray-700"
         >
           <LogOut className="mr-2 h-4 w-4" />

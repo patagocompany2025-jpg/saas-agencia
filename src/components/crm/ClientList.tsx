@@ -92,16 +92,16 @@ export function ClientList({ onNewClient, onEditClient }: ClientListProps) {
   return (
     <div className="space-y-6">
       {/* Filtros */}
-      <div className="bg-white/5 backdrop-blur-2xl rounded-xl p-6 border border-white/10 shadow-xl">
+      <div className="bg-card/95 backdrop-blur-2xl rounded-xl p-6 border border-border shadow-xl">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nome, email ou telefone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white/10 border-white/20 text-white placeholder-gray-400"
+                className="pl-10 bg-background/10 border-border text-foreground placeholder-muted-foreground"
               />
             </div>
           </div>
@@ -109,7 +109,7 @@ export function ClientList({ onNewClient, onEditClient }: ClientListProps) {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-white/20 rounded-md text-sm bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-3 py-2 border border-border rounded-md text-sm bg-background/10 text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="todos" className="bg-gray-800">Todos os status</option>
               <option value="lead" className="bg-gray-800">Leads</option>
@@ -117,7 +117,7 @@ export function ClientList({ onNewClient, onEditClient }: ClientListProps) {
               <option value="cliente" className="bg-gray-800">Clientes</option>
               <option value="inativo" className="bg-gray-800">Inativos</option>
             </select>
-            <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+            <Button variant="outline" size="sm" className="bg-background/10 border-border text-foreground hover:bg-accent">
               <Filter className="h-4 w-4 mr-2" />
               Filtros
             </Button>
@@ -126,14 +126,14 @@ export function ClientList({ onNewClient, onEditClient }: ClientListProps) {
       </div>
 
       {/* Tabela de clientes */}
-      <div className="bg-white/5 backdrop-blur-2xl rounded-xl border border-white/10 shadow-xl">
-        <div className="p-6 border-b border-white/10">
+      <div className="bg-card/95 backdrop-blur-2xl rounded-xl border border-border shadow-xl">
+        <div className="p-6 border-b border-border">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="text-lg font-semibold text-foreground">
               {filteredClients.length} {filteredClients.length === 1 ? 'cliente encontrado' : 'clientes encontrados'}
             </h3>
             <div className="flex space-x-2">
-              <Button variant="outline" size="sm" onClick={handleExportClients} className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+              <Button variant="outline" size="sm" onClick={handleExportClients} className="bg-background/10 border-border text-foreground hover:bg-accent">
                 <Download className="h-4 w-4 mr-2" />
                 Exportar
               </Button>
@@ -147,33 +147,33 @@ export function ClientList({ onNewClient, onEditClient }: ClientListProps) {
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="border-white/10">
-                <TableHead className="text-white/80">Cliente</TableHead>
-                <TableHead className="text-white/80">Contato</TableHead>
-                <TableHead className="text-white/80">Status</TableHead>
-                <TableHead className="text-white/80">Origem</TableHead>
-                <TableHead className="text-white/80">Data</TableHead>
+              <TableRow className="border-border">
+                <TableHead className="text-muted-foreground">Cliente</TableHead>
+                <TableHead className="text-muted-foreground">Contato</TableHead>
+                <TableHead className="text-muted-foreground">Status</TableHead>
+                <TableHead className="text-muted-foreground">Origem</TableHead>
+                <TableHead className="text-muted-foreground">Data</TableHead>
                 <TableHead className="w-[50px] text-white/80"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredClients.map((client) => (
-                <TableRow key={client.id} className="border-white/10 hover:bg-white/5">
+                <TableRow key={client.id} className="border-border hover:bg-accent/50">
                   <TableCell>
                     <div>
-                      <div className="font-medium text-white">{client.name}</div>
+                      <div className="font-medium text-foreground">{client.name}</div>
                       {client.company && (
-                        <div className="text-sm text-white/60">{client.company}</div>
+                        <div className="text-sm text-muted-foreground">{client.company}</div>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      <div className="flex items-center text-sm text-white/80">
+                      <div className="flex items-center text-sm text-foreground/80">
                         <Mail className="h-3 w-3 mr-1" />
                         {client.email}
                       </div>
-                      <div className="flex items-center text-sm text-white/60">
+                      <div className="flex items-center text-sm text-muted-foreground">
                         <Phone className="h-3 w-3 mr-1" />
                         {client.phone}
                       </div>
@@ -184,21 +184,21 @@ export function ClientList({ onNewClient, onEditClient }: ClientListProps) {
                       {statusLabels[client.status]}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm text-white/60">
+                  <TableCell className="text-sm text-muted-foreground">
                     {client.source}
                   </TableCell>
-                  <TableCell className="text-sm text-white/60">
+                  <TableCell className="text-sm text-muted-foreground">
                     {client.createdAt.toLocaleDateString('pt-BR')}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10">
+                        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-accent">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-gray-800 border border-gray-700 text-white">
-                        <DropdownMenuItem className="hover:bg-gray-700 cursor-pointer">
+                      <DropdownMenuContent align="end" className="bg-card border border-border text-foreground">
+                        <DropdownMenuItem className="hover:bg-accent cursor-pointer">
                           <Eye className="h-4 w-4 mr-2" />
                           Ver detalhes
                         </DropdownMenuItem>

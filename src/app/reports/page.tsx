@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useSession } from 'next-auth/react';
 import { useFinancial } from '@/lib/contexts/FinancialContext';
 import { useKanban } from '@/lib/contexts/KanbanContext';
 import { useClients } from '@/lib/contexts/ClientContext';
@@ -53,7 +53,7 @@ import {
 type ReportType = 'executive' | 'sales' | 'financial' | 'performance' | 'die' | 'growth' | null;
 
 export default function ReportsPage() {
-  const { user, isLoading } = useAuth();
+  const { data: session, status } = useSession();
   const { transactions, employees, fixedExpenses } = useFinancial();
   const { tasks } = useKanban();
   const { clients } = useClients();
@@ -195,7 +195,7 @@ export default function ReportsPage() {
     URL.revokeObjectURL(url);
   };
 
-  if (isLoading) {
+  if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
@@ -206,7 +206,7 @@ export default function ReportsPage() {
     );
   }
 
-  if (!user) {
+  if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">

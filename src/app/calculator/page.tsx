@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useSession } from 'next-auth/react';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -198,7 +198,7 @@ const PATAGONIA_SERVICES = {
 };
 
 export default function CalculatorPage() {
-  const { user, isLoading } = useAuth();
+  const { data: session, status } = useSession();
   const [isEditingServices, setIsEditingServices] = useState(false);
   const [editableServices, setEditableServices] = useState(PATAGONIA_SERVICES);
   
@@ -352,7 +352,7 @@ export default function CalculatorPage() {
     }
   };
 
-  if (isLoading) {
+  if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
@@ -363,7 +363,7 @@ export default function CalculatorPage() {
     );
   }
 
-  if (!user) {
+  if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">

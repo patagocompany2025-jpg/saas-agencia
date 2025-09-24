@@ -56,18 +56,46 @@ export function TransactionList({ onEdit }: TransactionListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('todos');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>('todos');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [amountFrom, setAmountFrom] = useState('');
+  const [amountTo, setAmountTo] = useState('');
 
   const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === 'todos' || transaction.type === typeFilter;
     const matchesStatus = statusFilter === 'todos' || transaction.status === statusFilter;
-    return matchesSearch && matchesType && matchesStatus;
+    const matchesCategory = categoryFilter === 'todos' || transaction.category === categoryFilter;
+    
+    // Filtros de data
+    const matchesDateFrom = !dateFrom || (transaction.dueDate && transaction.dueDate >= new Date(dateFrom));
+    const matchesDateTo = !dateTo || (transaction.dueDate && transaction.dueDate <= new Date(dateTo));
+    
+    // Filtros de valor
+    const matchesAmountFrom = !amountFrom || transaction.amount >= parseFloat(amountFrom);
+    const matchesAmountTo = !amountTo || transaction.amount <= parseFloat(amountTo);
+    
+    return matchesSearch && matchesType && matchesStatus && matchesCategory && 
+           matchesDateFrom && matchesDateTo && matchesAmountFrom && matchesAmountTo;
   });
 
   const handleDeleteTransaction = (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta transação?')) {
       deleteTransaction(id);
     }
+  };
+
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setTypeFilter('todos');
+    setStatusFilter('todos');
+    setCategoryFilter('todos');
+    setDateFrom('');
+    setDateTo('');
+    setAmountFrom('');
+    setAmountTo('');
   };
 
   const formatCurrency = (value: number) => {
@@ -122,13 +150,102 @@ export function TransactionList({ onEdit }: TransactionListProps) {
               <option value="vencido" className="bg-gray-800">Vencido</option>
               <option value="cancelado" className="bg-gray-800">Cancelado</option>
             </select>
-            <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className={`${showAdvancedFilters ? 'bg-indigo-600 text-white' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}
+            >
               <Filter className="h-4 w-4 mr-2" />
-              Filtros
+              {showAdvancedFilters ? 'Ocultar Filtros' : 'Filtros Avançados'}
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={clearAllFilters}
+              className="bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30"
+            >
+              Limpar
             </Button>
           </div>
         </div>
       </div>
+
+      {/* Filtros Avançados */}
+      {showAdvancedFilters && (
+        <div className="bg-white/5 backdrop-blur-2xl rounded-xl p-6 border border-white/10 shadow-xl">
+          <h4 className="text-white font-medium mb-4 flex items-center gap-2">
+            <Filter className="h-4 w-4" />
+            Filtros Avançados
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Filtro por Categoria */}
+            <div>
+              <label className="block text-white/70 text-sm mb-2">Categoria</label>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-white/20 rounded-md text-sm bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="todos" className="bg-gray-800">Todas as categorias</option>
+                <option value="vendas" className="bg-gray-800">Vendas</option>
+                <option value="pro_labore" className="bg-gray-800">Pró-labore</option>
+                <option value="salarios" className="bg-gray-800">Salários</option>
+                <option value="lucros" className="bg-gray-800">Lucros</option>
+                <option value="contas_fixas" className="bg-gray-800">Contas Fixas</option>
+                <option value="sistemas" className="bg-gray-800">Sistemas</option>
+                <option value="outros" className="bg-gray-800">Outros</option>
+              </select>
+            </div>
+
+            {/* Filtro por Data - De */}
+            <div>
+              <label className="block text-white/70 text-sm mb-2">Data de Vencimento - De</label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-full px-3 py-2 border border-white/20 rounded-md text-sm bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+
+            {/* Filtro por Data - Até */}
+            <div>
+              <label className="block text-white/70 text-sm mb-2">Data de Vencimento - Até</label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-full px-3 py-2 border border-white/20 rounded-md text-sm bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+
+            {/* Filtro por Valor - De */}
+            <div>
+              <label className="block text-white/70 text-sm mb-2">Valor - De (R$)</label>
+              <input
+                type="number"
+                placeholder="0,00"
+                value={amountFrom}
+                onChange={(e) => setAmountFrom(e.target.value)}
+                className="w-full px-3 py-2 border border-white/20 rounded-md text-sm bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+
+            {/* Filtro por Valor - Até */}
+            <div>
+              <label className="block text-white/70 text-sm mb-2">Valor - Até (R$)</label>
+              <input
+                type="number"
+                placeholder="0,00"
+                value={amountTo}
+                onChange={(e) => setAmountTo(e.target.value)}
+                className="w-full px-3 py-2 border border-white/20 rounded-md text-sm bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Lista de Transações */}
       <div className="bg-white/5 backdrop-blur-2xl rounded-xl border border-white/10 shadow-xl">

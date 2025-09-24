@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useSession } from 'next-auth/react';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { ClientList } from '@/components/crm/ClientList';
 import { ClientForm } from '@/components/crm/ClientForm';
@@ -11,12 +11,12 @@ import { Client } from '@/lib/types';
 import { useClients } from '@/lib/contexts/ClientContext';
 
 export default function CRMPage() {
-  const { user, isLoading } = useAuth();
+  const { data: session, status } = useSession();
   const { clients, addClient, updateClient } = useClients();
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | undefined>();
 
-  if (isLoading) {
+  if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -27,7 +27,7 @@ export default function CRMPage() {
     );
   }
 
-  if (!user) {
+  if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -87,58 +87,58 @@ export default function CRMPage() {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-white">CRM</h1>
-            <p className="text-white/60">Gerencie seus clientes e leads</p>
+            <h1 className="text-3xl font-bold text-foreground">CRM</h1>
+            <p className="text-muted-foreground">Gerencie seus clientes e leads</p>
           </div>
         </div>
 
         {/* Métricas */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white/5 backdrop-blur-2xl rounded-xl p-6 border border-white/10 shadow-xl">
+          <div className="bg-card/95 backdrop-blur-2xl rounded-xl p-6 border border-border shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-blue-500/20 rounded-lg">
                   <Users className="h-6 w-6 text-blue-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Total de Clientes</h3>
-                  <p className="text-sm text-white/60">Clientes cadastrados</p>
+                  <h3 className="text-lg font-semibold text-foreground">Total de Clientes</h3>
+                  <p className="text-sm text-muted-foreground">Clientes cadastrados</p>
                 </div>
               </div>
             </div>
-            <div className="text-3xl font-bold text-white">{clients.length}</div>
+            <div className="text-3xl font-bold text-foreground">{clients.length}</div>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-2xl rounded-xl p-6 border border-white/10 shadow-xl">
+          <div className="bg-card/95 backdrop-blur-2xl rounded-xl p-6 border border-border shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-green-500/20 rounded-lg">
                   <UserPlus className="h-6 w-6 text-green-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Leads Ativos</h3>
-                  <p className="text-sm text-white/60">Em acompanhamento</p>
+                  <h3 className="text-lg font-semibold text-foreground">Leads Ativos</h3>
+                  <p className="text-sm text-muted-foreground">Em acompanhamento</p>
                 </div>
               </div>
             </div>
-            <div className="text-3xl font-bold text-white">
+            <div className="text-3xl font-bold text-foreground">
               {clients.filter(c => c.status === 'lead').length}
             </div>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-2xl rounded-xl p-6 border border-white/10 shadow-xl">
+          <div className="bg-card/95 backdrop-blur-2xl rounded-xl p-6 border border-border shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-purple-500/20 rounded-lg">
                   <UserCheck className="h-6 w-6 text-purple-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Clientes Ativos</h3>
-                  <p className="text-sm text-white/60">Clientes confirmados</p>
+                  <h3 className="text-lg font-semibold text-foreground">Clientes Ativos</h3>
+                  <p className="text-sm text-muted-foreground">Clientes confirmados</p>
                 </div>
               </div>
             </div>
-            <div className="text-3xl font-bold text-white">
+            <div className="text-3xl font-bold text-foreground">
               {clients.filter(c => c.status === 'cliente').length}
             </div>
           </div>

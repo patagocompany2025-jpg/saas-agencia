@@ -1,9 +1,31 @@
+export interface UserPermissions {
+  dashboard: boolean;
+  crm: boolean;
+  pipeline: boolean;
+  pipelineVendas: boolean;
+  pipelineEntrega: boolean;
+  pipelinePosVenda: boolean;
+  calculadora: boolean;
+  financeiro: boolean;
+  relatorios: boolean;
+  configuracoes: boolean;
+  configuracoesPerfil: boolean;
+  configuracoesEmpresa: boolean;
+  configuracoesNotificacoes: boolean;
+  configuracoesSeguranca: boolean;
+  configuracoesAparencia: boolean;
+  configuracoesDados: boolean;
+  gerenciarUsuarios: boolean;
+}
+
 export interface User {
   id: string;
   name: string;
   email: string;
   role: 'socio' | 'vendedor';
   avatar?: string;
+  permissions?: UserPermissions;
+  isActive: boolean;
   createdAt: Date;
 }
 

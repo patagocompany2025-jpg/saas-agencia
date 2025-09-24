@@ -1,17 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/contexts/AuthContext';
 import { AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,11 +18,16 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const success = await login(email, password, rememberMe);
-      if (success) {
-        router.push('/dashboard');
-      } else {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
         setError('Email ou senha incorretos');
+      } else if (result?.ok) {
+        router.push('/dashboard');
       }
     } catch (err) {
       setError('Erro ao fazer login');
@@ -89,19 +92,6 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between mb-7">
-            <label className="flex items-center space-x-2 text-sm text-gray-400">
-              <input 
-                type="checkbox" 
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="accent-[#5E6AD2] rounded bg-white/10 border-white/10 focus:ring-0" 
-              />
-              <span>Lembrar de mim</span>
-            </label>
-            <a href="#" className="text-[#5E6AD2] hover:underline text-sm font-medium">Esqueceu a senha?</a>
-          </div>
-
           <button
             type="submit"
             disabled={isLoading}
@@ -111,27 +101,24 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Usuários da Agência */}
+        {/* Usuários de Teste */}
         <div className="mt-8 p-4 bg-white/5 rounded-lg border border-white/10">
-          <p className="text-xs text-gray-400 text-center mb-3 font-semibold">Usuários da Agência Patagônia:</p>
+          <p className="text-xs text-gray-400 text-center mb-3 font-semibold">Usuários de Teste:</p>
           <div className="text-xs text-gray-400 space-y-2">
             <div className="grid grid-cols-1 gap-2">
               <div className="flex justify-between items-center">
-                <span className="text-[#5E6AD2] font-medium">Sócios:</span>
+                <span className="text-[#5E6AD2] font-medium">Sócio:</span>
                 <span className="text-white/60">Senha: 123456</span>
               </div>
-              <div className="pl-2 space-y-1">
-                <p>• kyra@patagonia.com</p>
-                <p>• alex@patagonia.com</p>
-                <p>• amanda@patagonia.com</p>
-                <p>• vitor@patagonia.com</p>
+              <div className="pl-2">
+                <p>• joao@socio.com</p>
               </div>
               <div className="flex justify-between items-center mt-2">
                 <span className="text-[#5E6AD2] font-medium">Vendedor:</span>
                 <span className="text-white/60">Senha: 123456</span>
               </div>
               <div className="pl-2">
-                <p>• alexandre@patagonia.com</p>
+                <p>• maria@vendedor.com</p>
               </div>
             </div>
           </div>

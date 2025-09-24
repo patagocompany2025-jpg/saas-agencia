@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useSession } from 'next-auth/react';
 import { useFinancial } from '@/lib/contexts/FinancialContext';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +32,7 @@ import {
 } from '@/components/financial';
 
 export default function FinancialPage() {
-  const { user, isLoading } = useAuth();
+  const { data: session, status } = useSession();
   const { 
     getTotalRevenue, 
     getTotalExpenses, 
@@ -76,7 +76,7 @@ export default function FinancialPage() {
     );
   }
 
-  if (isLoading) {
+  if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -87,7 +87,7 @@ export default function FinancialPage() {
     );
   }
 
-  if (!user) {
+  if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

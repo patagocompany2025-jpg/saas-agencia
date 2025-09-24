@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -29,7 +29,7 @@ interface ModernLayoutProps {
 }
 
 export function ModernLayout({ children }: ModernLayoutProps) {
-  const { user, logout } = useAuth();
+  const { data: session, signOut } = useSession();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({});
@@ -40,23 +40,23 @@ export function ModernLayout({ children }: ModernLayoutProps) {
     }
   }, [user]);
 
-  if (isLoading) {
+  if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-300">Carregando...</p>
+          <p className="mt-4 text-muted-foreground">Carregando...</p>
         </div>
       </div>
     );
   }
 
-  if (!user) {
+  if (!session) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Acesso Negado</h1>
-          <p className="text-gray-300">Você precisa fazer login para acessar esta página.</p>
+          <h1 className="text-2xl font-bold text-foreground mb-4">Acesso Negado</h1>
+          <p className="text-muted-foreground">Você precisa fazer login para acessar esta página.</p>
         </div>
       </div>
     );
@@ -96,17 +96,17 @@ export function ModernLayout({ children }: ModernLayoutProps) {
   };
 
   return (
-    <div className="bg-gray-900 min-h-screen font-sf-pro">
+    <div className="bg-background min-h-screen font-sf-pro">
       {/* Aurora Background */}
       <div className="fixed inset-0 bg-gradient-to-br from-indigo-900/20 via-purple-900/20 to-pink-900/20 pointer-events-none" />
       
       {/* macOS Window Container */}
       <div className="relative z-10 h-screen w-screen flex items-center justify-center p-4">
-        <div className="w-full h-full max-w-none bg-gray-800/95 backdrop-blur-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-white/10">
+        <div className="w-full h-full max-w-none bg-card/95 backdrop-blur-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-border">
           {/* App Content */}
           <div className="flex flex-1 min-h-0">
             {/* Sidebar */}
-            <aside className="w-64 bg-gray-800/80 backdrop-blur-2xl p-6 flex flex-col flex-shrink-0 border-r border-white/10">
+            <aside className="w-64 bg-card/80 backdrop-blur-2xl p-6 flex flex-col flex-shrink-0 border-r border-border">
               {/* Logo */}
               <div className="mb-8">
                 <img 
@@ -114,7 +114,7 @@ export function ModernLayout({ children }: ModernLayoutProps) {
                   alt="Patagonia Company" 
                   className="h-24 w-auto mb-3"
                 />
-                <p className="text-white/60 text-sm text-center">Sistema de Gestão</p>
+                <p className="text-muted-foreground text-sm text-center">Sistema de Gestão</p>
               </div>
 
               {/* Navigation */}
@@ -130,8 +130,8 @@ export function ModernLayout({ children }: ModernLayoutProps) {
                       <div
                         className={`flex items-center justify-between p-3 rounded-lg transition-all font-sf-text cursor-pointer ${
                           isActive
-                            ? 'bg-indigo-500/20 text-white border border-indigo-500/30'
-                            : 'text-white/70 hover:text-white hover:bg-white/10'
+                            ? 'bg-primary/20 text-foreground border border-primary/30'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                         }`}
                         onClick={() => {
                           if (hasSubmenu) {
@@ -149,7 +149,7 @@ export function ModernLayout({ children }: ModernLayoutProps) {
                           <span>{item.name}</span>
                         </div>
                         {hasSubmenu && (
-                          <div className="text-white/60">
+                          <div className="text-muted-foreground">
                             {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                           </div>
                         )}
@@ -168,8 +168,8 @@ export function ModernLayout({ children }: ModernLayoutProps) {
                                 href={subItem.href}
                                 className={`flex items-center space-x-3 p-2 rounded-lg transition-all text-sm ${
                                   isSubActive
-                                    ? 'bg-indigo-500/20 text-white border border-indigo-500/30'
-                                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                                    ? 'bg-primary/20 text-foreground border border-primary/30'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                                 }`}
                               >
                                 <SubIcon className="w-4 h-4" />
@@ -185,19 +185,19 @@ export function ModernLayout({ children }: ModernLayoutProps) {
               </nav>
 
               {/* User Profile */}
-              <div className="bg-gray-700/80 backdrop-blur-xl rounded-xl p-4 mt-auto border border-white/10">
+              <div className="bg-card/80 backdrop-blur-xl rounded-xl p-4 mt-auto border border-border">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    {session?.user?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-white text-sm font-medium">{user.name}</p>
-                    <p className="text-white/60 text-xs capitalize">{user.role}</p>
+                    <p className="text-foreground text-sm font-medium">{session?.user?.name}</p>
+                    <p className="text-muted-foreground text-xs capitalize">{session?.user?.role}</p>
                   </div>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="w-full mt-3 flex items-center space-x-2 text-white/60 hover:text-white transition-colors text-sm"
+                  className="w-full mt-3 flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Sair</span>
@@ -206,7 +206,7 @@ export function ModernLayout({ children }: ModernLayoutProps) {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 min-w-0 flex flex-col">
+            <main className="flex-1 min-w-0 flex flex-col bg-background/50 backdrop-blur-2xl">
               <div className="p-6 flex-1 overflow-y-auto">
                 {children}
               </div>
