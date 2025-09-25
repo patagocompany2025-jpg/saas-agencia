@@ -18,20 +18,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Verificar se há usuário salvo e se ainda está válido
-    const savedUser = localStorage.getItem('user');
-    const savedExpiry = localStorage.getItem('userExpiry');
-    
-    if (savedUser && savedExpiry) {
-      const expiryDate = new Date(savedExpiry);
-      const now = new Date();
+    if (typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem('user');
+      const savedExpiry = localStorage.getItem('userExpiry');
       
-      // Se ainda não expirou, restaurar o usuário
-      if (expiryDate > now) {
-        setUser(JSON.parse(savedUser));
-      } else {
-        // Se expirou, limpar dados
-        localStorage.removeItem('user');
-        localStorage.removeItem('userExpiry');
+      if (savedUser && savedExpiry) {
+        const expiryDate = new Date(savedExpiry);
+        const now = new Date();
+        
+        // Se ainda não expirou, restaurar o usuário
+        if (expiryDate > now) {
+          setUser(JSON.parse(savedUser));
+        } else {
+          // Se expirou, limpar dados
+          localStorage.removeItem('user');
+          localStorage.removeItem('userExpiry');
+        }
       }
     }
     setIsLoading(false);
@@ -86,18 +88,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(foundUser);
       
       // Salvar dados do usuário
-      localStorage.setItem('user', JSON.stringify(foundUser));
-      
-      if (rememberMe) {
-        // Se "Lembrar de mim" estiver marcado, salvar por 30 dias
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + 30);
-        localStorage.setItem('userExpiry', expiryDate.toISOString());
-      } else {
-        // Se não estiver marcado, salvar apenas para a sessão atual (expira no final do dia)
-        const expiryDate = new Date();
-        expiryDate.setHours(23, 59, 59, 999); // Final do dia atual
-        localStorage.setItem('userExpiry', expiryDate.toISOString());
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(foundUser));
+        
+        if (rememberMe) {
+          // Se "Lembrar de mim" estiver marcado, salvar por 30 dias
+          const expiryDate = new Date();
+          expiryDate.setDate(expiryDate.getDate() + 30);
+          localStorage.setItem('userExpiry', expiryDate.toISOString());
+        } else {
+          // Se não estiver marcado, salvar apenas para a sessão atual (expira no final do dia)
+          const expiryDate = new Date();
+          expiryDate.setHours(23, 59, 59, 999); // Final do dia atual
+          localStorage.setItem('userExpiry', expiryDate.toISOString());
+        }
       }
       
       setIsLoading(false);
@@ -110,8 +114,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('userExpiry');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user');
+      localStorage.removeItem('userExpiry');
+    }
   };
 
   return (
