@@ -13,9 +13,12 @@ import { useKanban } from '@/lib/contexts/KanbanContext';
 
 export default function KanbanPage() {
   const { user, isLoading } = useAuth();
-  const { addTask, updateTask, deleteTask } = useKanban();
+  const { addTask, updateTask, deleteTask, tasks } = useKanban();
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<KanbanTask | undefined>();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('todos');
+
 
   if (isLoading) {
     return (
@@ -70,6 +73,42 @@ export default function KanbanPage() {
     setEditingTask(undefined);
   };
 
+  const handleExportTasks = () => {
+    const exportData = tasks.map(task => ({
+      'Título': task.title,
+      'Destino': task.destination,
+      'Status': task.status,
+      'Prioridade': task.priority,
+      'Valor': task.value,
+      'Valor Esperado': task.expectedValue,
+      'Data de Criação': new Date(task.createdAt).toLocaleDateString('pt-BR'),
+      'Última Atualização': new Date(task.updatedAt).toLocaleDateString('pt-BR')
+    }));
+    
+    const csvContent = [
+      Object.keys(exportData[0]).join(','),
+      ...exportData.map(row => Object.values(row).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `pipeline_vendas_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleSearch = () => {
+    alert('Funcionalidade de busca será implementada em breve!');
+  };
+
+  const handleFilters = () => {
+    alert('Funcionalidade de filtros será implementada em breve!');
+  };
+
   if (showForm) {
     return (
       <ModernLayout>
@@ -105,13 +144,13 @@ export default function KanbanPage() {
                   </Button>
                 </Link>
                 <Link href="/kanban/delivery">
-                  <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 px-4 py-2">
+                  <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/40 px-4 py-2 font-medium">
                     <Truck className="h-4 w-4 mr-2" />
                     Entrega de Serviços
                   </Button>
                 </Link>
                 <Link href="/kanban/post-sale">
-                  <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 px-4 py-2">
+                  <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/40 px-4 py-2 font-medium">
                     <Heart className="h-4 w-4 mr-2" />
                     Pós-Venda
                   </Button>
@@ -119,22 +158,43 @@ export default function KanbanPage() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="p-2 bg-white/10 border border-white/20 rounded-lg text-white transition-all hover:bg-white/15">
-                <Filter className="w-5 h-5" />
-              </button>
-              <button className="p-2 bg-white/10 border border-white/20 rounded-lg text-white transition-all hover:bg-white/15">
-                <Search className="w-5 h-5" />
-              </button>
-              <button className="p-2 bg-white/10 border border-white/20 rounded-lg text-white transition-all hover:bg-white/15">
-                <Download className="w-5 h-5" />
-              </button>
-              <button 
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/15"
+                title="Filtros"
+                onClick={handleFilters}
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                Filtros
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/15"
+                title="Buscar"
+                onClick={handleSearch}
+              >
+                <Search className="w-4 h-4 mr-2" />
+                Buscar
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/15"
+                title="Exportar"
+                onClick={handleExportTasks}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Exportar
+              </Button>
+              <Button 
                 onClick={handleNewTask}
                 className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg font-medium hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg flex items-center"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Oportunidade
-              </button>
+              </Button>
             </div>
           </div>
         </header>

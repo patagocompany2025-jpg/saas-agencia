@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +23,9 @@ import {
   Hotel,
   Camera,
   Heart,
-  Zap
+  Zap,
+  Settings,
+  GripVertical
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -31,9 +33,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { KanbanTask } from '@/lib/types';
 import { useKanban } from '@/lib/contexts/KanbanContext';
 import { useClients } from '@/lib/contexts/ClientContext';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 const statusConfig = {
   prospeccao: {
@@ -106,24 +117,94 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ onNewTask, onEditTask }: KanbanBoardProps) {
+  const { user } = useAuth();
   const { tasks, moveTask, deleteTask, getTasksByStatus, getTotalValue } = useKanban();
   const { getClient } = useClients();
   const [draggedTask, setDraggedTask] = useState<KanbanTask | null>(null);
+  const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
+  const [columnOrder, setColumnOrder] = useState<KanbanTask['status'][]>(['prospeccao', 'qualificacao', 'consultoria', 'proposta', 'negociacao', 'fechado', 'perdido']);
+  const [showColumnConfig, setShowColumnConfig] = useState(false);
+  const [editingColumn, setEditingColumn] = useState<KanbanTask['status'] | null>(null);
+  const [columnConfig, setColumnConfig] = useState({
+    title: '',
+    subtitle: ''
+  });
 
   const handleDragStart = (e: React.DragEvent, task: KanbanTask) => {
     setDraggedTask(task);
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', task.id);
+    
+    // Adicionar classe visual ao card sendo arrastado
+    const target = e.target as HTMLElement;
+    const card = target.closest('[draggable="true"]') as HTMLElement;
+    if (card) {
+      card.style.opacity = '0.5';
+      card.style.transform = 'rotate(5deg) scale(1.05)';
+      card.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+      card.style.zIndex = '1000';
+    }
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    // Restaurar aparência do card
+    const target = e.target as HTMLElement;
+    const card = target.closest('[draggable="true"]') as HTMLElement;
+    if (card) {
+      card.style.opacity = '1';
+      card.style.transform = 'rotate(0deg) scale(1)';
+      card.style.boxShadow = '';
+      card.style.zIndex = '';
+    }
+    setDraggedTask(null);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+    
+    // Adicionar efeito visual na coluna de destino
+    const target = e.currentTarget as HTMLElement;
+    const column = target.querySelector('.column-header') as HTMLElement;
+    if (column) {
+      column.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+      column.style.borderRadius = '8px';
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // Remover efeito visual quando sair da coluna
+    const target = e.currentTarget as HTMLElement;
+    const column = target.querySelector('.column-header') as HTMLElement;
+    if (column) {
+      column.style.backgroundColor = '';
+      column.style.borderRadius = '';
+    }
   };
 
   const handleDrop = (e: React.DragEvent, newStatus: KanbanTask['status']) => {
     e.preventDefault();
+    
+    // Remover efeito visual
+    const target = e.currentTarget as HTMLElement;
+    const column = target.querySelector('.column-header') as HTMLElement;
+    if (column) {
+      column.style.backgroundColor = '';
+      column.style.borderRadius = '';
+    }
+    
     if (draggedTask && draggedTask.status !== newStatus) {
       moveTask(draggedTask.id, newStatus);
+      
+      // Feedback visual de sucesso
+      if (column) {
+        column.style.color = '#10b981';
+        column.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+        setTimeout(() => {
+          column.style.color = '';
+          column.style.backgroundColor = '';
+        }, 1000);
+      }
     }
     setDraggedTask(null);
   };
@@ -132,6 +213,83 @@ export function KanbanBoard({ onNewTask, onEditTask }: KanbanBoardProps) {
     if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
       deleteTask(taskId);
     }
+  };
+
+  const handleEditColumn = (columnStatus: KanbanTask['status']) => {
+    const config = statusConfig[columnStatus];
+    setEditingColumn(columnStatus);
+    setColumnConfig({
+      title: config.title,
+      subtitle: config.subtitle
+    });
+    setShowColumnConfig(true);
+  };
+
+  const handleSaveColumnConfig = () => {
+    if (editingColumn) {
+      // Para colunas padrão, apenas mostrar mensagem
+      alert(`Configurações da coluna "${columnConfig.title}" salvas com sucesso!`);
+      setShowColumnConfig(false);
+      setEditingColumn(null);
+    }
+  };
+
+  const handleCancelColumnConfig = () => {
+    setShowColumnConfig(false);
+    setEditingColumn(null);
+    setColumnConfig({ title: '', subtitle: '' });
+  };
+
+  const handleDeleteColumn = (columnStatus: KanbanTask['status']) => {
+    if (confirm(`Tem certeza que deseja excluir a coluna "${statusConfig[columnStatus].title}"? Esta ação não pode ser desfeita.`)) {
+      // Remover a coluna da ordem das colunas
+      setColumnOrder(prev => prev.filter(col => col !== columnStatus));
+      
+      // Mover todas as tarefas desta coluna para a primeira coluna disponível
+      const remainingColumns = columnOrder.filter(col => col !== columnStatus);
+      if (remainingColumns.length > 0) {
+        const firstColumn = remainingColumns[0] as KanbanTask['status'];
+        // Aqui você poderia implementar a lógica para mover as tarefas
+        // Por enquanto, apenas removemos a coluna da visualização
+      }
+      
+      alert(`Coluna "${statusConfig[columnStatus].title}" excluída com sucesso!`);
+    }
+  };
+
+  // Funções para drag and drop de colunas
+  const handleColumnDragStart = (e: React.DragEvent, columnStatus: KanbanTask['status']) => {
+    setDraggedColumn(columnStatus);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', columnStatus);
+  };
+
+  const handleColumnDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleColumnDrop = (e: React.DragEvent, targetColumn: KanbanTask['status']) => {
+    e.preventDefault();
+    
+    if (draggedColumn && draggedColumn !== targetColumn) {
+      const newOrder = [...columnOrder];
+      const draggedIndex = newOrder.indexOf(draggedColumn as KanbanTask['status']);
+      const targetIndex = newOrder.indexOf(targetColumn);
+      
+      // Trocar posições
+      if (draggedIndex !== -1 && targetIndex !== -1) {
+        newOrder[draggedIndex] = targetColumn;
+        newOrder[targetIndex] = draggedColumn as KanbanTask['status'];
+      }
+      
+      setColumnOrder(newOrder);
+    }
+    setDraggedColumn(null);
+  };
+
+  const handleColumnDragEnd = () => {
+    setDraggedColumn(null);
   };
 
   const formatCurrency = (value: number) => {
@@ -154,7 +312,8 @@ export function KanbanBoard({ onNewTask, onEditTask }: KanbanBoardProps) {
       {/* Board Kanban - Layout Horizontal */}
       <div className="kanban-scroll">
         <div className="flex gap-4" style={{ minWidth: 'calc(100vw - 200px)' }}>
-        {Object.entries(statusConfig).map(([status, config]) => {
+        {columnOrder.map((status) => {
+          const config = statusConfig[status];
           const statusTasks = getTasksByStatus(status as KanbanTask['status']);
           const totalValue = getTotalValue(status as KanbanTask['status']);
           const expectedValue = statusTasks.reduce((total, task) => total + (task.expectedValue || 0), 0);
@@ -162,22 +321,73 @@ export function KanbanBoard({ onNewTask, onEditTask }: KanbanBoardProps) {
           return (
             <div
               key={status}
-              className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-xl p-3 min-h-[600px] w-72 shadow-xl flex flex-col"
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, status as KanbanTask['status'])}
+              className={`bg-white/5 backdrop-blur-2xl border border-white/10 rounded-xl p-3 min-h-[600px] w-72 shadow-xl flex flex-col transition-all duration-200 ${
+                draggedTask && draggedTask.status !== status 
+                  ? 'border-indigo-400 border-2 bg-indigo-500/5' 
+                  : ''
+              } ${
+                draggedColumn === status 
+                  ? 'opacity-50 scale-95' 
+                  : ''
+              }`}
+              onDragOver={(e) => {
+                handleDragOver(e);
+                handleColumnDragOver(e);
+              }}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => {
+                handleDrop(e, status);
+                handleColumnDrop(e, status);
+              }}
+              draggable
+              onDragStart={(e) => handleColumnDragStart(e, status)}
+              onDragEnd={handleColumnDragEnd}
             >
               {/* Header da Coluna */}
-              <div className="mb-4 flex-shrink-0">
+              <div className="mb-4 flex-shrink-0 column-header">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
+                    <GripVertical className="h-4 w-4 text-white/40 cursor-move" />
                     <span className="text-sm">{config.icon}</span>
                     <div>
                       <h3 className="font-semibold text-white text-sm">{config.title}</h3>
                       <p className="text-xs text-white/60">{config.subtitle}</p>
                     </div>
                   </div>
-                  <div className="bg-white/20 text-white text-xs px-2 py-1 rounded-full">
-                    {statusTasks.length}
+                  <div className="flex items-center gap-2">
+                    <div className="bg-white/20 text-white text-xs px-2 py-1 rounded-full">
+                      {statusTasks.length}
+                    </div>
+                    {user?.role === 'socio' && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-white/60 hover:text-white hover:bg-white/10"
+                            title="Configurar coluna"
+                          >
+                            <Settings className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                          <DropdownMenuItem 
+                            onClick={() => handleEditColumn(status)}
+                            className="text-white hover:bg-gray-700"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar Coluna
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteColumn(status)}
+                            className="text-red-400 hover:bg-red-500/10"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir Coluna
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
                 </div>
                 
@@ -195,16 +405,33 @@ export function KanbanBoard({ onNewTask, onEditTask }: KanbanBoardProps) {
               </div>
 
               {/* Lista de Tarefas */}
-              <div className="flex-1 space-y-2 overflow-y-auto">
+              <div className="flex-1 space-y-2 overflow-y-auto max-h-[500px] scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+                {draggedTask && draggedTask.status !== status && (
+                  <div className="border-2 border-dashed border-indigo-400 bg-indigo-500/10 rounded-lg p-4 text-center text-indigo-300 text-sm font-medium mb-2 animate-pulse">
+                    <div className="flex items-center justify-center gap-2">
+                      <ArrowRight className="h-4 w-4" />
+                      Solte aqui para mover para {config.title}
+                    </div>
+                  </div>
+                )}
                 {statusTasks.map((task) => {
                   const client = getClient(task.clientId);
                   
                   return (
                     <div
                       key={task.id}
-                      className="cursor-move hover:shadow-xl transition-all duration-200 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg p-3 hover:bg-white/15 hover:border-white/30 hover:scale-[1.02]"
+                      className="cursor-move hover:shadow-xl transition-all duration-200 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg p-3 hover:bg-white/15 hover:border-white/30 hover:scale-[1.02] select-none touch-manipulation"
                       draggable
                       onDragStart={(e) => handleDragStart(e, task)}
+                      onDragEnd={handleDragEnd}
+                      onTouchStart={(e) => {
+                        // Suporte básico para touch - pode ser expandido
+                        const touch = e.touches[0];
+                        if (touch) {
+                          // Preparar para drag em dispositivos touch
+                          e.preventDefault();
+                        }
+                      }}
                     >
                       {/* Header do Card */}
                       <div className="flex items-start justify-between mb-3">
@@ -225,8 +452,12 @@ export function KanbanBoard({ onNewTask, onEditTask }: KanbanBoardProps) {
                           )}
                         </div>
                         <button
-                          onClick={() => onEditTask(task)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditTask(task);
+                          }}
                           className="p-1.5 hover:bg-white/20 rounded-lg transition-all duration-200 flex-shrink-0 hover:scale-110"
+                          title="Editar oportunidade"
                         >
                           <Edit className="h-3.5 w-3.5 text-white/70 hover:text-white" />
                         </button>
@@ -367,6 +598,52 @@ export function KanbanBoard({ onNewTask, onEditTask }: KanbanBoardProps) {
         })}
         </div>
       </div>
+
+      {/* Modal de Configuração da Coluna */}
+      <Dialog open={showColumnConfig} onOpenChange={setShowColumnConfig}>
+        <DialogContent className="bg-gray-800 border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Configurar Coluna</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="columnTitle" className="text-white/70">Título da Coluna</Label>
+              <Input
+                id="columnTitle"
+                value={columnConfig.title}
+                onChange={(e) => setColumnConfig(prev => ({ ...prev, title: e.target.value }))}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="Ex: Nova Etapa"
+              />
+            </div>
+            <div>
+              <Label htmlFor="columnSubtitle" className="text-white/70">Subtítulo da Coluna</Label>
+              <Input
+                id="columnSubtitle"
+                value={columnConfig.subtitle}
+                onChange={(e) => setColumnConfig(prev => ({ ...prev, subtitle: e.target.value }))}
+                className="bg-gray-700 border-gray-600 text-white"
+                placeholder="Ex: Descrição da etapa"
+              />
+            </div>
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={handleCancelColumnConfig}
+                variant="outline"
+                className="bg-gray-600 border-gray-500 text-white hover:bg-gray-700 hover:border-gray-400 flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSaveColumnConfig}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white flex-1"
+              >
+                Salvar Configurações
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

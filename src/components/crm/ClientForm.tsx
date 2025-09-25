@@ -71,135 +71,151 @@ export function ClientForm({ client, onSave, onCancel }: ClientFormProps) {
   };
 
   return (
-    <Card className="max-w-2xl mx-auto">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>
-            {client ? 'Editar Cliente' : 'Novo Cliente'}
-          </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onCancel}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl bg-white/5 backdrop-blur-2xl border-white/10">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-white text-xl font-bold">
+              {client ? 'Editar Cliente' : 'Novo Cliente'}
+            </CardTitle>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onCancel}
+              className="text-white/60 hover:text-white hover:bg-white/10"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nome *</Label>
+              <Label htmlFor="name" className="text-white/70">Nome *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 placeholder="Nome completo"
-                className={errors.name ? 'border-red-500' : ''}
+                className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${errors.name ? 'border-red-500' : ''}`}
               />
               {errors.name && (
-                <p className="text-sm text-red-600">{errors.name}</p>
+                <p className="text-sm text-red-400">{errors.name}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email" className="text-white/70">Email *</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleChange('email', e.target.value)}
                 placeholder="email@exemplo.com"
-                className={errors.email ? 'border-red-500' : ''}
+                className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${errors.email ? 'border-red-500' : ''}`}
               />
               {errors.email && (
-                <p className="text-sm text-red-600">{errors.email}</p>
+                <p className="text-sm text-red-400">{errors.email}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Telefone *</Label>
+              <Label htmlFor="phone" className="text-white/70">Telefone *</Label>
               <Input
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => handleChange('phone', e.target.value)}
                 placeholder="(11) 99999-9999"
-                className={errors.phone ? 'border-red-500' : ''}
+                className={`bg-gray-700 border-gray-600 text-white placeholder-gray-400 ${errors.phone ? 'border-red-500' : ''}`}
               />
               {errors.phone && (
-                <p className="text-sm text-red-600">{errors.phone}</p>
+                <p className="text-sm text-red-400">{errors.phone}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="company">Empresa</Label>
+              <Label htmlFor="company" className="text-white/70">Empresa</Label>
               <Input
                 id="company"
                 value={formData.company}
                 onChange={(e) => handleChange('company', e.target.value)}
                 placeholder="Nome da empresa"
+                className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Status *</Label>
+              <Label htmlFor="status" className="text-white/70">Status *</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value) => handleChange('status', value)}
               >
-                <SelectTrigger className={errors.status ? 'border-red-500' : ''}>
+                <SelectTrigger className={`bg-gray-700 border-gray-600 text-white ${errors.status ? 'border-red-500' : ''}`}>
                   <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="lead">Lead</SelectItem>
-                  <SelectItem value="prospect">Prospect</SelectItem>
-                  <SelectItem value="cliente">Cliente</SelectItem>
-                  <SelectItem value="inativo">Inativo</SelectItem>
+                <SelectContent className="bg-gray-800 border-gray-700">
+                  <SelectItem value="lead" className="text-white hover:bg-gray-700">Lead</SelectItem>
+                  <SelectItem value="prospect" className="text-white hover:bg-gray-700">Prospect</SelectItem>
+                  <SelectItem value="cliente" className="text-white hover:bg-gray-700">Cliente</SelectItem>
+                  <SelectItem value="inativo" className="text-white hover:bg-gray-700">Inativo</SelectItem>
                 </SelectContent>
               </Select>
               {errors.status && (
-                <p className="text-sm text-red-600">{errors.status}</p>
+                <p className="text-sm text-red-400">{errors.status}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="source">Origem *</Label>
+              <Label htmlFor="source" className="text-white/70">Origem *</Label>
               <Select
                 value={formData.source}
                 onValueChange={(value) => handleChange('source', value)}
               >
-                <SelectTrigger className={errors.source ? 'border-red-500' : ''}>
+                <SelectTrigger className={`bg-gray-700 border-gray-600 text-white ${errors.source ? 'border-red-500' : ''}`}>
                   <SelectValue placeholder="Como nos conheceu" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Website">Website</SelectItem>
-                  <SelectItem value="Facebook">Facebook</SelectItem>
-                  <SelectItem value="Instagram">Instagram</SelectItem>
-                  <SelectItem value="Indicação">Indicação</SelectItem>
-                  <SelectItem value="Google">Google</SelectItem>
-                  <SelectItem value="WhatsApp">WhatsApp</SelectItem>
-                  <SelectItem value="Outros">Outros</SelectItem>
+                <SelectContent className="bg-gray-800 border-gray-700">
+                  <SelectItem value="Website" className="text-white hover:bg-gray-700">Website</SelectItem>
+                  <SelectItem value="Facebook" className="text-white hover:bg-gray-700">Facebook</SelectItem>
+                  <SelectItem value="Instagram" className="text-white hover:bg-gray-700">Instagram</SelectItem>
+                  <SelectItem value="Indicação" className="text-white hover:bg-gray-700">Indicação</SelectItem>
+                  <SelectItem value="Google" className="text-white hover:bg-gray-700">Google</SelectItem>
+                  <SelectItem value="WhatsApp" className="text-white hover:bg-gray-700">WhatsApp</SelectItem>
+                  <SelectItem value="Outros" className="text-white hover:bg-gray-700">Outros</SelectItem>
                 </SelectContent>
               </Select>
               {errors.source && (
-                <p className="text-sm text-red-600">{errors.source}</p>
+                <p className="text-sm text-red-400">{errors.source}</p>
               )}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Observações</Label>
+            <Label htmlFor="notes" className="text-white/70">Observações</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => handleChange('notes', e.target.value)}
               placeholder="Informações adicionais sobre o cliente..."
               rows={3}
+              className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
             />
           </div>
 
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel}
+              className="bg-gray-600 border-gray-500 text-white hover:bg-gray-700 hover:border-gray-400"
+            >
               Cancelar
             </Button>
-            <Button type="submit">
+            <Button 
+              type="submit"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
               <Save className="h-4 w-4 mr-2" />
               {client ? 'Salvar Alterações' : 'Criar Cliente'}
             </Button>
@@ -207,5 +223,6 @@ export function ClientForm({ client, onSave, onCancel }: ClientFormProps) {
         </form>
       </CardContent>
     </Card>
+    </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import {
@@ -38,6 +39,7 @@ const mockMetrics = {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { user, isLoading } = useAuth();
   const { clients } = useClients();
   const { tasks, getTotalValue } = useKanban();
@@ -77,10 +79,23 @@ export default function DashboardPage() {
             <p className="text-white/60">Monitor sua agência e performance de vendas</p>
           </div>
           <div className="flex items-center space-x-4">
-            <button className="p-2 bg-white/10 border border-white/20 rounded-lg text-white transition-all hover:bg-white/15">
+            <button 
+              onClick={() => {
+                if (user?.role === 'socio') {
+                  router.push('/reports');
+                } else {
+                  alert('Apenas sócios têm acesso aos relatórios.');
+                }
+              }}
+              className="p-2 bg-white/10 border border-white/20 rounded-lg text-white transition-all hover:bg-white/15"
+              title={user?.role === 'socio' ? 'Relatórios e Análises' : 'Acesso restrito - Apenas sócios'}
+            >
               <BarChart3 className="w-5 h-5" />
             </button>
-            <button className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg font-medium hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg">
+            <button 
+              onClick={() => router.push('/kanban')}
+              className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg font-medium hover:from-indigo-700 hover:to-blue-700 transition-all shadow-lg"
+            >
               + Nova Oportunidade
             </button>
           </div>
@@ -318,7 +333,7 @@ export default function DashboardPage() {
           </h3>
           <p className="text-white/70 mb-4">Adicione um novo cliente ao seu CRM</p>
           <button 
-            onClick={() => window.location.href = '/crm'}
+            onClick={() => router.push('/crm')}
             className="bg-white/20 border border-white/30 text-white px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition-all"
           >
             Adicionar Cliente
@@ -332,7 +347,7 @@ export default function DashboardPage() {
           </h3>
           <p className="text-white/70 mb-4">Crie uma nova oportunidade no pipeline</p>
           <button 
-            onClick={() => window.location.href = '/kanban'}
+            onClick={() => router.push('/kanban')}
             className="bg-white/20 border border-white/30 text-white px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition-all"
           >
             Criar Oportunidade
@@ -346,7 +361,7 @@ export default function DashboardPage() {
           </h3>
           <p className="text-white/70 mb-4">Use nossa calculadora de preços</p>
           <button 
-            onClick={() => window.location.href = '/calculator'}
+            onClick={() => router.push('/calculator')}
             className="bg-white/20 border border-white/30 text-white px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition-all"
           >
             Calcular

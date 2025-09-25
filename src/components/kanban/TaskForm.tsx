@@ -350,7 +350,7 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
                   <label className="text-sm text-white/70">Data de Partida</label>
                   <input
                     type="date"
-                    value={formData.travelDates.departure ? formData.travelDates.departure.toISOString().split('T')[0] : ''}
+                    value={formData.travelDates.departure && formData.travelDates.departure instanceof Date ? formData.travelDates.departure.toISOString().split('T')[0] : ''}
                     onChange={(e) => handleInputChange('travelDates.departure', e.target.value ? new Date(e.target.value) : undefined)}
                     className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
@@ -359,7 +359,7 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
                   <label className="text-sm text-white/70">Data de Retorno</label>
                   <input
                     type="date"
-                    value={formData.travelDates.return ? formData.travelDates.return.toISOString().split('T')[0] : ''}
+                    value={formData.travelDates.return && formData.travelDates.return instanceof Date ? formData.travelDates.return.toISOString().split('T')[0] : ''}
                     onChange={(e) => handleInputChange('travelDates.return', e.target.value ? new Date(e.target.value) : undefined)}
                     className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />

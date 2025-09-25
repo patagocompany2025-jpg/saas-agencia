@@ -7,6 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { 
   Settings, 
   User, 
@@ -33,7 +41,13 @@ import {
   Key,
   Trash2,
   Download,
-  Upload
+  Upload,
+  Users,
+  UserPlus,
+  Crown,
+  UserCheck,
+  MoreHorizontal,
+  Plus
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -85,11 +99,313 @@ export default function SettingsPage() {
     confirmPassword: ''
   });
 
+  // Estados para gerenciamento de usuários
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [showPermissionsModal, setShowPermissionsModal] = useState(false);
+  const [selectedUserPermissions, setSelectedUserPermissions] = useState<any>(null);
+  const [userFormData, setUserFormData] = useState({
+    name: '',
+    email: '',
+    role: 'vendedor',
+    permissions: [] as string[]
+  });
+
+  // Dados mockados de usuários
+  const [users, setUsers] = useState<Array<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    status: string;
+    createdAt: string;
+    lastLogin: string | null;
+    permissions: string[];
+    updatedAt?: string;
+  }>>([
+    {
+      id: '1',
+      name: 'Alexandre Silva',
+      email: 'alexandre@agenciapatagonia.com',
+      role: 'socio',
+      status: 'active',
+      createdAt: '2024-01-01',
+      lastLogin: '2024-01-15',
+      permissions: []
+    },
+    {
+      id: '2',
+      name: 'Maria Santos',
+      email: 'maria@agenciapatagonia.com',
+      role: 'vendedor',
+      status: 'active',
+      createdAt: '2024-01-05',
+      lastLogin: '2024-01-14',
+      permissions: ['dashboard', 'crm', 'kanban']
+    },
+    {
+      id: '3',
+      name: 'João Oliveira',
+      email: 'joao@agenciapatagonia.com',
+      role: 'vendedor',
+      status: 'inactive',
+      createdAt: '2024-01-10',
+      lastLogin: '2024-01-12',
+      permissions: ['dashboard', 'crm']
+    }
+  ]);
+
+  // Permissões disponíveis - Todas as funcionalidades do sistema
+  const availablePermissions = [
+    // Dashboard e Navegação
+    { 
+      id: 'dashboard', 
+      name: 'Dashboard', 
+      description: 'Acesso ao painel principal com métricas e resumos',
+      category: 'Navegação',
+      icon: '📊'
+    },
+    
+    // CRM e Clientes
+    { 
+      id: 'crm', 
+      name: 'CRM - Clientes', 
+      description: 'Gerenciamento completo de clientes e leads',
+      category: 'CRM',
+      icon: '👥'
+    },
+    { 
+      id: 'crm_create', 
+      name: 'Criar Clientes', 
+      description: 'Adicionar novos clientes ao sistema',
+      category: 'CRM',
+      icon: '➕'
+    },
+    { 
+      id: 'crm_edit', 
+      name: 'Editar Clientes', 
+      description: 'Modificar informações de clientes existentes',
+      category: 'CRM',
+      icon: '✏️'
+    },
+    { 
+      id: 'crm_delete', 
+      name: 'Excluir Clientes', 
+      description: 'Remover clientes do sistema',
+      category: 'CRM',
+      icon: '🗑️'
+    },
+    
+    // Pipeline de Vendas
+    { 
+      id: 'kanban', 
+      name: 'Pipeline de Vendas', 
+      description: 'Gestão completa de oportunidades de venda',
+      category: 'Vendas',
+      icon: '🎯'
+    },
+    { 
+      id: 'kanban_create', 
+      name: 'Criar Oportunidades', 
+      description: 'Adicionar novas oportunidades de venda',
+      category: 'Vendas',
+      icon: '➕'
+    },
+    { 
+      id: 'kanban_edit', 
+      name: 'Editar Oportunidades', 
+      description: 'Modificar oportunidades existentes',
+      category: 'Vendas',
+      icon: '✏️'
+    },
+    { 
+      id: 'kanban_delete', 
+      name: 'Excluir Oportunidades', 
+      description: 'Remover oportunidades do pipeline',
+      category: 'Vendas',
+      icon: '🗑️'
+    },
+    { 
+      id: 'kanban_columns', 
+      name: 'Gerenciar Colunas', 
+      description: 'Criar, editar e excluir colunas do pipeline',
+      category: 'Vendas',
+      icon: '📋'
+    },
+    
+    // Entrega de Serviços
+    { 
+      id: 'delivery', 
+      name: 'Entrega de Serviços', 
+      description: 'Gestão completa do processo de entrega',
+      category: 'Operações',
+      icon: '🚚'
+    },
+    { 
+      id: 'delivery_create', 
+      name: 'Criar Entregas', 
+      description: 'Adicionar novas entregas de serviço',
+      category: 'Operações',
+      icon: '➕'
+    },
+    { 
+      id: 'delivery_edit', 
+      name: 'Editar Entregas', 
+      description: 'Modificar entregas existentes',
+      category: 'Operações',
+      icon: '✏️'
+    },
+    { 
+      id: 'delivery_delete', 
+      name: 'Excluir Entregas', 
+      description: 'Remover entregas do sistema',
+      category: 'Operações',
+      icon: '🗑️'
+    },
+    
+    // Pós-Venda
+    { 
+      id: 'post-sale', 
+      name: 'Pós-Venda', 
+      description: 'Gestão de atividades pós-venda e satisfação',
+      category: 'Atendimento',
+      icon: '💝'
+    },
+    { 
+      id: 'post-sale_create', 
+      name: 'Criar Atividades', 
+      description: 'Adicionar novas atividades de pós-venda',
+      category: 'Atendimento',
+      icon: '➕'
+    },
+    { 
+      id: 'post-sale_edit', 
+      name: 'Editar Atividades', 
+      description: 'Modificar atividades de pós-venda',
+      category: 'Atendimento',
+      icon: '✏️'
+    },
+    
+    // Financeiro
+    { 
+      id: 'financial', 
+      name: 'Financeiro', 
+      description: 'Gestão financeira completa da agência',
+      category: 'Financeiro',
+      icon: '💰'
+    },
+    { 
+      id: 'financial_transactions', 
+      name: 'Transações', 
+      description: 'Visualizar e gerenciar transações financeiras',
+      category: 'Financeiro',
+      icon: '💳'
+    },
+    { 
+      id: 'financial_reports', 
+      name: 'Relatórios Financeiros', 
+      description: 'Acesso a relatórios e análises financeiras',
+      category: 'Financeiro',
+      icon: '📈'
+    },
+    { 
+      id: 'financial_employees', 
+      name: 'Funcionários', 
+      description: 'Gerenciar funcionários e despesas',
+      category: 'Financeiro',
+      icon: '👨‍💼'
+    },
+    { 
+      id: 'financial_expenses', 
+      name: 'Despesas Fixas', 
+      description: 'Gerenciar despesas fixas da empresa',
+      category: 'Financeiro',
+      icon: '📊'
+    },
+    
+    // Relatórios e Análises
+    { 
+      id: 'reports', 
+      name: 'Relatórios', 
+      description: 'Acesso a todos os relatórios do sistema',
+      category: 'Análises',
+      icon: '📊'
+    },
+    { 
+      id: 'reports_sales', 
+      name: 'Relatórios de Vendas', 
+      description: 'Análises de performance de vendas',
+      category: 'Análises',
+      icon: '📈'
+    },
+    { 
+      id: 'reports_financial', 
+      name: 'Relatórios Financeiros', 
+      description: 'Análises financeiras detalhadas',
+      category: 'Análises',
+      icon: '💰'
+    },
+    { 
+      id: 'reports_performance', 
+      name: 'Relatórios de Performance', 
+      description: 'Métricas de performance da equipe',
+      category: 'Análises',
+      icon: '🎯'
+    },
+    
+    // Configurações e Administração
+    { 
+      id: 'settings', 
+      name: 'Configurações', 
+      description: 'Configurações gerais do sistema',
+      category: 'Administração',
+      icon: '⚙️'
+    },
+    { 
+      id: 'users', 
+      name: 'Gerenciar Usuários', 
+      description: 'Criar, editar e excluir usuários do sistema',
+      category: 'Administração',
+      icon: '👥'
+    },
+    { 
+      id: 'users_create', 
+      name: 'Criar Usuários', 
+      description: 'Adicionar novos usuários ao sistema',
+      category: 'Administração',
+      icon: '➕'
+    },
+    { 
+      id: 'users_edit', 
+      name: 'Editar Usuários', 
+      description: 'Modificar informações de usuários',
+      category: 'Administração',
+      icon: '✏️'
+    },
+    { 
+      id: 'users_delete', 
+      name: 'Excluir Usuários', 
+      description: 'Remover usuários do sistema',
+      category: 'Administração',
+      icon: '🗑️'
+    },
+    
+    // Calculadora
+    { 
+      id: 'calculator', 
+      name: 'Calculadora', 
+      description: 'Ferramenta de cálculo de preços e orçamentos',
+      category: 'Ferramentas',
+      icon: '🧮'
+    }
+  ];
+
   // Abas baseadas em roles
   const getTabsForRole = () => {
     const allTabs = [
       { id: 'profile', name: 'Perfil', icon: User, roles: ['socio', 'vendedor'] },
       { id: 'company', name: 'Empresa', icon: Building2, roles: ['socio'] },
+      { id: 'users', name: 'Usuários', icon: Users, roles: ['socio'] },
       { id: 'notifications', name: 'Notificações', icon: Bell, roles: ['socio', 'vendedor'] },
       { id: 'security', name: 'Segurança', icon: Shield, roles: ['socio', 'vendedor'] },
       { id: 'appearance', name: 'Aparência', icon: Palette, roles: ['socio', 'vendedor'] },
@@ -175,6 +491,162 @@ export default function SettingsPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Funções para gerenciamento de usuários
+  const handleNewUser = () => {
+    setEditingUser(null);
+    setUserFormData({
+      name: '',
+      email: '',
+      role: 'vendedor',
+      permissions: []
+    });
+    setShowUserForm(true);
+  };
+
+  const handleEditUser = (user: any) => {
+    setEditingUser(user);
+    setUserFormData({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      permissions: user.permissions || []
+    });
+    setShowUserForm(true);
+  };
+
+  const handleCancelEdit = () => {
+    setShowUserForm(false);
+    setEditingUser(null);
+    setUserFormData({
+      name: '',
+      email: '',
+      role: 'vendedor',
+      permissions: []
+    });
+  };
+
+  const handleSaveUser = async () => {
+    // Validações
+    if (!userFormData.name.trim() || !userFormData.email.trim()) {
+      alert('Nome e email são obrigatórios!');
+      return;
+    }
+
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userFormData.email)) {
+      alert('Por favor, insira um email válido!');
+      return;
+    }
+
+    // Verificar se email já existe (apenas para novos usuários)
+    if (!editingUser) {
+      const emailExists = users.some(u => u.email.toLowerCase() === userFormData.email.toLowerCase());
+      if (emailExists) {
+        alert('Este email já está sendo usado por outro usuário!');
+        return;
+      }
+    }
+
+    // Verificar se email foi alterado para um que já existe (para edição)
+    if (editingUser && userFormData.email.toLowerCase() !== editingUser.email.toLowerCase()) {
+      const emailExists = users.some(u => 
+        u.id !== editingUser.id && 
+        u.email.toLowerCase() === userFormData.email.toLowerCase()
+      );
+      if (emailExists) {
+        alert('Este email já está sendo usado por outro usuário!');
+        return;
+      }
+    }
+
+    setIsLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      if (editingUser) {
+        // Atualizar usuário existente
+        setUsers(prev => prev.map(u => 
+          u.id === editingUser.id 
+            ? { ...u, ...userFormData, updatedAt: new Date().toISOString().split('T')[0] }
+            : u
+        ));
+        alert('Usuário atualizado com sucesso!');
+      } else {
+        // Criar novo usuário
+        const newUser = {
+          id: Date.now().toString(),
+          ...userFormData,
+          status: 'active',
+          createdAt: new Date().toISOString().split('T')[0],
+          lastLogin: null
+        };
+        setUsers(prev => [...prev, newUser]);
+        alert('Usuário criado com sucesso!');
+      }
+      
+      handleCancelEdit();
+    } catch (error) {
+      alert('Erro ao salvar usuário. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    if (confirm('Tem certeza que deseja excluir este usuário?')) {
+      setUsers(prev => prev.filter(u => u.id !== userId));
+      alert('Usuário excluído com sucesso!');
+    }
+  };
+
+  const handleTogglePermission = (permissionId: string) => {
+    setUserFormData(prev => ({
+      ...prev,
+      permissions: prev.permissions.includes(permissionId)
+        ? prev.permissions.filter(p => p !== permissionId)
+        : [...prev.permissions, permissionId]
+    }));
+  };
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'socio':
+        return <Crown className="h-4 w-4 text-yellow-400" />;
+      case 'vendedor':
+        return <UserCheck className="h-4 w-4 text-blue-400" />;
+      default:
+        return <User className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'socio':
+        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
+      case 'vendedor':
+        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+      default:
+        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+    }
+  };
+
+  const handleViewPermissions = (user: any) => {
+    setSelectedUserPermissions(user);
+    setShowPermissionsModal(true);
+  };
+
+  const handleDuplicateUser = (user: any) => {
+    setEditingUser(null);
+    setUserFormData({
+      name: `${user.name} (Cópia)`,
+      email: `copia_${user.email}`,
+      role: user.role,
+      permissions: user.permissions || []
+    });
+    setShowUserForm(true);
   };
 
   if (authLoading) {
@@ -313,6 +785,177 @@ export default function SettingsPage() {
                   )}
                 </CardContent>
               </Card>
+            )}
+
+            {/* Gerenciamento de Usuários */}
+            {activeTab === 'users' && (
+              <div className="space-y-6">
+                {/* Header com botão de adicionar */}
+                <Card className="bg-white/5 backdrop-blur-2xl border-white/10">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-white flex items-center gap-2">
+                        <Users className="h-5 w-5 text-indigo-400" />
+                        Gerenciamento de Usuários
+                      </CardTitle>
+                      <Button
+                        onClick={handleNewUser}
+                        className="bg-indigo-600 hover:bg-indigo-700"
+                      >
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Adicionar Usuário
+                      </Button>
+                    </div>
+                  </CardHeader>
+                </Card>
+
+                {/* Lista de Usuários */}
+                <Card className="bg-white/5 backdrop-blur-2xl border-white/10">
+                  <CardContent className="p-0">
+                    <div className="space-y-0">
+                      {users.map((user, index) => (
+                        <div
+                          key={user.id}
+                          className={`p-6 ${index !== users.length - 1 ? 'border-b border-white/10' : ''}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white font-semibold">
+                                {user.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <h3 className="text-white font-semibold">{user.name}</h3>
+                                <p className="text-white/60 text-sm">{user.email}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getRoleColor(user.role)}`}>
+                                    {getRoleIcon(user.role)}
+                                    <span className="ml-1">
+                                      {user.role === 'socio' ? 'Sócio' : 'Vendedor'}
+                                    </span>
+                                  </span>
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    user.status === 'active' 
+                                      ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                                      : 'bg-red-500/20 text-red-300 border border-red-500/30'
+                                  }`}>
+                                    {user.status === 'active' ? 'Ativo' : 'Inativo'}
+                                  </span>
+                                  {editingUser && editingUser.id === user.id && (
+                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                      <Edit className="h-3 w-3 inline mr-1" />
+                                      Editando
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                {/* Mostrar permissões para vendedores */}
+                                {user.role === 'vendedor' && user.permissions && user.permissions.length > 0 && (
+                                  <div className="mt-2">
+                                    <div className="text-white/60 text-xs mb-1">Permissões:</div>
+                                    <div className="flex flex-wrap gap-1">
+                                      {user.permissions.slice(0, 3).map((permissionId) => {
+                                        const permission = availablePermissions.find(p => p.id === permissionId);
+                                        return permission ? (
+                                          <span
+                                            key={permissionId}
+                                            className="px-2 py-1 bg-indigo-500/20 text-indigo-300 text-xs rounded border border-indigo-500/30"
+                                          >
+                                            {permission.icon} {permission.name}
+                                          </span>
+                                        ) : null;
+                                      })}
+                                      {user.permissions.length > 3 && (
+                                        <span className="px-2 py-1 bg-gray-500/20 text-gray-300 text-xs rounded border border-gray-500/30">
+                                          +{user.permissions.length - 3} mais
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="text-right text-sm text-white/60">
+                                <p>Criado em: {user.createdAt}</p>
+                                {user.lastLogin && (
+                                  <p>Último login: {user.lastLogin}</p>
+                                )}
+                                {'updatedAt' in user && user.updatedAt && (
+                                  <p className="text-blue-300">Atualizado: {user.updatedAt}</p>
+                                )}
+                              </div>
+                              
+                              {/* Botões de Ação Diretos */}
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => handleEditUser(user)}
+                                  size="sm"
+                                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                >
+                                  <Edit className="h-4 w-4 mr-1" />
+                                  Editar
+                                </Button>
+                                
+                                {user.role === 'vendedor' && user.permissions && user.permissions.length > 0 && (
+                                  <Button
+                                    onClick={() => handleViewPermissions(user)}
+                                    size="sm"
+                                    variant="outline"
+                                    className="bg-blue-600/20 border-blue-500/30 text-blue-300 hover:bg-blue-600/30 hover:border-blue-500/50"
+                                  >
+                                    <Shield className="h-4 w-4 mr-1" />
+                                    Permissões
+                                  </Button>
+                                )}
+                              </div>
+                              
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                                  <DropdownMenuItem 
+                                    onClick={() => handleEditUser(user)}
+                                    className="text-white hover:bg-gray-700"
+                                  >
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Editar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDuplicateUser(user)}
+                                    className="text-green-400 hover:bg-green-500/10"
+                                  >
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Duplicar
+                                  </DropdownMenuItem>
+                                  {user.role === 'vendedor' && user.permissions && user.permissions.length > 0 && (
+                                    <DropdownMenuItem 
+                                      onClick={() => handleViewPermissions(user)}
+                                      className="text-blue-400 hover:bg-blue-500/10"
+                                    >
+                                      <Shield className="h-4 w-4 mr-2" />
+                                      Ver Permissões
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDeleteUser(user.id)}
+                                    className="text-red-400 hover:bg-red-500/10"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Excluir
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             )}
 
             {/* Configurações da Empresa */}
@@ -608,6 +1251,292 @@ export default function SettingsPage() {
             )}
           </div>
         </div>
+
+        {/* Modal de Formulário de Usuário */}
+        {showUserForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+              <h3 className="text-xl font-bold text-white mb-4">
+                {editingUser ? 'Editar Usuário' : 'Adicionar Novo Usuário'}
+              </h3>
+              
+              <div className="space-y-6">
+                {/* Informações Básicas */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-white/70">Nome Completo *</Label>
+                    <Input
+                      value={userFormData.name}
+                      onChange={(e) => setUserFormData(prev => ({ ...prev, name: e.target.value }))}
+                      className="bg-gray-700 border-gray-600 text-white"
+                      placeholder="Ex: João Silva"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white/70">Email *</Label>
+                    <Input
+                      value={userFormData.email}
+                      onChange={(e) => setUserFormData(prev => ({ ...prev, email: e.target.value }))}
+                      className="bg-gray-700 border-gray-600 text-white"
+                      placeholder="Ex: joao@agenciapatagonia.com"
+                      type="email"
+                    />
+                  </div>
+                </div>
+
+                {/* Função/Role */}
+                <div>
+                  <Label className="text-white/70">Função *</Label>
+                  <Select value={userFormData.role} onValueChange={(value) => setUserFormData(prev => ({ ...prev, role: value }))}>
+                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem value="vendedor" className="text-white hover:bg-gray-700">
+                        <div className="flex items-center gap-2">
+                          <UserCheck className="h-4 w-4 text-blue-400" />
+                          Vendedor - Acesso Limitado
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="socio" className="text-white hover:bg-gray-700">
+                        <div className="flex items-center gap-2">
+                          <Crown className="h-4 w-4 text-yellow-400" />
+                          Sócio - Acesso Total
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Permissões (apenas para vendedores) */}
+                {userFormData.role === 'vendedor' && (
+                  <div>
+                    <Label className="text-white/70">Permissões de Acesso</Label>
+                    <p className="text-white/60 text-sm mb-4">Selecione quais funcionalidades o vendedor pode acessar:</p>
+                    
+                    {/* Controles de seleção rápida */}
+                    <div className="mb-6 p-4 bg-gray-700/30 rounded-lg">
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            const allPermissionIds = availablePermissions.map(p => p.id);
+                            setUserFormData(prev => ({ ...prev, permissions: allPermissionIds }));
+                          }}
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          Selecionar Todas
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={() => setUserFormData(prev => ({ ...prev, permissions: [] }))}
+                          size="sm"
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          Desmarcar Todas
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            const basicPermissions = ['dashboard', 'crm', 'kanban'];
+                            setUserFormData(prev => ({ ...prev, permissions: basicPermissions }));
+                          }}
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          Permissões Básicas
+                        </Button>
+                      </div>
+                      <div className="text-white/60 text-sm">
+                        <strong>Selecionadas:</strong> {userFormData.permissions.length} de {availablePermissions.length} permissões
+                      </div>
+                    </div>
+
+                    {/* Permissões organizadas por categoria */}
+                    <div className="space-y-6">
+                      {Array.from(new Set(availablePermissions.map(p => p.category))).map((category) => (
+                        <div key={category} className="border border-gray-600 rounded-lg p-4">
+                          <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
+                            <span className="text-lg">
+                              {availablePermissions.find(p => p.category === category)?.icon}
+                            </span>
+                            {category}
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {availablePermissions
+                              .filter(permission => permission.category === category)
+                              .map((permission) => (
+                                <label
+                                  key={permission.id}
+                                  className="flex items-start gap-3 p-3 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 cursor-pointer transition-colors border border-gray-600/50"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={userFormData.permissions.includes(permission.id)}
+                                    onChange={() => handleTogglePermission(permission.id)}
+                                    className="mt-1 w-4 h-4 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500 focus:ring-2"
+                                  />
+                                  <div className="flex-1">
+                                    <div className="text-white font-medium flex items-center gap-2">
+                                      <span className="text-sm">{permission.icon}</span>
+                                      {permission.name}
+                                    </div>
+                                    <div className="text-white/60 text-sm mt-1">{permission.description}</div>
+                                  </div>
+                                </label>
+                              ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Botões */}
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={handleCancelEdit}
+                    variant="outline"
+                    className="bg-gray-600 border-gray-500 text-white hover:bg-gray-700 hover:border-gray-400 flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleSaveUser}
+                    disabled={isLoading}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white flex-1"
+                  >
+                    {isLoading ? 'Salvando...' : editingUser ? 'Atualizar Usuário' : 'Criar Usuário'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Visualização de Permissões */}
+        {showPermissionsModal && selectedUserPermissions && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">
+                  Permissões de {selectedUserPermissions.name}
+                </h3>
+                <Button
+                  onClick={() => setShowPermissionsModal(false)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-white/60 hover:text-white"
+                >
+                  ✕
+                </Button>
+              </div>
+              
+              <div className="space-y-6">
+                {/* Informações do usuário */}
+                <div className="p-4 bg-gray-700/30 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white font-semibold">
+                      {selectedUserPermissions.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h4 className="text-white font-semibold">{selectedUserPermissions.name}</h4>
+                      <p className="text-white/60">{selectedUserPermissions.email}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getRoleColor(selectedUserPermissions.role)}`}>
+                          {getRoleIcon(selectedUserPermissions.role)}
+                          <span className="ml-1">
+                            {selectedUserPermissions.role === 'socio' ? 'Sócio' : 'Vendedor'}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Permissões organizadas por categoria */}
+                {selectedUserPermissions.role === 'socio' ? (
+                  <div className="p-6 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Crown className="h-6 w-6 text-yellow-400" />
+                      <h4 className="text-yellow-300 font-semibold text-lg">Acesso Total</h4>
+                    </div>
+                    <p className="text-yellow-200/80">
+                      Como sócio, este usuário tem acesso completo a todas as funcionalidades do sistema.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="text-white/60 text-sm">
+                      <strong>Total de permissões:</strong> {selectedUserPermissions.permissions?.length || 0} de {availablePermissions.length}
+                    </div>
+                    
+                    {Array.from(new Set(availablePermissions.map(p => p.category))).map((category) => {
+                      const categoryPermissions = availablePermissions.filter(p => p.category === category);
+                      const userCategoryPermissions = categoryPermissions.filter(p => 
+                        selectedUserPermissions.permissions?.includes(p.id)
+                      );
+                      
+                      if (userCategoryPermissions.length === 0) return null;
+                      
+                      return (
+                        <div key={category} className="border border-gray-600 rounded-lg p-4">
+                          <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
+                            <span className="text-lg">
+                              {categoryPermissions[0]?.icon}
+                            </span>
+                            {category}
+                            <span className="text-sm text-white/60">
+                              ({userCategoryPermissions.length}/{categoryPermissions.length})
+                            </span>
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {userCategoryPermissions.map((permission) => (
+                              <div
+                                key={permission.id}
+                                className="flex items-start gap-3 p-3 bg-green-500/10 border border-green-500/30 rounded-lg"
+                              >
+                                <CheckCircle className="h-5 w-5 text-green-400 mt-0.5" />
+                                <div>
+                                  <div className="text-green-300 font-medium flex items-center gap-2">
+                                    <span className="text-sm">{permission.icon}</span>
+                                    {permission.name}
+                                  </div>
+                                  <div className="text-green-200/60 text-sm mt-1">{permission.description}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Botões de ação */}
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={() => setShowPermissionsModal(false)}
+                    className="bg-gray-600 hover:bg-gray-700 text-white flex-1"
+                  >
+                    Fechar
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowPermissionsModal(false);
+                      handleEditUser(selectedUserPermissions);
+                    }}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white flex-1"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar Permissões
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ModernLayout>
   );

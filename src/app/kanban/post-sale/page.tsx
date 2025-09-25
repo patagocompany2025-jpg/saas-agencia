@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { ModernLayout } from '@/components/layout/ModernLayout';
+import { PostSaleKanbanBoard } from '@/components/kanban/PostSaleKanbanBoard';
+import { PostSaleTaskForm } from '@/components/kanban/PostSaleTaskForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -14,17 +16,21 @@ import {
   Calendar, 
   Users, 
   MapPin, 
-  Plus,
-  Edit,
-  Trash2,
-  CheckCircle,
-  AlertCircle,
-  Clock,
-  ThumbsUp,
-  Gift,
-  Award,
-  Target,
-  Truck
+  Plus, 
+  Edit, 
+  Trash2, 
+  CheckCircle, 
+  AlertCircle, 
+  Clock, 
+  ThumbsUp, 
+  Gift, 
+  Award, 
+  Target, 
+  Truck,
+  Filter,
+  Search,
+  Download,
+  Settings
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -132,6 +138,205 @@ export default function PostSalePage() {
   const [tasks, setTasks] = useState(mockPostSaleTasks);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<any>(undefined);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('todos');
+  const [showFilters, setShowFilters] = useState(false);
+  const [priorityFilter, setPriorityFilter] = useState<string>('todos');
+  const [dateFilter, setDateFilter] = useState<string>('todos');
+  const [showAddColumn, setShowAddColumn] = useState(false);
+  const [newColumnData, setNewColumnData] = useState({
+    title: '',
+    subtitle: '',
+    color: 'blue'
+  });
+  const [customColumns, setCustomColumns] = useState<{[key: string]: {title: string, subtitle: string, color: string}}>({});
+
+  const handleNewTask = () => {
+    setEditingTask(undefined);
+    setShowForm(true);
+  };
+
+  const handleEditTask = useCallback((task: any) => {
+    setEditingTask(task);
+    setShowForm(true);
+  }, []);
+
+  const handleSaveTask = (taskData: any) => {
+    try {
+      if (editingTask) {
+        // Atualizar tarefa existente
+        console.log('Atualizando tarefa:', taskData);
+        alert(`Atividade de pós-venda "${taskData.clientName}" atualizada com sucesso!`);
+      } else {
+        // Criar nova tarefa
+        console.log('Criando nova tarefa:', taskData);
+        alert(`Nova atividade de pós-venda "${taskData.clientName}" criada com sucesso!`);
+      }
+      
+      setShowForm(false);
+      setEditingTask(undefined);
+    } catch (error) {
+      console.error('Erro ao salvar tarefa:', error);
+      alert('Erro ao salvar a atividade de pós-venda. Tente novamente.');
+    }
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    // Implementar lógica de exclusão
+    alert('Funcionalidade de exclusão será implementada em breve!');
+  };
+
+  const handleExportTasks = () => {
+    // Aplicar filtros
+    let filteredTasks = tasks;
+    
+    // Filtro por status
+    if (statusFilter !== 'todos') {
+      filteredTasks = filteredTasks.filter(task => task.status === statusFilter);
+    }
+    
+    // Filtro por prioridade
+    if (priorityFilter !== 'todos') {
+      filteredTasks = filteredTasks.filter(task => task.priority === priorityFilter);
+    }
+    
+    // Filtro por data
+    if (dateFilter !== 'todos') {
+      const today = new Date();
+      const filterDate = new Date(today);
+      
+      switch (dateFilter) {
+        case 'hoje':
+          filterDate.setDate(today.getDate());
+          break;
+        case 'semana':
+          filterDate.setDate(today.getDate() - 7);
+          break;
+        case 'mes':
+          filterDate.setMonth(today.getMonth() - 1);
+          break;
+      }
+      
+      filteredTasks = filteredTasks.filter(task => {
+        const taskDate = new Date(task.completionDate);
+        return taskDate >= filterDate;
+      });
+    }
+    
+    // Filtro por busca
+    if (searchTerm.trim() !== '') {
+      const searchLower = searchTerm.toLowerCase();
+      filteredTasks = filteredTasks.filter(task => 
+        task.clientName.toLowerCase().includes(searchLower) ||
+        task.service.toLowerCase().includes(searchLower) ||
+        task.assignedTo.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Gerar CSV
+    const headers = [
+      'ID', 'Cliente', 'Serviço', 'Valor', 'Status', 'Prioridade', 
+      'Data Conclusão', 'Data Feedback', 'Satisfação', 'Feedback', 
+      'Próximo Contato', 'Responsável', 'Notas', 'Criado em', 'Atualizado em'
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      ...filteredTasks.map(task => [
+        task.id,
+        `"${task.clientName}"`,
+        `"${task.service}"`,
+        task.value,
+        task.status,
+        task.priority,
+        task.completionDate,
+        task.feedbackDate || '',
+        task.satisfaction || '',
+        `"${task.feedback || ''}"`,
+        task.nextContact,
+        task.assignedTo,
+        `"${task.notes || ''}"`,
+        task.createdAt,
+        task.updatedAt
+      ].join(','))
+    ].join('\n');
+
+    // Download do arquivo
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `pos_venda_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    alert(`Exportação concluída! ${filteredTasks.length} atividades de pós-venda exportadas.`);
+  };
+
+  const handleFilters = () => {
+    setShowFilters(true);
+  };
+
+  const handleClearFilters = () => {
+    setStatusFilter('todos');
+    setPriorityFilter('todos');
+    setDateFilter('todos');
+    setSearchTerm('');
+  };
+
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (statusFilter !== 'todos') count++;
+    if (priorityFilter !== 'todos') count++;
+    if (dateFilter !== 'todos') count++;
+    if (searchTerm.trim() !== '') count++;
+    return count;
+  };
+
+  const handleAddColumn = () => {
+    setShowAddColumn(true);
+  };
+
+  const handleSaveNewColumn = () => {
+    if (newColumnData.title.trim() === '') {
+      alert('Por favor, preencha o título da coluna.');
+      return;
+    }
+    
+    // Criar nova coluna com ID único
+    const newColumnId = `custom_${Date.now()}`;
+    setCustomColumns(prev => ({
+      ...prev,
+      [newColumnId]: newColumnData
+    }));
+    
+    alert(`Nova coluna "${newColumnData.title}" criada com sucesso!`);
+    setShowAddColumn(false);
+    setNewColumnData({ title: '', subtitle: '', color: 'blue' });
+  };
+
+  const handleCancelAddColumn = () => {
+    setShowAddColumn(false);
+    setNewColumnData({ title: '', subtitle: '', color: 'blue' });
+  };
+
+  const handleUpdateCustomColumn = (columnId: string, data: {title: string, subtitle: string, color: string}) => {
+    setCustomColumns(prev => ({
+      ...prev,
+      [columnId]: data
+    }));
+  };
+
+  const handleDeleteCustomColumn = (columnId: string) => {
+    setCustomColumns(prev => {
+      const updated = { ...prev };
+      delete updated[columnId];
+      return updated;
+    });
+  };
 
   if (isLoading) {
     return (
@@ -155,41 +360,30 @@ export default function PostSalePage() {
     );
   }
 
-  const filteredTasks = selectedStatus === 'all' 
-    ? tasks 
-    : tasks.filter(task => task.status === selectedStatus);
-
-  const moveTask = (taskId: string, newStatus: keyof typeof POST_SALE_STATUS) => {
-    setTasks(prev => prev.map(task => 
-      task.id === taskId ? { ...task, status: newStatus, updatedAt: new Date().toISOString().split('T')[0] } : task
-    ));
-  };
-
-  const getStatusColor = (status: keyof typeof POST_SALE_STATUS) => {
-    return POST_SALE_STATUS[status].color;
-  };
-
-  const getStatusIcon = (status: keyof typeof POST_SALE_STATUS) => {
-    const IconComponent = POST_SALE_STATUS[status].icon;
-    return <IconComponent className="w-4 h-4" />;
-  };
-
-  const renderStars = (rating: number | null) => {
-    if (!rating) return <span className="text-white/40">Sem avaliação</span>;
+  if (showForm) {
     return (
-      <div className="flex items-center gap-1">
-        {[...Array(5)].map((_, i) => (
-          <Star
-            key={i}
-            className={`w-4 h-4 ${
-              i < rating ? 'text-yellow-400 fill-current' : 'text-white/30'
-            }`}
-          />
-        ))}
-        <span className="text-white/70 text-sm ml-2">{rating}/5</span>
-      </div>
+      <ModernLayout>
+        <div className="p-8">
+          <h2 className="text-2xl font-bold text-white mb-6">
+            {editingTask ? 'Editar Pós-Venda' : 'Nova Atividade de Pós-Venda'}
+          </h2>
+          <p className="text-white/70 mb-8">
+            {editingTask ? 'Edite os dados da atividade' : 'Preencha os dados da nova atividade'}
+          </p>
+          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-xl p-8">
+            <PostSaleTaskForm
+              initialTask={editingTask}
+              onSave={handleSaveTask}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingTask(undefined);
+              }}
+            />
+          </div>
+        </div>
+      </ModernLayout>
     );
-  };
+  }
 
   return (
     <ModernLayout>
@@ -207,13 +401,13 @@ export default function PostSalePage() {
           {/* Navegação entre sub-menus */}
           <div className="flex justify-center gap-4">
             <Link href="/kanban">
-              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 px-6 py-3">
+              <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/40 px-6 py-3">
                 <Target className="h-5 w-5 mr-2" />
                 Vendas
               </Button>
             </Link>
             <Link href="/kanban/delivery">
-              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 px-6 py-3">
+              <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/40 px-6 py-3">
                 <Truck className="h-5 w-5 mr-2" />
                 Entrega de Serviços
               </Button>
@@ -227,242 +421,213 @@ export default function PostSalePage() {
           </div>
         </div>
 
-        {/* Filtros */}
-        <Card className="bg-white/5 backdrop-blur-2xl border-white/10">
-          <CardContent className="p-6">
-            <div className="flex flex-wrap gap-4 items-center justify-between">
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => setSelectedStatus('all')}
-                  className={`px-4 py-2 ${
-                    selectedStatus === 'all' 
-                      ? 'bg-indigo-600 text-white' 
-                      : 'bg-white/10 text-white/70 hover:bg-white/20'
-                  }`}
-                >
-                  Todos
-                </Button>
-                {Object.entries(POST_SALE_STATUS).map(([key, status]) => (
-                  <Button
-                    key={key}
-                    onClick={() => setSelectedStatus(key)}
-                    className={`px-4 py-2 flex items-center gap-2 ${
-                      selectedStatus === key 
-                        ? 'bg-indigo-600 text-white' 
-                        : 'bg-white/10 text-white/70 hover:bg-white/20'
-                    }`}
-                  >
-                    {getStatusIcon(key as keyof typeof POST_SALE_STATUS)}
-                    {status.name}
-                  </Button>
-                ))}
-              </div>
-              
-              <Button
-                onClick={() => setShowForm(true)}
-                className="bg-pink-600 hover:bg-pink-700 text-white"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Pós-Venda
-              </Button>
+        {/* Botões de Ação */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="bg-white/10 border-white/20 text-white hover:bg-white/15"
+              onClick={handleFilters}
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filtros
+              {getActiveFiltersCount() > 0 && (
+                <span className="ml-2 bg-pink-500 text-white text-xs px-2 py-1 rounded-full">
+                  {getActiveFiltersCount()}
+                </span>
+              )}
+            </Button>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Buscar pós-venda..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-white/10 border border-white/20 text-white placeholder-white/50 rounded-lg px-3 py-2 pr-10 w-48 focus:outline-none focus:ring-2 focus:ring-pink-500"
+              />
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/50" />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Cards de Status */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {Object.entries(POST_SALE_STATUS).map(([key, status]) => {
-            const count = tasks.filter(task => task.status === key).length;
-            return (
-              <Card key={key} className="bg-white/5 backdrop-blur-2xl border-white/10">
-                <CardContent className="p-4 text-center">
-                  <div className={`w-12 h-12 ${status.color} rounded-full flex items-center justify-center mx-auto mb-2`}>
-                    {getStatusIcon(key as keyof typeof POST_SALE_STATUS)}
-                  </div>
-                  <div className="text-2xl font-bold text-white">{count}</div>
-                  <div className="text-white/60 text-sm">{status.name}</div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* Métricas de Satisfação */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-white/5 backdrop-blur-2xl border-white/10">
-            <CardContent className="p-6 text-center">
-              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-3xl font-bold text-white mb-2">4.2</div>
-              <div className="text-white/60">Satisfação Média</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white/5 backdrop-blur-2xl border-white/10">
-            <CardContent className="p-6 text-center">
-              <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Heart className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-3xl font-bold text-white mb-2">85%</div>
-              <div className="text-white/60">Taxa de Fidelização</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white/5 backdrop-blur-2xl border-white/10">
-            <CardContent className="p-6 text-center">
-              <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Gift className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-3xl font-bold text-white mb-2">12</div>
-              <div className="text-white/60">Indicações Recebidas</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Lista de Tarefas */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredTasks.map((task) => (
-            <Card key={task.id} className="bg-white/5 backdrop-blur-2xl border-white/10 hover:bg-white/10 transition-all">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-white text-lg mb-2">{task.clientName}</CardTitle>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(task.status)} text-white`}>
-                        {getStatusIcon(task.status)}
-                        {POST_SALE_STATUS[task.status].name}
-                      </div>
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        task.priority === 'alta' ? 'bg-red-500' : 
-                        task.priority === 'media' ? 'bg-yellow-500' : 'bg-green-500'
-                      } text-white`}>
-                        {task.priority.toUpperCase()}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button size="sm" variant="ghost" className="text-white/60 hover:text-white">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" className="text-white/60 hover:text-red-400">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                {/* Informações do Serviço */}
-                <div>
-                  <h4 className="text-white font-medium mb-2">{task.service}</h4>
-                  <div className="space-y-2 text-sm text-white/70">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      <span>Concluído em: {task.completionDate}</span>
-                    </div>
-                    {task.feedbackDate && (
-                      <div className="flex items-center gap-2">
-                        <MessageCircle className="h-4 w-4" />
-                        <span>Feedback em: {task.feedbackDate}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      <span>Próximo contato: {task.nextContact}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Avaliação */}
-                {task.satisfaction && (
-                  <div className="bg-white/5 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-white/70 text-sm">Satisfação:</span>
-                      {renderStars(task.satisfaction)}
-                    </div>
-                  </div>
-                )}
-
-                {/* Feedback */}
-                {task.feedback && (
-                  <div className="bg-white/5 rounded-lg p-3">
-                    <div className="text-white/70 text-sm mb-1">Feedback:</div>
-                    <div className="text-white text-sm italic">"{task.feedback}"</div>
-                  </div>
-                )}
-
-                {/* Valor */}
-                <div className="bg-white/5 rounded-lg p-3">
-                  <div className="text-2xl font-bold text-green-400">
-                    R$ {task.value.toLocaleString('pt-BR')}
-                  </div>
-                  <div className="text-white/60 text-sm">Valor do serviço</div>
-                </div>
-
-                {/* Responsável */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                      {task.assignedTo.charAt(0)}
-                    </div>
-                    <span className="text-white/70 text-sm">{task.assignedTo}</span>
-                  </div>
-                </div>
-
-                {/* Notas */}
-                {task.notes && (
-                  <div className="bg-white/5 rounded-lg p-3">
-                    <div className="text-white/70 text-sm">{task.notes}</div>
-                  </div>
-                )}
-
-                {/* Ações */}
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => {
-                      const statusKeys = Object.keys(POST_SALE_STATUS) as Array<keyof typeof POST_SALE_STATUS>;
-                      const currentIndex = statusKeys.indexOf(task.status);
-                      if (currentIndex < statusKeys.length - 1) {
-                        moveTask(task.id, statusKeys[currentIndex + 1]);
-                      }
-                    }}
-                    className="flex-1 bg-pink-600 hover:bg-pink-700 text-white"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Atualizar
-                  </Button>
-                  <Button variant="outline" className="text-white border-white/20 hover:bg-white/10">
-                    <Phone className="h-4 w-4 mr-2" />
-                    Contatar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Mensagem quando não há tarefas */}
-        {filteredTasks.length === 0 && (
-          <Card className="bg-white/5 backdrop-blur-2xl border-white/10">
-            <CardContent className="p-12 text-center">
-              <Heart className="h-16 w-16 text-white/40 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Nenhum pós-venda encontrado</h3>
-              <p className="text-white/60 mb-6">
-                {selectedStatus === 'all' 
-                  ? 'Não há atividades de pós-venda cadastradas no sistema.'
-                  : `Não há atividades no status "${POST_SALE_STATUS[selectedStatus as keyof typeof POST_SALE_STATUS].name}".`
-                }
-              </p>
-              <Button
-                onClick={() => setShowForm(true)}
-                className="bg-pink-600 hover:bg-pink-700 text-white"
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="bg-white/10 border-white/20 text-white hover:bg-white/15"
+              onClick={handleExportTasks}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Exportar
+            </Button>
+            {user?.role === 'socio' && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/15"
+                onClick={handleAddColumn}
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Criar Nova Atividade
+                <Settings className="w-4 h-4 mr-2" />
+                Adicionar Coluna
               </Button>
-            </CardContent>
-          </Card>
+            )}
+          </div>
+          <Button 
+            onClick={handleNewTask}
+            className="px-4 py-2 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-lg font-medium hover:from-pink-700 hover:to-purple-700 transition-all shadow-lg flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Nova Atividade
+          </Button>
+        </div>
+
+        {/* Board Kanban */}
+        <PostSaleKanbanBoard
+          onNewTask={handleNewTask}
+          onEditTask={handleEditTask}
+          customColumns={customColumns}
+          onUpdateCustomColumn={handleUpdateCustomColumn}
+          onDeleteCustomColumn={handleDeleteCustomColumn}
+        />
+
+        {/* Modal de Filtros */}
+        {showFilters && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
+              <h3 className="text-xl font-bold text-white mb-4">Filtros Avançados</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    Status
+                  </label>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  >
+                    <option value="todos">Todos os Status</option>
+                    <option value="aguardando">Aguardando Feedback</option>
+                    <option value="contato">Em Contato</option>
+                    <option value="satisfeito">Cliente Satisfeito</option>
+                    <option value="reclamacao">Reclamação</option>
+                    <option value="fidelizado">Cliente Fidelizado</option>
+                    <option value="indicacao">Indicação Recebida</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    Prioridade
+                  </label>
+                  <select
+                    value={priorityFilter}
+                    onChange={(e) => setPriorityFilter(e.target.value)}
+                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  >
+                    <option value="todos">Todas as Prioridades</option>
+                    <option value="alta">Alta</option>
+                    <option value="media">Média</option>
+                    <option value="baixa">Baixa</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    Data de Conclusão
+                  </label>
+                  <select
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  >
+                    <option value="todos">Todas as Datas</option>
+                    <option value="hoje">Hoje</option>
+                    <option value="semana">Última Semana</option>
+                    <option value="mes">Último Mês</option>
+                  </select>
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={handleClearFilters}
+                    variant="outline"
+                    className="bg-gray-600 border-gray-500 text-white hover:bg-gray-700 hover:border-gray-400 flex-1"
+                  >
+                    Limpar Filtros
+                  </Button>
+                  <Button
+                    onClick={() => setShowFilters(false)}
+                    className="bg-pink-600 hover:bg-pink-700 text-white flex-1"
+                  >
+                    Aplicar Filtros
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal para Adicionar Nova Coluna */}
+        {showAddColumn && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
+              <h3 className="text-xl font-bold text-white mb-4">Adicionar Nova Coluna</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    Título da Coluna
+                  </label>
+                  <input
+                    type="text"
+                    value={newColumnData.title}
+                    onChange={(e) => setNewColumnData(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    placeholder="Ex: Follow-up"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    Subtítulo da Coluna
+                  </label>
+                  <input
+                    type="text"
+                    value={newColumnData.subtitle}
+                    onChange={(e) => setNewColumnData(prev => ({ ...prev, subtitle: e.target.value }))}
+                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    placeholder="Ex: Acompanhamento pós-venda"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">
+                    Cor da Coluna
+                  </label>
+                  <select
+                    value={newColumnData.color}
+                    onChange={(e) => setNewColumnData(prev => ({ ...prev, color: e.target.value }))}
+                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  >
+                    <option value="blue">Azul</option>
+                    <option value="green">Verde</option>
+                    <option value="yellow">Amarelo</option>
+                    <option value="orange">Laranja</option>
+                    <option value="red">Vermelho</option>
+                    <option value="purple">Roxo</option>
+                    <option value="pink">Rosa</option>
+                    <option value="indigo">Índigo</option>
+                  </select>
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={handleSaveNewColumn}
+                    className="bg-pink-600 hover:bg-pink-700 text-white flex-1"
+                  >
+                    Adicionar Coluna
+                  </Button>
+                  <Button
+                    onClick={handleCancelAddColumn}
+                    variant="outline"
+                    className="bg-gray-600 border-gray-500 text-white hover:bg-gray-700 hover:border-gray-400 flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </ModernLayout>
