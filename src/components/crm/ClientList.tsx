@@ -11,7 +11,8 @@ import {
   Trash2,
   Eye,
   Phone,
-  Mail
+  Mail,
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +32,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Client } from '@/lib/types';
 import { useClients } from '@/lib/contexts/ClientContext';
 import { exportToCSV } from '@/lib/utils/export';
@@ -58,13 +66,41 @@ export function ClientList({ onNewClient, onEditClient }: ClientListProps) {
   const { clients, deleteClient } = useClients();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
+  const [sourceFilter, setSourceFilter] = useState<string>('todos');
+  const [dateFilter, setDateFilter] = useState<string>('todos');
+  const [showFilters, setShowFilters] = useState(false);
 
   const filteredClients = clients.filter(client => {
     const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          client.phone.includes(searchTerm);
     const matchesStatus = statusFilter === 'todos' || client.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesSource = sourceFilter === 'todos' || client.source === sourceFilter;
+    
+    // Filtro por data
+    let matchesDate = true;
+    if (dateFilter !== 'todos') {
+      const now = new Date();
+      const clientDate = new Date(client.createdAt);
+      const daysDiff = Math.floor((now.getTime() - clientDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      switch (dateFilter) {
+        case 'hoje':
+          matchesDate = daysDiff === 0;
+          break;
+        case 'semana':
+          matchesDate = daysDiff <= 7;
+          break;
+        case 'mes':
+          matchesDate = daysDiff <= 30;
+          break;
+        case 'trimestre':
+          matchesDate = daysDiff <= 90;
+          break;
+      }
+    }
+    
+    return matchesSearch && matchesStatus && matchesSource && matchesDate;
   });
 
   const handleDeleteClient = (clientId: string) => {
@@ -87,6 +123,22 @@ export function ClientList({ onNewClient, onEditClient }: ClientListProps) {
     }));
     
     exportToCSV(exportData, 'clientes');
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('todos');
+    setSourceFilter('todos');
+    setDateFilter('todos');
+  };
+
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (searchTerm) count++;
+    if (statusFilter !== 'todos') count++;
+    if (sourceFilter !== 'todos') count++;
+    if (dateFilter !== 'todos') count++;
+    return count;
   };
 
   return (
@@ -117,10 +169,79 @@ export function ClientList({ onNewClient, onEditClient }: ClientListProps) {
               <option value="cliente" className="bg-gray-800">Clientes</option>
               <option value="inativo" className="bg-gray-800">Inativos</option>
             </select>
-            <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-              <Filter className="h-4 w-4 mr-2" />
-              Filtros
-            </Button>
+            <Dialog open={showFilters} onOpenChange={setShowFilters}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filtros
+                  {getActiveFiltersCount() > 0 && (
+                    <Badge className="ml-2 bg-indigo-500 text-white text-xs">
+                      {getActiveFiltersCount()}
+                    </Badge>
+                  )}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="text-white flex items-center gap-2">
+                    <Filter className="h-5 w-5" />
+                    Filtros Avançados
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-white/80 mb-2 block">Origem</label>
+                    <select
+                      value={sourceFilter}
+                      onChange={(e) => setSourceFilter(e.target.value)}
+                      className="w-full px-3 py-2 border border-white/20 rounded-md text-sm bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="todos" className="bg-gray-800">Todas as origens</option>
+                      <option value="Website" className="bg-gray-800">Website</option>
+                      <option value="Facebook" className="bg-gray-800">Facebook</option>
+                      <option value="Instagram" className="bg-gray-800">Instagram</option>
+                      <option value="Indicação" className="bg-gray-800">Indicação</option>
+                      <option value="Google" className="bg-gray-800">Google</option>
+                      <option value="WhatsApp" className="bg-gray-800">WhatsApp</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium text-white/80 mb-2 block">Período</label>
+                    <select
+                      value={dateFilter}
+                      onChange={(e) => setDateFilter(e.target.value)}
+                      className="w-full px-3 py-2 border border-white/20 rounded-md text-sm bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="todos" className="bg-gray-800">Todos os períodos</option>
+                      <option value="hoje" className="bg-gray-800">Hoje</option>
+                      <option value="semana" className="bg-gray-800">Última semana</option>
+                      <option value="mes" className="bg-gray-800">Último mês</option>
+                      <option value="trimestre" className="bg-gray-800">Último trimestre</option>
+                    </select>
+                  </div>
+                  
+                  <div className="flex gap-2 pt-4">
+                    <Button 
+                      onClick={clearFilters}
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Limpar
+                    </Button>
+                    <Button 
+                      onClick={() => setShowFilters(false)}
+                      size="sm" 
+                      className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+                    >
+                      Aplicar
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>
