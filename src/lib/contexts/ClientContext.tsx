@@ -60,6 +60,7 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
 
   // Carregar clientes do localStorage na inicialização
   useEffect(() => {
+    console.log('Carregando clientes do localStorage...');
     const savedClients = localStorage.getItem('clients');
     if (savedClients) {
       try {
@@ -68,15 +69,20 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
           createdAt: new Date(client.createdAt),
           updatedAt: new Date(client.updatedAt),
         }));
+        console.log('Clientes carregados:', parsedClients.length);
         setClients(parsedClients);
       } catch (error) {
         console.error('Erro ao carregar clientes do localStorage:', error);
+        setClients(initialClients);
       }
+    } else {
+      console.log('Nenhum cliente salvo encontrado, usando dados iniciais...');
     }
   }, []);
 
   // Salvar clientes no localStorage sempre que a lista mudar
   useEffect(() => {
+    console.log('Salvando clientes no localStorage:', clients.length);
     localStorage.setItem('clients', JSON.stringify(clients));
   }, [clients]);
 
@@ -88,10 +94,12 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
       updatedAt: new Date(),
     };
     
+    console.log('Adicionando novo cliente:', newClient.name);
     setClients(prev => [newClient, ...prev]);
   };
 
   const updateClient = (id: string, clientData: Partial<Client>) => {
+    console.log('Atualizando cliente:', id, 'Dados:', clientData);
     setClients(prev => prev.map(client => 
       client.id === id 
         ? { ...client, ...clientData, updatedAt: new Date() }
@@ -100,6 +108,7 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteClient = (id: string) => {
+    console.log('Deletando cliente:', id);
     setClients(prev => prev.filter(client => client.id !== id));
   };
 

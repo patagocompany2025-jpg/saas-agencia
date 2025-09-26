@@ -20,6 +20,7 @@ export function KanbanProvider({ children }: { children: React.ReactNode }) {
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
 
   useEffect(() => {
+    console.log('Carregando tarefas do localStorage...');
     const savedTasks = localStorage.getItem('kanbanTasks');
     if (savedTasks) {
       try {
@@ -37,12 +38,14 @@ export function KanbanProvider({ children }: { children: React.ReactNode }) {
           createdAt: new Date(task.createdAt),
           updatedAt: new Date(task.updatedAt),
         }));
+        console.log('Tarefas carregadas:', parsedTasks.length);
         setTasks(parsedTasks);
       } catch (error) {
         console.error('Erro ao carregar tarefas do localStorage:', error);
         setTasks([]);
       }
     } else {
+      console.log('Nenhuma tarefa salva encontrada, criando dados iniciais...');
       // Mock initial tasks if none are saved
       const initialTasks: KanbanTask[] = [
         {
@@ -52,88 +55,88 @@ export function KanbanProvider({ children }: { children: React.ReactNode }) {
           status: 'prospeccao',
           priority: 'alta',
           value: 0,
-          expectedValue: 8500,
+          expectedValue: 15000,
           destination: 'Patagônia Argentina',
           travelDates: {
-            departure: new Date('2024-12-15'),
-            return: new Date('2024-12-22'),
+            departure: new Date('2024-12-01'),
+            return: new Date('2024-12-10'),
             flexible: true
           },
           travelers: { adults: 2, children: 0, infants: 0 },
-          budget: { min: 6000, max: 10000, disclosed: true },
+          budget: { min: 12000, max: 18000, disclosed: true },
           interests: ['aventura', 'natureza', 'fotografia'],
           accommodation: { type: 'hotel', category: 'superior' },
-          notes: 'Interessada em trekking e observação de vida selvagem. Primeira vez na Patagônia.',
+          notes: 'Cliente interessado em trekking e observação de vida selvagem. Orçamento flexível.',
           nextAction: {
             type: 'call',
-            description: 'Ligar para entender melhor as expectativas e datas',
-            dueDate: new Date('2024-09-20'),
+            description: 'Ligar para agendar reunião de apresentação',
+            dueDate: new Date('2024-09-25'),
             completed: false
           },
           source: 'website',
-          assignedTo: '2',
-          createdAt: new Date('2024-09-15T10:00:00Z'),
-          updatedAt: new Date('2024-09-15T10:00:00Z'),
+          assignedTo: '1',
+          createdAt: new Date('2024-09-15T10:30:00Z'),
+          updatedAt: new Date('2024-09-18T14:20:00Z'),
         },
         {
           id: uuidv4(),
           clientId: '2',
-          title: 'Lua de Mel Luxo - Bob & Maria Williams',
+          title: 'Lua de Mel - Carlos & Maria',
           status: 'qualificacao',
-          priority: 'alta',
+          priority: 'media',
           value: 0,
-          expectedValue: 15000,
-          destination: 'Maldivas',
+          expectedValue: 25000,
+          destination: 'Maldives',
           travelDates: {
             departure: new Date('2025-02-14'),
             return: new Date('2025-02-21'),
             flexible: false
           },
           travelers: { adults: 2, children: 0, infants: 0 },
-          budget: { min: 12000, max: 18000, disclosed: true },
-          interests: ['luxo', 'relaxamento', 'romance'],
+          budget: { min: 20000, max: 30000, disclosed: true },
+          interests: ['romance', 'luxo', 'praia'],
           accommodation: { type: 'resort', category: 'luxo' },
-          notes: 'Casal jovem, orçamento flexível. Querem experiência única e memorável.',
+          notes: 'Casal recém-casado buscando experiência romântica e luxuosa.',
           nextAction: {
-            type: 'meeting',
-            description: 'Reunião presencial para apresentar opções de resorts',
+            type: 'email',
+            description: 'Enviar proposta detalhada com opções de resorts',
             dueDate: new Date('2024-09-22'),
             completed: false
           },
           source: 'indicacao',
           assignedTo: '2',
-          createdAt: new Date('2024-09-10T14:30:00Z'),
-          updatedAt: new Date('2024-09-18T09:15:00Z'),
+          createdAt: new Date('2024-09-10T15:45:00Z'),
+          updatedAt: new Date('2024-09-18T16:30:00Z'),
         },
         {
           id: uuidv4(),
           clientId: '3',
-          title: 'Viagem Família - Família Brown',
+          title: 'Família Silva - Viagem Cultural',
           status: 'consultoria',
-          priority: 'media',
+          priority: 'baixa',
           value: 0,
-          expectedValue: 12000,
+          expectedValue: 18000,
           destination: 'Europa',
           travelDates: {
-            departure: new Date('2025-06-15'),
-            return: new Date('2025-06-30'),
+            departure: new Date('2024-11-15'),
+            return: new Date('2024-11-25'),
             flexible: true
           },
           travelers: { adults: 2, children: 2, infants: 0 },
-          budget: { min: 8000, max: 15000, disclosed: true },
-          interests: ['cultural', 'historia', 'familia'],
+          budget: { min: 15000, max: 22000, disclosed: true },
+          interests: ['cultura', 'historia', 'museus'],
           accommodation: { type: 'hotel', category: 'medio' },
-          notes: 'Família com crianças de 8 e 12 anos. Interessados em museus e atrações familiares.',
+          notes: 'Família com duas crianças (8 e 12 anos) interessada em roteiro cultural pela Europa.',
           nextAction: {
-            type: 'proposal',
-            description: 'Elaborar roteiro personalizado para família',
-            dueDate: new Date('2024-09-25'),
+            type: 'meeting',
+            description: 'Reunião presencial para definir roteiro detalhado',
+            dueDate: new Date('2024-09-28'),
             completed: false
           },
-          source: 'google',
-          assignedTo: '2',
-          createdAt: new Date('2024-09-05T16:20:00Z'),
-          updatedAt: new Date('2024-09-17T11:45:00Z'),
+          source: 'facebook',
+          assignedTo: '1',
+          createdAt: new Date('2024-09-05T09:15:00Z'),
+          updatedAt: new Date('2024-09-18T11:45:00Z'),
         },
         {
           id: uuidv4(),
@@ -196,12 +199,15 @@ export function KanbanProvider({ children }: { children: React.ReactNode }) {
           updatedAt: new Date('2024-09-10T14:20:00Z'),
         },
       ];
+      console.log('Criando tarefas iniciais:', initialTasks.length);
       setTasks(initialTasks);
       localStorage.setItem('kanbanTasks', JSON.stringify(initialTasks));
+      console.log('Tarefas iniciais salvas no localStorage');
     }
   }, []);
 
   useEffect(() => {
+    console.log('Salvando tarefas no localStorage:', tasks.length);
     localStorage.setItem('kanbanTasks', JSON.stringify(tasks));
   }, [tasks]);
 
@@ -212,10 +218,12 @@ export function KanbanProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+    console.log('Adicionando nova tarefa:', newTask.title, 'Status:', newTask.status);
     setTasks(prevTasks => [...prevTasks, newTask]);
   }, []);
 
   const updateTask = useCallback((id: string, taskData: Partial<Omit<KanbanTask, 'id' | 'createdAt' | 'updatedAt'>>) => {
+    console.log('Atualizando tarefa:', id, 'Dados:', taskData);
     setTasks(prevTasks =>
       prevTasks.map(task =>
         task.id === id ? { ...task, ...taskData, updatedAt: new Date() } : task
@@ -224,10 +232,12 @@ export function KanbanProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const deleteTask = useCallback((id: string) => {
+    console.log('Deletando tarefa:', id);
     setTasks(prevTasks => prevTasks.filter(task => task.id !== id));
   }, []);
 
   const moveTask = useCallback((taskId: string, newStatus: KanbanTask['status']) => {
+    console.log('Movendo tarefa:', taskId, 'para status:', newStatus);
     setTasks(prevTasks =>
       prevTasks.map(task =>
         task.id === taskId ? { ...task, status: newStatus, updatedAt: new Date() } : task

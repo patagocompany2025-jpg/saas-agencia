@@ -37,6 +37,9 @@ interface FinancialContextType {
   getPendingPayments: () => number;
   getOverduePayments: () => number;
   getUpcomingPayments: () => FinancialTransaction[];
+  
+  // Funções auxiliares
+  generateMonthlyTransactions: () => void;
 }
 
 const FinancialContext = createContext<FinancialContextType | undefined>(undefined);
@@ -49,19 +52,42 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
 
   // Carregar dados do localStorage
   useEffect(() => {
+    console.log('=== INICIANDO CARREGAMENTO DO LOCALSTORAGE ===');
+    console.log('Carregando dados do localStorage...');
+    
+    // Verificar se localStorage está disponível
+    if (typeof window === 'undefined') {
+      console.log('localStorage não disponível (SSR)');
+      return;
+    }
+    
     const savedTransactions = localStorage.getItem('financialTransactions');
     const savedEmployees = localStorage.getItem('financialEmployees');
     const savedFixedExpenses = localStorage.getItem('financialFixedExpenses');
     const savedAlerts = localStorage.getItem('financialAlerts');
 
+    console.log('Dados salvos encontrados:', {
+      transactions: savedTransactions ? JSON.parse(savedTransactions).length : 0,
+      employees: savedEmployees ? JSON.parse(savedEmployees).length : 0,
+      fixedExpenses: savedFixedExpenses ? JSON.parse(savedFixedExpenses).length : 0,
+      alerts: savedAlerts ? JSON.parse(savedAlerts).length : 0
+    });
+
     if (savedTransactions) {
-      setTransactions(JSON.parse(savedTransactions).map((t: any) => ({
-        ...t,
-        dueDate: t.dueDate ? new Date(t.dueDate) : undefined,
-        paidDate: t.paidDate ? new Date(t.paidDate) : undefined,
-        createdAt: new Date(t.createdAt),
-        updatedAt: new Date(t.updatedAt),
-      })));
+      try {
+        const parsedTransactions = JSON.parse(savedTransactions).map((t: any) => ({
+          ...t,
+          dueDate: t.dueDate ? new Date(t.dueDate) : undefined,
+          paidDate: t.paidDate ? new Date(t.paidDate) : undefined,
+          createdAt: new Date(t.createdAt),
+          updatedAt: new Date(t.updatedAt),
+        }));
+        console.log('Transações carregadas:', parsedTransactions.length);
+        setTransactions(parsedTransactions);
+      } catch (error) {
+        console.error('Erro ao carregar transações:', error);
+        setTransactions([]);
+      }
     } else {
       // Dados iniciais
       const initialTransactions: FinancialTransaction[] = [
@@ -126,11 +152,18 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (savedEmployees) {
-      setEmployees(JSON.parse(savedEmployees).map((e: any) => ({
-        ...e,
-        createdAt: new Date(e.createdAt),
-        updatedAt: new Date(e.updatedAt),
-      })));
+      try {
+        const parsedEmployees = JSON.parse(savedEmployees).map((e: any) => ({
+          ...e,
+          createdAt: new Date(e.createdAt),
+          updatedAt: new Date(e.updatedAt),
+        }));
+        console.log('Funcionários carregados:', parsedEmployees.length);
+        setEmployees(parsedEmployees);
+      } catch (error) {
+        console.error('Erro ao carregar funcionários:', error);
+        setEmployees([]);
+      }
     } else {
       const initialEmployees: Employee[] = [
         {
@@ -179,11 +212,18 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (savedFixedExpenses) {
-      setFixedExpenses(JSON.parse(savedFixedExpenses).map((e: any) => ({
-        ...e,
-        createdAt: new Date(e.createdAt),
-        updatedAt: new Date(e.updatedAt),
-      })));
+      try {
+        const parsedFixedExpenses = JSON.parse(savedFixedExpenses).map((e: any) => ({
+          ...e,
+          createdAt: new Date(e.createdAt),
+          updatedAt: new Date(e.updatedAt),
+        }));
+        console.log('Contas fixas carregadas:', parsedFixedExpenses.length);
+        setFixedExpenses(parsedFixedExpenses);
+      } catch (error) {
+        console.error('Erro ao carregar contas fixas:', error);
+        setFixedExpenses([]);
+      }
     } else {
       const initialFixedExpenses: FixedExpense[] = [
         {
@@ -242,23 +282,62 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
 
   // Salvar dados no localStorage
   useEffect(() => {
-    localStorage.setItem('financialTransactions', JSON.stringify(transactions));
+    console.log('=== SALVANDO TRANSAÇÕES ===');
+    console.log('Salvando transações no localStorage:', transactions.length);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('financialTransactions', JSON.stringify(transactions));
+        console.log('Transações salvas com sucesso');
+      } catch (error) {
+        console.error('Erro ao salvar transações:', error);
+      }
+    }
   }, [transactions]);
 
   useEffect(() => {
-    localStorage.setItem('financialEmployees', JSON.stringify(employees));
+    console.log('=== SALVANDO FUNCIONÁRIOS ===');
+    console.log('Salvando funcionários no localStorage:', employees.length);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('financialEmployees', JSON.stringify(employees));
+        console.log('Funcionários salvos com sucesso');
+      } catch (error) {
+        console.error('Erro ao salvar funcionários:', error);
+      }
+    }
   }, [employees]);
 
   useEffect(() => {
-    localStorage.setItem('financialFixedExpenses', JSON.stringify(fixedExpenses));
+    console.log('=== SALVANDO CONTAS FIXAS ===');
+    console.log('Salvando contas fixas no localStorage:', fixedExpenses.length);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('financialFixedExpenses', JSON.stringify(fixedExpenses));
+        console.log('Contas fixas salvas com sucesso');
+      } catch (error) {
+        console.error('Erro ao salvar contas fixas:', error);
+      }
+    }
   }, [fixedExpenses]);
 
   useEffect(() => {
-    localStorage.setItem('financialAlerts', JSON.stringify(alerts));
+    console.log('=== SALVANDO ALERTAS ===');
+    console.log('Salvando alertas no localStorage:', alerts.length);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('financialAlerts', JSON.stringify(alerts));
+        console.log('Alertas salvos com sucesso');
+      } catch (error) {
+        console.error('Erro ao salvar alertas:', error);
+      }
+    }
   }, [alerts]);
 
   // Funções de transações
   const addTransaction = useCallback((transaction: Omit<FinancialTransaction, 'id' | 'createdAt' | 'updatedAt'>) => {
+    console.log('=== ADICIONANDO TRANSAÇÃO ===');
+    console.log('Dados da transação:', transaction);
+    
     const newTransaction: FinancialTransaction = {
       id: uuidv4(),
       ...transaction,
@@ -267,7 +346,14 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    setTransactions(prev => [...prev, newTransaction]);
+    
+    console.log('Nova transação criada:', newTransaction);
+    setTransactions(prev => {
+      const updated = [...prev, newTransaction];
+      console.log('Lista de transações atualizada:', updated.length);
+      return updated;
+    });
+    console.log('Transação adicionada com sucesso');
   }, []);
 
   const updateTransaction = useCallback((id: string, transaction: Partial<FinancialTransaction>) => {
@@ -288,14 +374,45 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
 
   // Funções de funcionários
   const addEmployee = useCallback((employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>) => {
+    console.log('=== ADICIONANDO FUNCIONÁRIO ===');
+    console.log('Dados do funcionário:', employee);
+    
     const newEmployee: Employee = {
       id: uuidv4(),
       ...employee,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    setEmployees(prev => [...prev, newEmployee]);
-  }, []);
+    
+    console.log('Novo funcionário criado:', newEmployee);
+    setEmployees(prev => {
+      const updated = [...prev, newEmployee];
+      console.log('Lista de funcionários atualizada:', updated.length);
+      return updated;
+    });
+
+    // Criar transação automática para salário do funcionário
+    if (employee.salary && employee.salary > 0) {
+      const today = new Date();
+      const dueDate = new Date(today.getFullYear(), today.getMonth(), employee.paymentDay || 30);
+      
+      // Se o dia de pagamento já passou este mês, agendar para o próximo mês
+      if (dueDate < today) {
+        dueDate.setMonth(dueDate.getMonth() + 1);
+      }
+
+      const transaction = {
+        type: 'despesa' as const,
+        category: 'salarios' as const,
+        description: `Salário - ${employee.name}`,
+        amount: employee.salary,
+        status: 'pendente' as const,
+        dueDate: dueDate
+      };
+      console.log('Criando transação para funcionário:', transaction);
+      addTransaction(transaction);
+    }
+  }, [addTransaction]);
 
   const updateEmployee = useCallback((id: string, employee: Partial<Employee>) => {
     setEmployees(prev =>
@@ -309,14 +426,45 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
 
   // Funções de contas fixas
   const addFixedExpense = useCallback((expense: Omit<FixedExpense, 'id' | 'createdAt' | 'updatedAt'>) => {
+    console.log('=== ADICIONANDO CONTA FIXA ===');
+    console.log('Dados da conta fixa:', expense);
+    
     const newExpense: FixedExpense = {
       id: uuidv4(),
       ...expense,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    setFixedExpenses(prev => [...prev, newExpense]);
-  }, []);
+    
+    console.log('Nova conta fixa criada:', newExpense);
+    setFixedExpenses(prev => {
+      const updated = [...prev, newExpense];
+      console.log('Lista de contas fixas atualizada:', updated.length);
+      return updated;
+    });
+
+    // Criar transação automática para conta fixa
+    if (expense.amount && expense.amount > 0) {
+      const today = new Date();
+      const dueDate = new Date(today.getFullYear(), today.getMonth(), expense.dueDay || 30);
+      
+      // Se o dia de vencimento já passou este mês, agendar para o próximo mês
+      if (dueDate < today) {
+        dueDate.setMonth(dueDate.getMonth() + 1);
+      }
+
+      const transaction = {
+        type: 'despesa' as const,
+        category: 'contas_fixas' as const,
+        description: expense.name,
+        amount: expense.amount,
+        status: 'pendente' as const,
+        dueDate: dueDate
+      };
+      console.log('Criando transação para conta fixa:', transaction);
+      addTransaction(transaction);
+    }
+  }, [addTransaction]);
 
   const updateFixedExpense = useCallback((id: string, expense: Partial<FixedExpense>) => {
     setFixedExpenses(prev =>
@@ -354,9 +502,10 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   }, [transactions]);
 
   const getTotalExpenses = useCallback(() => {
-    return transactions
-      .filter(t => t.type === 'despesa' && t.status === 'pago')
-      .reduce((sum, t) => sum + t.amount, 0);
+    const expenses = transactions.filter(t => t.type === 'despesa');
+    const total = expenses.reduce((sum, t) => sum + t.amount, 0);
+    console.log('Despesas encontradas:', expenses.length, 'Total:', total, 'Transações:', expenses);
+    return total;
   }, [transactions]);
 
   const getBalance = useCallback(() => {
@@ -384,6 +533,65 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
       .sort((a, b) => (a.dueDate?.getTime() || 0) - (b.dueDate?.getTime() || 0));
   }, [transactions]);
 
+  // Função para gerar transações mensais automaticamente
+  const generateMonthlyTransactions = useCallback(() => {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // Gerar transações para funcionários
+    employees.forEach(employee => {
+      if (employee.salary && employee.salary > 0) {
+        const dueDate = new Date(currentYear, currentMonth, employee.paymentDay || 30);
+        
+        // Verificar se já existe transação para este funcionário neste mês
+        const existingTransaction = transactions.find(t => 
+          t.description?.includes(`Salário - ${employee.name}`) &&
+          t.dueDate && 
+          t.dueDate.getMonth() === currentMonth &&
+          t.dueDate.getFullYear() === currentYear
+        );
+
+        if (!existingTransaction) {
+          addTransaction({
+            type: 'despesa' as const,
+            category: 'salarios' as const,
+            description: `Salário - ${employee.name}`,
+            amount: employee.salary,
+            status: 'pendente' as const,
+            dueDate: dueDate
+          });
+        }
+      }
+    });
+
+    // Gerar transações para contas fixas
+    fixedExpenses.forEach(expense => {
+      if (expense.amount && expense.amount > 0) {
+        const dueDate = new Date(currentYear, currentMonth, expense.dueDay || 30);
+        
+        // Verificar se já existe transação para esta conta fixa neste mês
+        const existingTransaction = transactions.find(t => 
+          t.description === expense.name &&
+          t.dueDate && 
+          t.dueDate.getMonth() === currentMonth &&
+          t.dueDate.getFullYear() === currentYear
+        );
+
+        if (!existingTransaction) {
+          addTransaction({
+            type: 'despesa' as const,
+            category: 'contas_fixas' as const,
+            description: expense.name,
+            amount: expense.amount,
+            status: 'pendente' as const,
+            dueDate: dueDate
+          });
+        }
+      }
+    });
+  }, [employees, fixedExpenses, transactions, addTransaction]);
+
   return (
     <FinancialContext.Provider value={{
       transactions,
@@ -409,6 +617,7 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
       getPendingPayments,
       getOverduePayments,
       getUpcomingPayments,
+      generateMonthlyTransactions,
     }}>
       {children}
     </FinancialContext.Provider>

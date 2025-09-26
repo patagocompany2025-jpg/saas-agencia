@@ -42,7 +42,13 @@ import {
   ComposedChart
 } from 'recharts';
 import { 
-  exportExecutiveReportPDF
+  exportReportData, 
+  exportExecutiveReportPDF,
+  exportDIEReportPDF,
+  exportSalesReportPDF,
+  exportFinancialReportPDF,
+  exportPerformanceReportPDF,
+  exportGrowthReportPDF
 } from '@/lib/utils/export';
 
 type ReportType = 'executive' | 'sales' | 'financial' | 'performance' | 'die' | 'growth' | null;
@@ -57,8 +63,6 @@ export default function ReportsPage() {
   const [selectedPeriod] = useState('30');
   const [exportFormat, setExportFormat] = useState<'pdf' | 'excel' | 'csv'>('pdf');
   const [selectedPipelineSlice, setSelectedPipelineSlice] = useState<number | null>(null);
-  const [selectedExpenseSlice, setSelectedExpenseSlice] = useState<number | null>(null);
-  const [selectedClientStatusSlice, setSelectedClientStatusSlice] = useState<number | null>(null);
 
   // Dados para gráficos - memoizados para evitar recálculos
   const salesData = useMemo(() => [
@@ -86,20 +90,6 @@ export default function ReportsPage() {
     { name: 'Indicação', value: clients.filter(c => c.source === 'Indicação').length, color: '#10b981' },
     { name: 'Google', value: clients.filter(c => c.source === 'Google').length, color: '#4285f4' },
     { name: 'WhatsApp', value: clients.filter(c => c.source === 'WhatsApp').length, color: '#25d366' },
-  ], [clients]);
-
-  const expenseData = useMemo(() => [
-    { name: 'Funcionários', value: 45, color: '#3b82f6' },
-    { name: 'Marketing', value: 25, color: '#10b981' },
-    { name: 'Operacional', value: 20, color: '#f59e0b' },
-    { name: 'Outros', value: 10, color: '#ef4444' }
-  ], []);
-
-  const clientStatusData = useMemo(() => [
-    { name: 'Leads', value: clients.filter(c => c.status === 'lead').length, color: '#f59e0b' },
-    { name: 'Prospects', value: clients.filter(c => c.status === 'prospect').length, color: '#3b82f6' },
-    { name: 'Clientes', value: clients.filter(c => c.status === 'cliente').length, color: '#10b981' },
-    { name: 'Inativos', value: clients.filter(c => c.status === 'inativo').length, color: '#ef4444' }
   ], [clients]);
 
   // Cálculos de métricas - usando funções do contexto financeiro
@@ -191,29 +181,29 @@ export default function ReportsPage() {
             exportExecutiveReportPDF('', filename, data);
             break;
           case 'die':
-            alert('Relatório DIE em desenvolvimento');
+            exportDIEReportPDF('', filename, data);
             break;
           case 'vendas':
-            alert('Relatório de Vendas em desenvolvimento');
+            exportSalesReportPDF('', filename, data);
             break;
           case 'financeiro':
-            alert('Relatório Financeiro em desenvolvimento');
+            exportFinancialReportPDF('', filename, data);
             break;
           case 'performance':
-            alert('Relatório de Performance em desenvolvimento');
+            exportPerformanceReportPDF('', filename, data);
             break;
           case 'crescimento':
-            alert('Relatório de Crescimento em desenvolvimento');
+            exportGrowthReportPDF('', filename, data);
             break;
           default:
             // Fallback para método genérico - usar dados estruturados
-            alert('Tipo de relatório não suportado');
+            exportReportData(data, 'pdf', filename);
         }
       } catch (error) {
         console.log(`Erro com método específico para ${reportType}, tentando método genérico...`, error);
         try {
           // Usar dados estruturados como fallback
-          alert('Método de exportação não disponível');
+          exportReportData(data, 'pdf', filename);
                     } catch (fallbackError) {
           console.error('Erro no fallback:', fallbackError);
           alert('Erro ao gerar PDF: ' + (fallbackError instanceof Error ? fallbackError.message : String(fallbackError)));
@@ -221,7 +211,7 @@ export default function ReportsPage() {
       }
     } else {
       // Para CSV e Excel, usar os dados estruturados
-      alert('Método de exportação não disponível');
+      exportReportData(data, exportFormat, filename);
     }
   };
 
@@ -537,6 +527,38 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
 
+        {/* Cards Individuais do Pipeline de Vendas */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-6">
+          {kanbanData.map((entry, index) => {
+            const total = kanbanData.reduce((sum, item) => sum + item.value, 0);
+            const percentage = total > 0 ? ((entry.value / total) * 100).toFixed(1) : 0;
+            const isSelected = selectedPipelineSlice === index;
+            
+            return (
+              <Card 
+                key={index}
+                className={`transition-all duration-300 cursor-pointer ${
+                  isSelected 
+                    ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-400/50 shadow-lg scale-105' 
+                    : 'bg-slate-800/95 border-slate-600/50 hover:bg-slate-700/95 hover:scale-105'
+                }`}
+                onClick={() => setSelectedPipelineSlice(isSelected ? null : index)}
+              >
+                <CardContent className="p-4 text-center">
+                  <div 
+                    className={`w-8 h-8 rounded-full mx-auto mb-3 transition-all duration-300 ${
+                      isSelected ? 'ring-2 ring-white' : ''
+                    }`}
+                    style={{ backgroundColor: entry.color }}
+                  />
+                  <h3 className="text-sm font-semibold text-white mb-1">{entry.status}</h3>
+                  <div className="text-2xl font-bold text-white mb-1">{entry.value}</div>
+                  <div className="text-xs text-gray-400">{percentage}%</div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
       {/* Análise de Crescimento Estratégico - Melhorado */}
@@ -739,77 +761,35 @@ export default function ReportsPage() {
           <CardTitle className="text-white">Distribuição de Despesas</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsPieChart>
                 <Pie
-                    data={expenseData}
+                  data={[
+                    { name: 'Funcionários', value: 45, color: '#3b82f6' },
+                    { name: 'Marketing', value: 25, color: '#10b981' },
+                    { name: 'Operacional', value: 20, color: '#f59e0b' },
+                    { name: 'Outros', value: 10, color: '#ef4444' }
+                  ]}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                    outerRadius={120}
+                  outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
-                    label={({ percent, index }) => {
-                      if (selectedExpenseSlice === index && (percent as number) > 0) {
-                        return `${((percent as number) * 100).toFixed(1)}%`;
-                      }
-                      return null;
-                    }}
-                  >
-                    {expenseData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.color}
-                        stroke={selectedExpenseSlice === index ? "#ffffff" : "none"}
-                        strokeWidth={selectedExpenseSlice === index ? 3 : 0}
-                      />
+                >
+                  {[
+                    { name: 'Funcionários', value: 45, color: '#3b82f6' },
+                    { name: 'Marketing', value: 25, color: '#10b981' },
+                    { name: 'Operacional', value: 20, color: '#f59e0b' },
+                    { name: 'Outros', value: 10, color: '#ef4444' }
+                  ].map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
                 <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }} />
               </RechartsPieChart>
             </ResponsiveContainer>
-            </div>
-            
-            {/* Legenda interativa */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white mb-4">Distribuição por Categoria</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {expenseData.map((entry, index) => {
-                  const total = expenseData.reduce((sum, item) => sum + item.value, 0);
-                  const percentage = total > 0 ? ((entry.value / total) * 100).toFixed(1) : 0;
-                  const isSelected = selectedExpenseSlice === index;
-                  
-                  return (
-                    <div 
-                      key={index} 
-                      className={`flex items-center p-3 rounded-lg transition-all duration-300 cursor-pointer ${
-                        isSelected 
-                          ? 'bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-400/30 shadow-md' 
-                          : 'hover:bg-slate-700/20 hover:scale-105'
-                      }`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setSelectedExpenseSlice(isSelected ? null : index);
-                      }}
-                    >
-                      <div 
-                        className={`w-4 h-4 rounded-full mr-3 transition-all duration-300 ${
-                          isSelected ? 'ring-2 ring-white' : ''
-                        }`}
-                        style={{ backgroundColor: entry.color }}
-                      />
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-white">{entry.name}</div>
-                        <div className="text-xs text-gray-400">{entry.value}% • R$ {((entry.value / 100) * 50000).toLocaleString('pt-BR')}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -978,78 +958,35 @@ export default function ReportsPage() {
             <CardTitle className="text-white">Status dos Clientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <RechartsPieChart>
                   <Pie
-                      data={clientStatusData}
+                    data={[
+                      { name: 'Leads', value: clients.filter(c => c.status === 'lead').length, color: '#f59e0b' },
+                      { name: 'Prospects', value: clients.filter(c => c.status === 'prospect').length, color: '#3b82f6' },
+                      { name: 'Clientes', value: clients.filter(c => c.status === 'cliente').length, color: '#10b981' },
+                      { name: 'Inativos', value: clients.filter(c => c.status === 'inativo').length, color: '#6b7280' }
+                    ]}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                      outerRadius={120}
+                    outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
-                      label={({ percent, index }) => {
-                        if (selectedClientStatusSlice === index && (percent as number) > 0) {
-                          return `${((percent as number) * 100).toFixed(1)}%`;
-                        }
-                        return null;
-                      }}
-                    >
-                      {clientStatusData.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={entry.color}
-                          stroke={selectedClientStatusSlice === index ? "#ffffff" : "none"}
-                          strokeWidth={selectedClientStatusSlice === index ? 3 : 0}
-                        />
+                  >
+                    {[
+                      { name: 'Leads', value: clients.filter(c => c.status === 'lead').length, color: '#f59e0b' },
+                      { name: 'Prospects', value: clients.filter(c => c.status === 'prospect').length, color: '#3b82f6' },
+                      { name: 'Clientes', value: clients.filter(c => c.status === 'cliente').length, color: '#10b981' },
+                      { name: 'Inativos', value: clients.filter(c => c.status === 'inativo').length, color: '#6b7280' }
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }} />
                 </RechartsPieChart>
               </ResponsiveContainer>
-              </div>
-              
-              {/* Legenda interativa - abaixo do gráfico */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white mb-4 text-center">Distribuição por Status</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {clientStatusData.map((entry, index) => {
-                    const total = clientStatusData.reduce((sum, item) => sum + item.value, 0);
-                    const percentage = total > 0 ? ((entry.value / total) * 100).toFixed(1) : 0;
-                    const isSelected = selectedClientStatusSlice === index;
-                    
-                    return (
-                      <div 
-                        key={index} 
-                        className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 cursor-pointer ${
-                          isSelected 
-                            ? 'bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-400/30 shadow-md' 
-                            : 'hover:bg-slate-700/20 hover:scale-105'
-                        }`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setSelectedClientStatusSlice(isSelected ? null : index);
-                        }}
-                      >
-                        <div 
-                          className={`w-4 h-4 rounded-full mb-2 transition-all duration-300 ${
-                            isSelected ? 'ring-2 ring-white' : ''
-                          }`}
-                          style={{ backgroundColor: entry.color }}
-                        />
-                        <div className="text-center">
-                          <div className="text-sm font-medium text-white">{entry.name}</div>
-                          <div className="text-xs text-gray-400">{entry.value} clientes</div>
-                          <div className="text-xs text-gray-500">{percentage}%</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -1462,7 +1399,7 @@ export default function ReportsPage() {
             <Button 
               variant="outline" 
               onClick={() => setActiveReport(null)}
-            className="flex items-center bg-slate-700/50 border-slate-500/50 text-white hover:bg-slate-600/50"
+              className="flex items-center bg-slate-700/50 border-slate-500/50 text-white hover:bg-slate-600/50"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar

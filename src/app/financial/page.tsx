@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useFinancial } from '@/lib/contexts/FinancialContext';
 import { ModernLayout } from '@/components/layout/ModernLayout';
@@ -40,13 +40,26 @@ export default function FinancialPage() {
     getPendingPayments, 
     getOverduePayments,
     getUpcomingPayments,
-    alerts
+    alerts,
+    generateMonthlyTransactions,
+    transactions,
+    employees,
+    fixedExpenses
   } = useFinancial();
   
   const [activeTab, setActiveTab] = useState<'overview' | 'transactions' | 'employees' | 'fixed-expenses'>('overview');
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [showEmployeeForm, setShowEmployeeForm] = useState(false);
   const [showFixedExpenseForm, setShowFixedExpenseForm] = useState(false);
+
+  // Monitorar mudanças nos dados
+  useEffect(() => {
+    console.log('=== DADOS FINANCEIROS ATUALIZADOS ===');
+    console.log('Transações:', transactions.length);
+    console.log('Funcionários:', employees.length);
+    console.log('Contas Fixas:', fixedExpenses.length);
+    console.log('Alertas:', alerts.length);
+  }, [transactions, employees, fixedExpenses, alerts]);
   const [editingTransaction, setEditingTransaction] = useState<FinancialTransaction | undefined>();
   const [editingEmployee, setEditingEmployee] = useState<Employee | undefined>();
   const [editingFixedExpense, setEditingFixedExpense] = useState<FixedExpense | undefined>();
@@ -222,6 +235,17 @@ export default function FinancialPage() {
                 </div>
                 <div className="text-3xl font-bold text-white">{formatCurrency(getPendingPayments())}</div>
               </div>
+            </div>
+
+            {/* Botões de Ação */}
+            <div className="flex justify-center gap-4">
+              <Button 
+                onClick={generateMonthlyTransactions}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:scale-105"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Gerar Transações Mensais
+              </Button>
             </div>
 
             {/* Alertas e Próximos Pagamentos */}

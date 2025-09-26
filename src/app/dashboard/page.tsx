@@ -185,29 +185,90 @@ export default function DashboardPage() {
               <span className="text-green-400 text-sm">Ativo</span>
             </div>
           </div>
-          <div className="h-80 rounded-xl border border-indigo-400/30 overflow-hidden relative bg-gradient-to-br from-indigo-900/20 to-purple-900/20">
-            {/* Pipeline stages */}
-            <div className="absolute inset-4 grid grid-cols-7 gap-2 w-full h-full">
-              {['Prospecção', 'Qualificação', 'Consultoria', 'Proposta', 'Negociação', 'Fechado', 'Perdido'].map((stage, index) => {
-                const stageTasks = tasks.filter(t => {
-                  const statusMap = ['prospeccao', 'qualificacao', 'consultoria', 'proposta', 'negociacao', 'fechado', 'perdido'];
-                  return t.status === statusMap[index];
-                });
-                
-                return (
-                  <div key={stage} className="bg-white/10 backdrop-blur-xl rounded-lg p-3 border border-white/20 animate-bounce-subtle h-fit">
-                    <div className="bg-gradient-to-r from-indigo-500/30 to-blue-500/30 text-white text-xs px-2 py-1 rounded mb-2 text-center">
+          <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-xl border border-slate-600/30 p-6">
+            {/* Pipeline stages com design moderno */}
+            <div className="space-y-4">
+              {/* Nomes dos estágios acima dos cards */}
+              <div className="grid grid-cols-7 gap-4">
+                {['Prospecção', 'Qualificação', 'Consultoria', 'Proposta', 'Negociação', 'Fechado', 'Perdido'].map((stage, index) => (
+                  <div key={`title-${stage}`} className="text-center">
+                    <div className="text-white/90 text-xs font-medium uppercase tracking-wide truncate">
                       {stage}
                     </div>
-                    <div className="text-center text-white text-lg font-bold">
-                      {stageTasks.length}
-                    </div>
-                    <div className="text-center text-white/60 text-xs">
-                      R$ {stageTasks.reduce((sum, t) => sum + (t.expectedValue || 0), 0).toLocaleString('pt-BR')}
-                    </div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
+              
+              {/* Cards dos estágios */}
+              <div className="grid grid-cols-7 gap-4">
+                {['Prospecção', 'Qualificação', 'Consultoria', 'Proposta', 'Negociação', 'Fechado', 'Perdido'].map((stage, index) => {
+                  const stageTasks = tasks.filter(t => {
+                    const statusMap = ['prospeccao', 'qualificacao', 'consultoria', 'proposta', 'negociacao', 'fechado', 'perdido'];
+                    return t.status === statusMap[index];
+                  });
+                  
+                  const colors = [
+                    'from-orange-500/20 to-orange-600/20 border-orange-400/30', // Prospecção
+                    'from-blue-500/20 to-blue-600/20 border-blue-400/30', // Qualificação
+                    'from-purple-500/20 to-purple-600/20 border-purple-400/30', // Consultoria
+                    'from-green-500/20 to-green-600/20 border-green-400/30', // Proposta
+                    'from-yellow-500/20 to-yellow-600/20 border-yellow-400/30', // Negociação
+                    'from-emerald-500/20 to-emerald-600/20 border-emerald-400/30', // Fechado
+                    'from-red-500/20 to-red-600/20 border-red-400/30' // Perdido
+                  ];
+                  
+                  const totalValue = stageTasks.reduce((sum, t) => sum + (t.expectedValue || 0), 0);
+                  
+                  return (
+                    <div key={stage} className={`bg-gradient-to-br ${colors[index]} backdrop-blur-xl rounded-xl p-4 border text-white hover:scale-105 transition-all duration-300 cursor-pointer group flex flex-col justify-between h-[120px]`}>
+                      <div className="text-center flex-1 flex flex-col justify-center">
+                        <div className="text-white text-2xl font-bold mb-2">
+                          {stageTasks.length}
+                        </div>
+                        <div className="text-white/70 text-xs">
+                          R$ {totalValue.toLocaleString('pt-BR')}
+                        </div>
+                      </div>
+                      
+                      {/* Barra de progresso visual */}
+                      <div className="mt-3 w-full bg-white/10 rounded-full h-1">
+                        <div 
+                          className={`h-1 rounded-full transition-all duration-500 ${
+                            index === 0 ? 'bg-orange-400' :
+                            index === 1 ? 'bg-blue-400' :
+                            index === 2 ? 'bg-purple-400' :
+                            index === 3 ? 'bg-green-400' :
+                            index === 4 ? 'bg-yellow-400' :
+                            index === 5 ? 'bg-emerald-400' :
+                            'bg-red-400'
+                          }`}
+                          style={{ width: `${Math.min((stageTasks.length / Math.max(tasks.length, 1)) * 100, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Resumo do pipeline */}
+            <div className="mt-6 grid grid-cols-3 gap-4">
+              <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-lg p-4 border border-blue-500/20">
+                <div className="text-blue-400 text-sm font-medium">Total de Oportunidades</div>
+                <div className="text-white text-xl font-bold">{tasks.length}</div>
+              </div>
+              <div className="bg-gradient-to-r from-green-500/10 to-green-600/10 rounded-lg p-4 border border-green-500/20">
+                <div className="text-green-400 text-sm font-medium">Valor Total</div>
+                <div className="text-white text-xl font-bold">
+                  R$ {tasks.reduce((sum, t) => sum + (t.expectedValue || 0), 0).toLocaleString('pt-BR')}
+                </div>
+              </div>
+              <div className="bg-gradient-to-r from-purple-500/10 to-purple-600/10 rounded-lg p-4 border border-purple-500/20">
+                <div className="text-purple-400 text-sm font-medium">Taxa de Conversão</div>
+                <div className="text-white text-xl font-bold">
+                  {tasks.length > 0 ? ((tasks.filter(t => t.status === 'fechado').length / tasks.length) * 100).toFixed(1) : 0}%
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -337,43 +398,43 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        <div className="bg-gradient-to-r from-indigo-500/20 to-blue-500/20 backdrop-blur-2xl rounded-xl p-6 border border-indigo-500/30 text-white">
+        <div className="bg-gradient-to-r from-indigo-500/20 to-blue-500/20 backdrop-blur-2xl rounded-xl p-6 border border-indigo-500/30 text-white flex flex-col h-full">
           <h3 className="text-lg font-semibold mb-2 flex items-center">
             <Users className="w-5 h-5 mr-2" />
             Novo Cliente
           </h3>
-          <p className="text-white/70 mb-4">Adicione um novo cliente ao seu CRM</p>
+          <p className="text-white/70 mb-4 flex-grow">Adicione um novo cliente ao seu CRM</p>
           <button 
             onClick={() => router.push('/crm')}
-            className="bg-white/20 border border-white/30 text-white px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition-all"
+            className="bg-white/20 border border-white/30 text-white px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition-all mt-auto"
           >
             Adicionar Cliente
           </button>
         </div>
 
-        <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-2xl rounded-xl p-6 border border-green-500/30 text-white">
+        <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-2xl rounded-xl p-6 border border-green-500/30 text-white flex flex-col h-full">
           <h3 className="text-lg font-semibold mb-2 flex items-center">
             <Kanban className="w-5 h-5 mr-2" />
             Nova Oportunidade
           </h3>
-          <p className="text-white/70 mb-4">Crie uma nova oportunidade no pipeline</p>
+          <p className="text-white/70 mb-4 flex-grow">Crie uma nova oportunidade no pipeline</p>
           <button 
             onClick={() => router.push('/kanban')}
-            className="bg-white/20 border border-white/30 text-white px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition-all"
+            className="bg-white/20 border border-white/30 text-white px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition-all mt-auto"
           >
             Criar Oportunidade
           </button>
         </div>
 
-        <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-2xl rounded-xl p-6 border border-purple-500/30 text-white">
+        <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-2xl rounded-xl p-6 border border-purple-500/30 text-white flex flex-col h-full">
           <h3 className="text-lg font-semibold mb-2 flex items-center">
             <Calculator className="w-5 h-5 mr-2" />
             Calcular Preço
           </h3>
-          <p className="text-white/70 mb-4">Use nossa calculadora de preços</p>
+          <p className="text-white/70 mb-4 flex-grow">Use nossa calculadora de preços</p>
           <button 
             onClick={() => router.push('/calculator')}
-            className="bg-white/20 border border-white/30 text-white px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition-all"
+            className="bg-white/20 border border-white/30 text-white px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition-all mt-auto"
           >
             Calcular
           </button>
