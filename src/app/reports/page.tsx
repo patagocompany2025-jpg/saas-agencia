@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useFinancial } from '@/lib/contexts/FinancialContext';
 import { useKanban } from '@/lib/contexts/KanbanContext';
@@ -17,17 +17,10 @@ import {
   Target,
   DollarSign,
   Users,
-  Calendar,
-  PieChart,
-  LineChart,
   Activity,
   Zap,
   Crown,
-  Globe,
-  Building2,
   Clock,
-  CheckCircle,
-  AlertTriangle,
   XCircle,
   ArrowUpRight,
   ArrowDownRight
@@ -43,24 +36,61 @@ import {
   PieChart as RechartsPieChart, 
   Pie, 
   Cell,
-  LineChart as RechartsLineChart,
   Line,
   Area,
   AreaChart,
   ComposedChart
 } from 'recharts';
-import { exportReportData, exportToPDF, exportToPDFSimple, exportToPDFFallback, exportToPDFBasic, exportToPDFAlternative } from '@/lib/utils/export';
+import { 
+  exportReportData, 
+  exportExecutiveReportPDF,
+  exportDIEReportPDF,
+  exportSalesReportPDF,
+  exportFinancialReportPDF,
+  exportPerformanceReportPDF,
+  exportGrowthReportPDF
+} from '@/lib/utils/export';
 
 type ReportType = 'executive' | 'sales' | 'financial' | 'performance' | 'die' | 'growth' | null;
 
 export default function ReportsPage() {
   const { user, isLoading } = useAuth();
-  const { transactions, employees, fixedExpenses } = useFinancial();
+  const { transactions } = useFinancial();
   const { tasks } = useKanban();
   const { clients } = useClients();
   const [activeReport, setActiveReport] = useState<ReportType>(null);
-  const [selectedPeriod, setSelectedPeriod] = useState('30');
+  const [selectedPeriod] = useState('30');
   const [exportFormat, setExportFormat] = useState<'pdf' | 'excel' | 'csv'>('pdf');
+  const [selectedSlice, setSelectedSlice] = useState<number | null>(null);
+  const [selectedPipelineSlice, setSelectedPipelineSlice] = useState<number | null>(null);
+
+  // Dados para gráficos - memoizados para evitar recálculos
+  const salesData = useMemo(() => [
+    { month: 'Jan', vendas: 45000, clientes: 12, leads: 25 },
+    { month: 'Fev', vendas: 52000, clientes: 15, leads: 30 },
+    { month: 'Mar', vendas: 48000, clientes: 11, leads: 28 },
+    { month: 'Abr', vendas: 61000, clientes: 18, leads: 35 },
+    { month: 'Mai', vendas: 55000, clientes: 14, leads: 32 },
+    { month: 'Jun', vendas: 67000, clientes: 20, leads: 40 },
+  ], []);
+
+  const kanbanData = useMemo(() => [
+    { status: 'Prospecção', value: tasks.filter(t => t.status === 'prospeccao').length, color: '#f59e0b' },
+    { status: 'Qualificação', value: tasks.filter(t => t.status === 'qualificacao').length, color: '#3b82f6' },
+    { status: 'Consultoria', value: tasks.filter(t => t.status === 'consultoria').length, color: '#8b5cf6' },
+    { status: 'Proposta', value: tasks.filter(t => t.status === 'proposta').length, color: '#10b981' },
+    { status: 'Negociação', value: tasks.filter(t => t.status === 'negociacao').length, color: '#ef4444' },
+    { status: 'Fechado', value: tasks.filter(t => t.status === 'fechado').length, color: '#22c55e' },
+  ], [tasks]);
+
+  const sourceData = useMemo(() => [
+    { name: 'Website', value: clients.filter(c => c.source === 'Website').length, color: '#3b82f6' },
+    { name: 'Facebook', value: clients.filter(c => c.source === 'Facebook').length, color: '#1877f2' },
+    { name: 'Instagram', value: clients.filter(c => c.source === 'Instagram').length, color: '#e4405f' },
+    { name: 'Indicação', value: clients.filter(c => c.source === 'Indicação').length, color: '#10b981' },
+    { name: 'Google', value: clients.filter(c => c.source === 'Google').length, color: '#4285f4' },
+    { name: 'WhatsApp', value: clients.filter(c => c.source === 'WhatsApp').length, color: '#25d366' },
+  ], [clients]);
 
   // Verificar se o usuário tem acesso ao módulo de relatórios
   if (user?.role !== 'socio') {
@@ -104,34 +134,6 @@ export default function ReportsPage() {
   const totalTasks = tasks.length;
   const closedTasks = tasks.filter(t => t.status === 'fechado').length;
   const conversionRate = totalClients > 0 ? (activeClients / totalClients) * 100 : 0;
-  
-  // Dados para gráficos
-  const salesData = [
-    { month: 'Jan', vendas: 45000, clientes: 12, leads: 25 },
-    { month: 'Fev', vendas: 52000, clientes: 15, leads: 30 },
-    { month: 'Mar', vendas: 48000, clientes: 11, leads: 28 },
-    { month: 'Abr', vendas: 61000, clientes: 18, leads: 35 },
-    { month: 'Mai', vendas: 55000, clientes: 14, leads: 32 },
-    { month: 'Jun', vendas: 67000, clientes: 20, leads: 40 },
-  ];
-
-  const kanbanData = [
-    { status: 'Prospecção', value: tasks.filter(t => t.status === 'prospeccao').length, color: '#f59e0b' },
-    { status: 'Qualificação', value: tasks.filter(t => t.status === 'qualificacao').length, color: '#3b82f6' },
-    { status: 'Consultoria', value: tasks.filter(t => t.status === 'consultoria').length, color: '#8b5cf6' },
-    { status: 'Proposta', value: tasks.filter(t => t.status === 'proposta').length, color: '#10b981' },
-    { status: 'Negociação', value: tasks.filter(t => t.status === 'negociacao').length, color: '#ef4444' },
-    { status: 'Fechado', value: tasks.filter(t => t.status === 'fechado').length, color: '#22c55e' },
-  ];
-
-  const sourceData = [
-    { name: 'Website', value: clients.filter(c => c.source === 'Website').length, color: '#3b82f6' },
-    { name: 'Facebook', value: clients.filter(c => c.source === 'Facebook').length, color: '#1877f2' },
-    { name: 'Instagram', value: clients.filter(c => c.source === 'Instagram').length, color: '#e4405f' },
-    { name: 'Indicação', value: clients.filter(c => c.source === 'Indicação').length, color: '#10b981' },
-    { name: 'Google', value: clients.filter(c => c.source === 'Google').length, color: '#4285f4' },
-    { name: 'WhatsApp', value: clients.filter(c => c.source === 'WhatsApp').length, color: '#25d366' },
-  ];
 
   // Função de exportação
   const exportReport = (reportType: string) => {
@@ -158,37 +160,42 @@ export default function ReportsPage() {
     const filename = `relatorio_${reportType}_${new Date().toISOString().split('T')[0]}`;
 
     if (exportFormat === 'pdf') {
-      // Para PDF, usar o elemento HTML do relatório
-      const elementId = reportType === 'executivo' ? 'report-executive' : `report-${reportType}`;
-      
-      // Verificar se o elemento existe
-      const element = document.getElementById(elementId);
-      if (!element) {
-        alert('Elemento do relatório não encontrado. Certifique-se de que o relatório está carregado.');
-        return;
-      }
-      
-      // Tentar diferentes métodos de exportação PDF
+      // Para PDF, usar funções específicas para cada tipo de relatório
+      // As funções específicas geram o PDF diretamente sem precisar de elemento HTML
       try {
-        console.log('Tentando exportação PDF alternativa...');
-        exportToPDFAlternative(elementId, filename);
+        console.log(`Tentando exportação PDF específica para ${reportType}...`);
+        
+        switch (reportType) {
+          case 'executivo':
+            exportExecutiveReportPDF('', filename, data);
+            break;
+          case 'die':
+            exportDIEReportPDF('', filename, data);
+            break;
+          case 'vendas':
+            exportSalesReportPDF('', filename, data);
+            break;
+          case 'financeiro':
+            exportFinancialReportPDF('', filename, data);
+            break;
+          case 'performance':
+            exportPerformanceReportPDF('', filename, data);
+            break;
+          case 'crescimento':
+            exportGrowthReportPDF('', filename, data);
+            break;
+          default:
+            // Fallback para método genérico - usar dados estruturados
+            exportReportData(data, 'pdf', filename);
+        }
       } catch (error) {
-        console.log('Erro com método alternativo, tentando html2canvas...', error);
+        console.log(`Erro com método específico para ${reportType}, tentando método genérico...`, error);
         try {
-          exportToPDFSimple(elementId, filename);
-        } catch (simpleError) {
-          console.log('Erro com html2canvas, tentando fallback...', simpleError);
-          try {
-            exportToPDFFallback(elementId, filename);
-          } catch (fallbackError) {
-            console.log('Erro com fallback, tentando método original...', fallbackError);
-            try {
-              exportToPDF(elementId, filename);
-            } catch (originalError) {
-              console.log('Erro com método original, usando PDF básico...', originalError);
-              exportToPDFBasic(elementId, filename);
-            }
-          }
+          // Usar dados estruturados como fallback
+          exportReportData(data, 'pdf', filename);
+                    } catch (fallbackError) {
+          console.error('Erro no fallback:', fallbackError);
+          alert('Erro ao gerar PDF: ' + (fallbackError instanceof Error ? fallbackError.message : String(fallbackError)));
         }
       }
     } else {
@@ -333,6 +340,18 @@ export default function ReportsPage() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
+            
+            {/* Legenda para Evolução de Vendas */}
+            <div className="mt-4 flex items-center justify-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded" style={{ backgroundColor: '#3b82f6' }} />
+                <span className="text-white text-sm">Vendas Mensais</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded" style={{ backgroundColor: '#3b82f6', opacity: 0.3 }} />
+                <span className="text-white text-sm">Área de Crescimento</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -341,26 +360,137 @@ export default function ReportsPage() {
             <CardTitle className="text-white">Pipeline de Vendas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsPieChart>
-                  <Pie
-                    data={kanbanData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
+            <div className="flex items-center justify-center">
+              <div className="relative w-64 h-64">
+                <svg width="256" height="256" className="transform -rotate-90">
+                  {(() => {
+                    const total = kanbanData.reduce((sum, item) => sum + item.value, 0);
+                    let currentAngle = 0;
+                    const radius = 100;
+                    const centerX = 128;
+                    const centerY = 128;
+                    
+                    return kanbanData.map((entry, index) => {
+                      const percentage = total > 0 ? (entry.value / total) : 0;
+                      const angle = percentage * 360;
+                      const startAngle = currentAngle;
+                      const endAngle = currentAngle + angle;
+                      
+                      const x1 = centerX + radius * Math.cos((startAngle * Math.PI) / 180);
+                      const y1 = centerY + radius * Math.sin((startAngle * Math.PI) / 180);
+                      const x2 = centerX + radius * Math.cos((endAngle * Math.PI) / 180);
+                      const y2 = centerY + radius * Math.sin((endAngle * Math.PI) / 180);
+                      
+                      const largeArcFlag = angle > 180 ? 1 : 0;
+                      const pathData = [
+                        `M ${centerX} ${centerY}`,
+                        `L ${x1} ${y1}`,
+                        `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                        'Z'
+                      ].join(' ');
+                      
+                      currentAngle += angle;
+                      
+                      return (
+                        <path
+                          key={index}
+                          d={pathData}
+                          fill={entry.color}
+                          stroke={selectedPipelineSlice === index ? "#ffffff" : "none"}
+                          strokeWidth={selectedPipelineSlice === index ? 3 : 0}
+                          className="hover:opacity-80 transition-all duration-200 cursor-pointer"
+                          style={{ 
+                            filter: selectedPipelineSlice === index 
+                              ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))' 
+                              : 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+                            opacity: selectedPipelineSlice !== null && selectedPipelineSlice !== index ? 0.3 : 1
+                          }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const newSelection = selectedPipelineSlice === index ? null : index;
+                            console.log('Clicando na fatia do pipeline:', index, 'Nova seleção:', newSelection);
+                            setSelectedPipelineSlice(newSelection);
+                          }}
+                        />
+                      );
+                    });
+                  })()}
+                  
+                  {/* Círculo interno */}
+                  <circle
+                    cx="128"
+                    cy="128"
+                    r="40"
+                    fill="#1f2937"
+                    stroke="none"
+                  />
+                </svg>
+                
+                {/* Texto central */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    {selectedPipelineSlice !== null ? (
+                      <>
+                        <p className="text-white text-sm font-medium">{kanbanData[selectedPipelineSlice].status}</p>
+                        <p className="text-white text-2xl font-bold">{kanbanData[selectedPipelineSlice].value}</p>
+                        <p className="text-gray-400 text-xs">
+                          {(() => {
+                            const total = kanbanData.reduce((sum, item) => sum + item.value, 0);
+                            const percentage = total > 0 ? ((kanbanData[selectedPipelineSlice].value / total) * 100).toFixed(1) : 0;
+                            return `${percentage}%`;
+                          })()}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-white text-sm font-medium">Total</p>
+                        <p className="text-white text-2xl font-bold">
+                          {kanbanData.reduce((sum, item) => sum + item.value, 0)}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Legenda externa */}
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              {kanbanData.map((entry, index) => {
+                const total = kanbanData.reduce((sum, item) => sum + item.value, 0);
+                const percentage = total > 0 ? ((entry.value / total) * 100).toFixed(1) : 0;
+                const isSelected = selectedPipelineSlice === index;
+                
+                return (
+                  <div 
+                    key={index} 
+                    className={`flex items-center space-x-2 p-2 rounded-lg transition-all duration-200 cursor-pointer ${
+                      isSelected ? 'bg-white/10 border border-white/20' : 'hover:bg-white/5'
+                    }`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSelectedPipelineSlice(isSelected ? null : index);
+                    }}
                   >
-                    {kanbanData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }} />
-                </RechartsPieChart>
-              </ResponsiveContainer>
+                    <div 
+                      className={`w-4 h-4 rounded-full flex-shrink-0 transition-all duration-200 ${
+                        isSelected ? 'ring-2 ring-white' : ''
+                      }`}
+                      style={{ backgroundColor: entry.color }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-medium truncate transition-colors duration-200 ${
+                        isSelected ? 'text-white' : 'text-white'
+                      }`}>{entry.status}</p>
+                      <p className={`text-xs transition-colors duration-200 ${
+                        isSelected ? 'text-gray-300' : 'text-gray-400'
+                      }`}>{entry.value} ({percentage}%)</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -509,7 +639,7 @@ export default function ReportsPage() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }: { name: string; percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -707,7 +837,7 @@ export default function ReportsPage() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }: { name: string; percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"

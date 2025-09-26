@@ -220,6 +220,8 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
     title: '',
     subtitle: ''
   });
+  // Estado para armazenar configurações personalizadas das colunas padrão
+  const [customColumnConfigs, setCustomColumnConfigs] = useState<{[key: string]: {title: string, subtitle: string}}>({});
 
   // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas
   useEffect(() => {
@@ -315,10 +317,19 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
     }
     
     setEditingColumn(columnStatus as PostSaleTask['status']);
-    setColumnConfig({
-      title: config?.title || '',
-      subtitle: config?.subtitle || ''
-    });
+    
+    // Para colunas padrão, verificar se há configuração personalizada salva
+    if (!isCustomColumn && customColumnConfigs[columnStatus]) {
+      setColumnConfig({
+        title: customColumnConfigs[columnStatus].title,
+        subtitle: customColumnConfigs[columnStatus].subtitle
+      });
+    } else {
+      setColumnConfig({
+        title: config?.title || '',
+        subtitle: config?.subtitle || ''
+      });
+    }
     setShowColumnConfig(true);
   };
 
@@ -335,7 +346,14 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
         });
         alert(`Configurações da coluna "${columnConfig.title}" salvas com sucesso!`);
       } else if (!isCustomColumn) {
-        // Para colunas padrão, podemos atualizar localmente
+        // Para colunas padrão, salvar no estado local
+        setCustomColumnConfigs(prev => ({
+          ...prev,
+          [editingColumn]: {
+            title: columnConfig.title,
+            subtitle: columnConfig.subtitle
+          }
+        }));
         alert(`Configurações da coluna "${columnConfig.title}" salvas com sucesso!`);
       } else {
         alert('Erro: Função de atualização não disponível para colunas customizadas.');
@@ -421,12 +439,27 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
         <div className="flex gap-6 overflow-x-auto pb-4">
           {columnOrder.map((status) => {
             const isCustomColumn = status.startsWith('custom_');
-            const config = isCustomColumn ? {
-              title: customColumns[status]?.title || 'Nova Coluna',
-              subtitle: customColumns[status]?.subtitle || 'Descrição',
-              icon: <Settings className="h-4 w-4 text-blue-400" />,
-              color: 'border-blue-500/30 bg-blue-500/5'
-            } : statusConfig[status as PostSaleTask['status']];
+            let config;
+            
+            if (isCustomColumn) {
+              config = {
+                title: customColumns[status]?.title || 'Nova Coluna',
+                subtitle: customColumns[status]?.subtitle || 'Descrição',
+                icon: <Settings className="h-4 w-4 text-blue-400" />,
+                color: 'border-blue-500/30 bg-blue-500/5'
+              };
+            } else {
+              // Para colunas padrão, verificar se há configuração personalizada
+              const defaultConfig = statusConfig[status as PostSaleTask['status']];
+              const customConfig = customColumnConfigs[status];
+              
+              config = {
+                ...defaultConfig,
+                title: customConfig?.title || defaultConfig?.title || '',
+                subtitle: customConfig?.subtitle || defaultConfig?.subtitle || ''
+              };
+            }
+            
             const statusTasks = isCustomColumn ? [] : getTasksByStatus(status);
             const totalValue = isCustomColumn ? 0 : getTotalValue(status);
             

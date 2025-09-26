@@ -81,13 +81,24 @@ export default function DashboardPage() {
           <div className="flex items-center space-x-4">
             <button 
               onClick={() => {
-                if (user?.role === 'socio') {
-                  router.push('/reports');
+                console.log('Botão de relatórios clicado');
+                console.log('Usuário:', user);
+                console.log('Role:', user?.role);
+                
+                if (!user) {
+                  alert('Usuário não autenticado. Faça login novamente.');
+                  return;
+                }
+                
+                if (user.role === 'socio') {
+                  console.log('Redirecionando para /reports');
+                  window.location.href = '/reports';
                 } else {
+                  console.log('Acesso negado - não é sócio');
                   alert('Apenas sócios têm acesso aos relatórios.');
                 }
               }}
-              className="p-2 bg-white/10 border border-white/20 rounded-lg text-white transition-all hover:bg-white/15"
+              className="p-2 bg-white/10 border border-white/20 rounded-lg text-white transition-all hover:bg-white/15 hover:scale-105"
               title={user?.role === 'socio' ? 'Relatórios e Análises' : 'Acesso restrito - Apenas sócios'}
             >
               <BarChart3 className="w-5 h-5" />

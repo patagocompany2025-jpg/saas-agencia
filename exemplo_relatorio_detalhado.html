@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exemplo Detalhado - Relatório Executivo PDF</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .pdf-preview {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .pdf-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .pdf-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .pdf-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .pdf-content {
+            padding: 30px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+        }
+
+        .metric-card h3 {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .metric-card .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .metric-card .change {
+            font-size: 12px;
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .chart-section {
+            margin: 30px 0;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            height: 300px;
+            position: relative;
+        }
+
+        .growth-analysis {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        .growth-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0c4a6e;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .growth-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .growth-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #e0f2fe;
+        }
+
+        .growth-card h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0c4a6e;
+            margin-bottom: 8px;
+        }
+
+        .growth-card .period {
+            font-size: 12px;
+            color: #0369a1;
+            margin-bottom: 15px;
+        }
+
+        .growth-card ul {
+            list-style: none;
+            text-align: left;
+        }
+
+        .growth-card li {
+            font-size: 12px;
+            color: #374151;
+            margin-bottom: 4px;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .growth-card li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
+        .footer {
+            background: #f8fafc;
+            padding: 20px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .note {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #92400e;
+        }
+
+        .export-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .export-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .pdf-preview {
+                box-shadow: none;
+                border-radius: 0;
+            }
+            .export-button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="export-button" onclick="exportToPDF()">📄 Exportar PDF</button>
+
+    <div class="pdf-preview">
+        <!-- Cabeçalho -->
+        <div class="pdf-header">
+            <h1>📊 Relatório Executivo</h1>
+            <p>Visão estratégica completa da empresa • Janeiro 2024</p>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="pdf-content">
+            <!-- Métricas Principais -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>💰 Receita Total</h3>
+                    <div class="value">R$ 328.000</div>
+                    <div class="change">↗ +12.5% vs mês anterior</div>
+                </div>
+                <div class="metric-card">
+                    <h3>👥 Clientes Ativos</h3>
+                    <div class="value">89</div>
+                    <div class="change">↗ +8.2% vs mês anterior</div>
+                </div>
+                <div class="metric-card">
+                    <h3>🎯 Taxa de Conversão</h3>
+                    <div class="value">67.4%</div>
+                    <div class="change">↗ +2.1% vs mês anterior</div>
+                </div>
+                <div class="metric-card">
+                    <h3>📈 Margem de Lucro</h3>
+                    <div class="value">23.8%</div>
+                    <div class="change">↗ +1.8% vs mês anterior</div>
+                </div>
+            </div>
+
+            <!-- Gráfico de Evolução de Vendas -->
+            <div class="chart-section">
+                <div class="chart-title">📈 Evolução de Vendas (Últimos 6 meses)</div>
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico de Pipeline -->
+            <div class="chart-section">
+                <div class="chart-title">🎯 Pipeline de Vendas</div>
+                <div class="chart-container">
+                    <canvas id="pipelineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico de Performance -->
+            <div class="chart-section">
+                <div class="chart-title">⚡ Performance da Equipe</div>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Análise de Crescimento Estratégico -->
+            <div class="growth-analysis">
+                <div class="growth-title">
+                    ⚡ Análise de Crescimento Estratégico
+                </div>
+                <div class="growth-grid">
+                    <div class="growth-card">
+                        <h4>🚀 Curto Prazo</h4>
+                        <div class="period">Próximos 3 meses</div>
+                        <ul>
+                            <li>Aumentar conversão em 15%</li>
+                            <li>Reduzir custos operacionais</li>
+                            <li>Melhorar atendimento</li>
+                        </ul>
+                    </div>
+                    <div class="growth-card">
+                        <h4>🎯 Médio Prazo</h4>
+                        <div class="period">6-12 meses</div>
+                        <ul>
+                            <li>Expansão de mercado</li>
+                            <li>Novos produtos/serviços</li>
+                            <li>Parcerias estratégicas</li>
+                        </ul>
+                    </div>
+                    <div class="growth-card">
+                        <h4>👑 Longo Prazo</h4>
+                        <div class="period">1-3 anos</div>
+                        <ul>
+                            <li>Liderança de mercado</li>
+                            <li>Franquias/licenciamento</li>
+                            <li>Internacionalização</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nota sobre Gráficos -->
+            <div class="note">
+                <strong>📋 Nota Técnica:</strong> Os gráficos neste relatório são renderizados com Chart.js, garantindo qualidade profissional e interatividade. No PDF final, os gráficos serão convertidos em imagens de alta resolução (300 DPI) para máxima qualidade de impressão.
+            </div>
+        </div>
+
+        <!-- Rodapé -->
+        <div class="footer">
+            <p>Relatório gerado automaticamente em 15/01/2024 às 14:30</p>
+            <p>Sistema de Relatórios Estratégicos v2.0 • Gráficos interativos com Chart.js</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuração global do Chart.js
+        Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        Chart.defaults.color = '#374151';
+
+        // Dados para os gráficos
+        const salesData = {
+            labels: ['Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+            datasets: [{
+                label: 'Vendas (R$)',
+                data: [45000, 52000, 48000, 61000, 55000, 67000],
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        };
+
+        const pipelineData = {
+            labels: ['Prospecção', 'Qualificação', 'Consultoria', 'Proposta', 'Negociação', 'Fechado'],
+            datasets: [{
+                data: [12, 8, 15, 6, 4, 18],
+                backgroundColor: [
+                    '#f59e0b',
+                    '#3b82f6',
+                    '#8b5cf6',
+                    '#10b981',
+                    '#ef4444',
+                    '#22c55e'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        };
+
+        const performanceData = {
+            labels: ['João Silva', 'Maria Santos', 'Carlos Lima', 'Ana Costa'],
+            datasets: [{
+                label: 'Vendas',
+                data: [12, 15, 8, 18],
+                backgroundColor: '#3b82f6',
+                borderColor: '#1d4ed8',
+                borderWidth: 1
+            }, {
+                label: 'Clientes',
+                data: [8, 12, 6, 14],
+                backgroundColor: '#10b981',
+                borderColor: '#059669',
+                borderWidth: 1
+            }]
+        };
+
+        // Configurações dos gráficos
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#3b82f6',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: true
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                }
+            }
+        };
+
+        const pieOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#3b82f6',
+                    borderWidth: 1,
+                    cornerRadius: 8
+                }
+            }
+        };
+
+        // Criar os gráficos
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        new Chart(salesCtx, {
+            type: 'line',
+            data: salesData,
+            options: chartOptions
+        });
+
+        const pipelineCtx = document.getElementById('pipelineChart').getContext('2d');
+        new Chart(pipelineCtx, {
+            type: 'doughnut',
+            data: pipelineData,
+            options: pieOptions
+        });
+
+        const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+        new Chart(performanceCtx, {
+            type: 'bar',
+            data: performanceData,
+            options: chartOptions
+        });
+
+        // Função para exportar PDF (simulada)
+        function exportToPDF() {
+            alert('📄 Funcionalidade de exportação PDF será implementada com:\n\n' +
+                  '• Gráficos convertidos em imagens de alta resolução\n' +
+                  '• Layout otimizado para impressão\n' +
+                  '• Cores ajustadas para preto e branco\n' +
+                  '• Qualidade profissional\n\n' +
+                  'No sistema real, isso gerará um PDF com todos os gráficos renderizados!');
+        }
+
+        // Animações de entrada
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.metric-card, .growth-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

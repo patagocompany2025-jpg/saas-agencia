@@ -114,9 +114,12 @@ const priorityConfig = {
 interface KanbanBoardProps {
   onNewTask: () => void;
   onEditTask: (task: KanbanTask) => void;
+  customColumns?: {[key: string]: {title: string, subtitle: string, color: string}};
+  onUpdateCustomColumn?: (columnId: string, data: {title: string, subtitle: string, color: string}) => void;
+  onDeleteCustomColumn?: (columnId: string) => void;
 }
 
-export function KanbanBoard({ onNewTask, onEditTask }: KanbanBoardProps) {
+export function KanbanBoard({ onNewTask, onEditTask, customColumns = {}, onUpdateCustomColumn, onDeleteCustomColumn }: KanbanBoardProps) {
   const { user } = useAuth();
   const { tasks, moveTask, deleteTask, getTasksByStatus, getTotalValue } = useKanban();
   const { getClient } = useClients();
@@ -129,6 +132,20 @@ export function KanbanBoard({ onNewTask, onEditTask }: KanbanBoardProps) {
     title: '',
     subtitle: ''
   });
+  // Estado para armazenar configurações personalizadas das colunas padrão
+  const [customColumnConfigs, setCustomColumnConfigs] = useState<{[key: string]: {title: string, subtitle: string}}>({});
+
+  // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas
+  useEffect(() => {
+    const customColumnIds = Object.keys(customColumns);
+    if (customColumnIds.length > 0) {
+      setColumnOrder(prev => {
+        const existingCustom = prev.filter(col => col.startsWith('custom_'));
+        const newCustom = customColumnIds.filter(id => !existingCustom.includes(id));
+        return [...prev.filter(col => !col.startsWith('custom_')), ...newCustom];
+      });
+    }
+  }, [customColumns]);
 
   const handleDragStart = (e: React.DragEvent, task: KanbanTask) => {
     setDraggedTask(task);
@@ -218,16 +235,32 @@ export function KanbanBoard({ onNewTask, onEditTask }: KanbanBoardProps) {
   const handleEditColumn = (columnStatus: KanbanTask['status']) => {
     const config = statusConfig[columnStatus];
     setEditingColumn(columnStatus);
-    setColumnConfig({
-      title: config.title,
-      subtitle: config.subtitle
-    });
+    
+    // Verificar se há configuração personalizada salva
+    if (customColumnConfigs[columnStatus]) {
+      setColumnConfig({
+        title: customColumnConfigs[columnStatus].title,
+        subtitle: customColumnConfigs[columnStatus].subtitle
+      });
+    } else {
+      setColumnConfig({
+        title: config.title,
+        subtitle: config.subtitle
+      });
+    }
     setShowColumnConfig(true);
   };
 
   const handleSaveColumnConfig = () => {
     if (editingColumn) {
-      // Para colunas padrão, apenas mostrar mensagem
+      // Salvar configuração personalizada no estado local
+      setCustomColumnConfigs(prev => ({
+        ...prev,
+        [editingColumn]: {
+          title: columnConfig.title,
+          subtitle: columnConfig.subtitle
+        }
+      }));
       alert(`Configurações da coluna "${columnConfig.title}" salvas com sucesso!`);
       setShowColumnConfig(false);
       setEditingColumn(null);
@@ -313,9 +346,30 @@ export function KanbanBoard({ onNewTask, onEditTask }: KanbanBoardProps) {
       <div className="kanban-scroll">
         <div className="flex gap-4" style={{ minWidth: 'calc(100vw - 200px)' }}>
         {columnOrder.map((status) => {
-          const config = statusConfig[status];
-          const statusTasks = getTasksByStatus(status as KanbanTask['status']);
-          const totalValue = getTotalValue(status as KanbanTask['status']);
+          const isCustomColumn = status.startsWith('custom_');
+          let config;
+          
+          if (isCustomColumn) {
+            config = {
+              title: customColumns[status]?.title || 'Nova Coluna',
+              subtitle: customColumns[status]?.subtitle || 'Descrição',
+              icon: <Settings className="h-4 w-4 text-blue-400" />,
+              color: 'border-blue-500/30 bg-blue-500/5'
+            };
+          } else {
+            const defaultConfig = statusConfig[status];
+            const customConfig = customColumnConfigs[status];
+            
+            // Usar configuração personalizada se disponível, senão usar padrão
+            config = {
+              ...defaultConfig,
+              title: customConfig?.title || defaultConfig.title,
+              subtitle: customConfig?.subtitle || defaultConfig.subtitle
+            };
+          }
+          
+          const statusTasks = isCustomColumn ? [] : getTasksByStatus(status as KanbanTask['status']);
+          const totalValue = isCustomColumn ? 0 : getTotalValue(status as KanbanTask['status']);
           const expectedValue = statusTasks.reduce((total, task) => total + (task.expectedValue || 0), 0);
           
           return (

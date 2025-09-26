@@ -36,6 +36,16 @@ export default function DeliveryPage() {
   });
   const [customColumns, setCustomColumns] = useState<{[key: string]: {title: string, subtitle: string, color: string}}>({});
 
+  // Todos os callbacks devem estar no início, antes dos returns condicionais
+  const handleNewTask = () => {
+    setEditingTask(undefined);
+    setShowForm(true);
+  };
+
+  const handleEditTask = useCallback((task: any) => {
+    setEditingTask(task);
+    setShowForm(true);
+  }, []);
 
   if (isLoading) {
     return (
@@ -58,16 +68,6 @@ export default function DeliveryPage() {
       </div>
     );
   }
-
-  const handleNewTask = () => {
-    setEditingTask(undefined);
-    setShowForm(true);
-  };
-
-  const handleEditTask = useCallback((task: any) => {
-    setEditingTask(task);
-    setShowForm(true);
-  }, []);
 
   const handleSaveTask = (taskData: any) => {
     try {

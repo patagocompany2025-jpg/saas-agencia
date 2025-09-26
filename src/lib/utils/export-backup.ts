@@ -2,19 +2,6 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 
-// Função auxiliar para validar argumentos do rect
-function validateRectArgs(x: number, y: number, width: number, height: number): boolean {
-  if (isNaN(x) || isNaN(y) || isNaN(width) || isNaN(height)) {
-    console.warn('Valores inválidos detectados:', { x, y, width, height });
-    return false;
-  }
-  if (x < 0 || y < 0 || width <= 0 || height <= 0) {
-    console.warn('Valores negativos ou zero detectados:', { x, y, width, height });
-    return false;
-  }
-  return true;
-}
-
 // Tipos para os dados dos relatórios
 interface SalesData {
   month: string;
@@ -1194,100 +1181,85 @@ export function exportToPDFTextOnly(elementId: string, filename: string) {
   }
 }
 
-// Função específica para Relatório Executivo - Versão Funcional
+// Função específica para Relatório Executivo com gráficos modernos
 export function exportExecutiveReportPDF(elementId: string, filename: string, data: any) {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
-    pdf.setFont('helvetica', 'normal');
+    pdf.setFont('helvetica');
     
-    // Cabeçalho
-    pdf.setFillColor(30, 58, 138);
+    // Cabeçalho com design moderno
+    pdf.setFillColor(30, 58, 138); // #1e3a8a
     pdf.rect(0, 0, 210, 40, 'F');
     
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(20);
-    pdf.text('Relatório Executivo', 20, 25);
+    pdf.text('📊 Relatório Executivo', 20, 25);
     
     pdf.setFontSize(12);
     pdf.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 35);
     
-    // Resetar cor
+    // Resetar cor para texto normal
     pdf.setTextColor(0, 0, 0);
     
-    // Métricas Principais
+    // Métricas Principais com cards visuais
     pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'bold');
     pdf.text('Métricas Principais', 20, 60);
     
     // Card 1 - Receita
-    pdf.setFillColor(59, 130, 246);
+    pdf.setFillColor(59, 130, 246); // #3b82f6
     pdf.rect(20, 70, 80, 25, 'F');
-    pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Receita Total', 25, 80);
+    pdf.text('💰 Receita Total', 25, 80);
     pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
     pdf.text(`R$ ${data.metrics.totalRevenue.toLocaleString('pt-BR')}`, 25, 88);
     pdf.setFontSize(8);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(200, 255, 200);
-    pdf.text('+12.5% vs mes anterior', 25, 92);
+    pdf.setTextColor(16, 185, 129); // #10b981
+    pdf.text('↗ +12.5% vs mês anterior', 25, 92);
     
     // Card 2 - Clientes
-    pdf.setFillColor(16, 185, 129);
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFillColor(16, 185, 129); // #10b981
     pdf.rect(110, 70, 80, 25, 'F');
-    pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Clientes Ativos', 115, 80);
+    pdf.text('👥 Clientes Ativos', 115, 80);
     pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
     pdf.text(`${data.metrics.activeClients}`, 115, 88);
     pdf.setFontSize(8);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(200, 255, 200);
-    pdf.text('+8.2% vs mes anterior', 115, 92);
+    pdf.setTextColor(16, 185, 129);
+    pdf.text('↗ +8.2% vs mês anterior', 115, 92);
     
     // Card 3 - Conversão
-    pdf.setFillColor(139, 92, 246);
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFillColor(139, 92, 246); // #8b5cf6
     pdf.rect(20, 105, 80, 25, 'F');
-    pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Taxa de Conversão', 25, 115);
+    pdf.text('🎯 Taxa de Conversão', 25, 115);
     pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
     pdf.text(`${data.metrics.conversionRate.toFixed(1)}%`, 25, 123);
     pdf.setFontSize(8);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(200, 255, 200);
-    pdf.text('+2.1% vs mes anterior', 25, 127);
+    pdf.setTextColor(16, 185, 129);
+    pdf.text('↗ +2.1% vs mês anterior', 25, 127);
     
     // Card 4 - Margem
-    pdf.setFillColor(245, 158, 11);
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFillColor(245, 158, 11); // #f59e0b
     pdf.rect(110, 105, 80, 25, 'F');
-    pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Margem de Lucro', 115, 115);
+    pdf.text('📈 Margem de Lucro', 115, 115);
     pdf.setFontSize(14);
-    pdf.setFont('helvetica', 'bold');
     pdf.text(`${data.metrics.profitMargin.toFixed(1)}%`, 115, 123);
     pdf.setFontSize(8);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(200, 255, 200);
-    pdf.text('+1.8% vs mes anterior', 115, 127);
+    pdf.setTextColor(16, 185, 129);
+    pdf.text('↗ +1.8% vs mês anterior', 115, 127);
     
     // Resetar cor
     pdf.setTextColor(0, 0, 0);
     
-    // Gráfico de Evolução de Vendas
+    // Gráfico de Evolução de Vendas (simulado)
     pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Evolução de Vendas (Últimos 6 meses)', 20, 150);
+    pdf.text('📈 Evolução de Vendas (Últimos 6 meses)', 20, 150);
     
-    // Dados simulados para o gráfico
+    // Criar gráfico simples com barras
     const salesData = data.salesData || [
       { month: 'Jul', value: 45000 },
       { month: 'Ago', value: 52000 },
@@ -1301,21 +1273,21 @@ export function exportExecutiveReportPDF(elementId: string, filename: string, da
     const chartWidth = 150;
     const chartHeight = 40;
     const startX = 20;
-    const startY = 180;
+    const startY = 160;
     
     // Desenhar eixos
     pdf.line(startX, startY, startX + chartWidth, startY); // Eixo X
     pdf.line(startX, startY, startX, startY - chartHeight); // Eixo Y
     
-    // Desenhar barras com melhor visibilidade
+    // Desenhar barras
     const barWidth = chartWidth / salesData.length;
     salesData.forEach((item: SalesData, index: number) => {
-      const barHeight = Math.max(5, Math.min(chartHeight, (item.value / maxValue) * chartHeight));
+      const barHeight = (item.value / maxValue) * chartHeight;
       const x = startX + (index * barWidth) + 2;
       const y = startY - barHeight;
       
       // Cor da barra baseada no valor
-      const intensity = Math.max(0, Math.min(1, item.value / maxValue));
+      const intensity = item.value / maxValue;
       if (intensity > 0.8) {
         pdf.setFillColor(16, 185, 129); // Verde para valores altos
       } else if (intensity > 0.6) {
@@ -1324,38 +1296,23 @@ export function exportExecutiveReportPDF(elementId: string, filename: string, da
         pdf.setFillColor(245, 158, 11); // Laranja para valores baixos
       }
       
-      const rectWidth = Math.max(8, barWidth - 4);
-      const rectHeight = Math.max(5, barHeight);
-      
-      // Validação robusta antes de chamar rect
-      if (!validateRectArgs(x, y, rectWidth, rectHeight)) {
-        return;
-      }
-      
-      pdf.rect(x, y, rectWidth, rectHeight, 'F');
+      pdf.rect(x, y, barWidth - 4, barHeight, 'F');
       
       // Label do mês
-      pdf.setTextColor(0, 0, 0);
       pdf.setFontSize(8);
       pdf.text(item.month, x + barWidth/2 - 2, startY + 5);
-      
-      // Valor da barra
-      pdf.setFontSize(7);
-      pdf.text(`R$ ${(item.value/1000).toFixed(0)}k`, x + barWidth/2 - 5, y - 2);
     });
     
     // Análise de Crescimento Estratégico
     pdf.addPage();
     pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Análise de Crescimento Estratégico', 20, 30);
+    pdf.text('⚡ Análise de Crescimento Estratégico', 20, 30);
     
     // Curto Prazo
     pdf.setFillColor(16, 185, 129);
-    pdf.rect(20, 40, 50, 35, 'F');
-    pdf.setTextColor(255, 255, 255);
+    pdf.rect(20, 40, 50, 30, 'F');
     pdf.setFontSize(12);
-    pdf.text('Curto Prazo', 25, 50);
+    pdf.text('🚀 Curto Prazo', 25, 50);
     pdf.setFontSize(10);
     pdf.text('Próximos 3 meses', 25, 55);
     pdf.setFontSize(9);
@@ -1365,10 +1322,9 @@ export function exportExecutiveReportPDF(elementId: string, filename: string, da
     
     // Médio Prazo
     pdf.setFillColor(59, 130, 246);
-    pdf.rect(80, 40, 50, 35, 'F');
-    pdf.setTextColor(255, 255, 255);
+    pdf.rect(80, 40, 50, 30, 'F');
     pdf.setFontSize(12);
-    pdf.text('Médio Prazo', 85, 50);
+    pdf.text('🎯 Médio Prazo', 85, 50);
     pdf.setFontSize(10);
     pdf.text('6-12 meses', 85, 55);
     pdf.setFontSize(9);
@@ -1378,10 +1334,9 @@ export function exportExecutiveReportPDF(elementId: string, filename: string, da
     
     // Longo Prazo
     pdf.setFillColor(139, 92, 246);
-    pdf.rect(140, 40, 50, 35, 'F');
-    pdf.setTextColor(255, 255, 255);
+    pdf.rect(140, 40, 50, 30, 'F');
     pdf.setFontSize(12);
-    pdf.text('Longo Prazo', 145, 50);
+    pdf.text('👑 Longo Prazo', 145, 50);
     pdf.setFontSize(10);
     pdf.text('1-3 anos', 145, 55);
     pdf.setFontSize(9);
@@ -1389,10 +1344,9 @@ export function exportExecutiveReportPDF(elementId: string, filename: string, da
     pdf.text('• Franquias/licenciamento', 145, 65);
     pdf.text('• Internacionalização', 145, 70);
     
-    // Gráfico de Pipeline (melhorado)
+    // Gráfico de Pipeline (simulado)
     pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Pipeline de Vendas', 20, 90);
+    pdf.text('🎯 Pipeline de Vendas', 20, 90);
     
     const pipelineData = [
       { name: 'Prospecção', value: 12, color: [245, 158, 11] },
@@ -1404,30 +1358,34 @@ export function exportExecutiveReportPDF(elementId: string, filename: string, da
     ];
     
     const totalValue = pipelineData.reduce((sum, item) => sum + item.value, 0);
+    let currentAngle = 0;
+    const centerX = 100;
+    const centerY = 130;
+    const radius = 30;
     
-    // Desenhar círculo principal
-    pdf.setFillColor(240, 240, 240);
-    pdf.circle(100, 130, 25, 'F');
-    
-    // Desenhar legenda com quadrados coloridos
     pipelineData.forEach((item, index) => {
-      const labelY = 100 + (index * 12);
+      const sliceAngle = (item.value / totalValue) * 360;
       
-      // Quadrado colorido
+      // Desenhar fatia do gráfico de pizza
       pdf.setFillColor(item.color[0], item.color[1], item.color[2]);
-      pdf.rect(20, labelY - 3, 8, 6, 'F');
+      pdf.circle(centerX, centerY, radius, 'F');
       
-      // Texto
-      pdf.setTextColor(0, 0, 0);
-      pdf.setFontSize(9);
-      pdf.text(`${item.name}: ${item.value} (${((item.value / totalValue) * 100).toFixed(1)}%)`, 35, labelY);
+      // Label
+      const labelAngle = currentAngle + sliceAngle / 2;
+      const labelX = centerX + Math.cos(labelAngle * Math.PI / 180) * (radius + 10);
+      const labelY = centerY + Math.sin(labelAngle * Math.PI / 180) * (radius + 10);
+      
+      pdf.setFontSize(8);
+      pdf.text(`${item.name}: ${item.value}`, labelX, labelY);
+      
+      currentAngle += sliceAngle;
     });
     
     // Rodapé
+    pdf.setFontSize(10);
     pdf.setTextColor(100, 100, 100);
-    pdf.setFontSize(8);
     pdf.text('Relatório gerado automaticamente em ' + new Date().toLocaleDateString('pt-BR'), 20, 280);
-    pdf.text('Sistema de Relatórios Estratégicos v1.0 - Confiável e de alta qualidade', 20, 285);
+    pdf.text('Sistema de Relatórios Estratégicos v2.0 • Gráficos de alta qualidade', 20, 285);
     
     pdf.save(`${filename}.pdf`);
     console.log('Relatório Executivo PDF com gráficos modernos gerado com sucesso');
@@ -1450,7 +1408,7 @@ export function exportDIEReportPDF(elementId: string, filename: string, data: an
     
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(20);
-    pdf.text(' DIE - Demonstrativo de Informações Econômicas', 20, 25);
+    pdf.text('💰 DIE - Demonstrativo de Informações Econômicas', 20, 25);
     
     pdf.setFontSize(12);
     pdf.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 35);
@@ -1460,7 +1418,7 @@ export function exportDIEReportPDF(elementId: string, filename: string, data: an
     
     // Resumo Financeiro com cards visuais
     pdf.setFontSize(16);
-    pdf.text(' Resumo Financeiro', 20, 60);
+    pdf.text('📊 Resumo Financeiro', 20, 60);
     
     // Card Receita Bruta
     pdf.setFillColor(16, 185, 129);
@@ -1471,7 +1429,7 @@ export function exportDIEReportPDF(elementId: string, filename: string, data: an
     pdf.text(`R$ ${data.metrics.totalRevenue.toLocaleString('pt-BR')}`, 25, 88);
     pdf.setFontSize(8);
     pdf.setTextColor(16, 185, 129);
-    pdf.text('+ +15.2% vs periodo anterior', 25, 92);
+    pdf.text('↗ +15.2% vs período anterior', 25, 92);
     
     // Card Despesas
     pdf.setTextColor(0, 0, 0);
@@ -1483,7 +1441,7 @@ export function exportDIEReportPDF(elementId: string, filename: string, data: an
     pdf.text(`R$ ${data.metrics.totalExpenses.toLocaleString('pt-BR')}`, 120, 88);
     pdf.setFontSize(8);
     pdf.setTextColor(239, 68, 68);
-    pdf.text('+ +8.7% vs periodo anterior', 120, 92);
+    pdf.text('↗ +8.7% vs período anterior', 120, 92);
     
     // Card Lucro Líquido
     pdf.setTextColor(0, 0, 0);
@@ -1495,23 +1453,23 @@ export function exportDIEReportPDF(elementId: string, filename: string, data: an
     pdf.text(`R$ ${data.metrics.netProfit.toLocaleString('pt-BR')}`, 25, 123);
     pdf.setFontSize(8);
     pdf.setTextColor(34, 197, 94);
-    pdf.text('+ +22.1% vs periodo anterior', 25, 127);
+    pdf.text('↗ +22.1% vs período anterior', 25, 127);
     
     // Card Margem
     pdf.setTextColor(0, 0, 0);
     pdf.setFillColor(139, 92, 246);
     pdf.rect(115, 105, 85, 25, 'F');
     pdf.setFontSize(10);
-    pdf.text(' Margem de Lucro', 120, 115);
+    pdf.text('📈 Margem de Lucro', 120, 115);
     pdf.setFontSize(14);
     pdf.text(`${data.metrics.profitMargin.toFixed(1)}%`, 120, 123);
     pdf.setFontSize(8);
     pdf.setTextColor(34, 197, 94);
-    pdf.text('+ +3.2% vs periodo anterior', 120, 127);
+    pdf.text('↗ +3.2% vs período anterior', 120, 127);
     
     // Gráfico de Projeções Financeiras
     pdf.setFontSize(16);
-    pdf.text(' Projeções Financeiras (12 meses)', 20, 150);
+    pdf.text('📈 Projeções Financeiras (12 meses)', 20, 150);
     
     const projectionsData = data.projectionData || [
       { month: 'Jan', revenue: 45000, expenses: 30000, profit: 15000 },
@@ -1535,45 +1493,24 @@ export function exportDIEReportPDF(elementId: string, filename: string, data: an
     // Desenhar barras empilhadas
     const barWidth = chartWidth / projectionsData.length;
     projectionsData.forEach((item, index) => {
-      const x = Math.max(0, startX + (index * barWidth) + 2);
+      const x = startX + (index * barWidth) + 2;
       
       // Barra de Receita
-      const revenueHeight = Math.max(1, Math.min(chartHeight, (item.revenue / maxValue) * chartHeight));
+      const revenueHeight = (item.revenue / maxValue) * chartHeight;
       pdf.setFillColor(16, 185, 129); // Verde para Receita
-      const rectX = Math.max(0, x);
-      const rectY = Math.max(0, startY - revenueHeight);
-      const rectW = Math.max(1, barWidth - 4);
-      const rectH = Math.max(1, revenueHeight);
-      
-      if (validateRectArgs(rectX, rectY, rectW, rectH)) {
-        pdf.rect(rectX, rectY, rectW, rectH, 'F');
-      }
+      pdf.rect(x, startY - revenueHeight, barWidth - 4, revenueHeight, 'F');
       
       // Barra de despesas
-      const expensesHeight = Math.max(1, Math.min(chartHeight, (item.expenses / maxValue) * chartHeight));
+      const expensesHeight = (item.expenses / maxValue) * chartHeight;
       pdf.setFillColor(239, 68, 68); // Vermelho para despesas
-      const rectX2 = Math.max(0, x);
-      const rectY2 = Math.max(0, startY - expensesHeight);
-      const rectW2 = Math.max(1, barWidth - 4);
-      const rectH2 = Math.max(1, expensesHeight);
-      
-      if (validateRectArgs(rectX2, rectY2, rectW2, rectH2)) {
-        pdf.rect(rectX2, rectY2, rectW2, rectH2, 'F');
-      }
+      pdf.rect(x, startY - expensesHeight, barWidth - 4, expensesHeight, 'F');
       
       // Barra de Lucro
-      const profitHeight = Math.max(1, Math.min(chartHeight, (item.profit / maxValue) * chartHeight));
+      const profitHeight = (item.profit / maxValue) * chartHeight;
       pdf.setFillColor(34, 197, 94); // Verde claro para Lucro
-      const rectX3 = Math.max(0, x);
-      const rectY3 = Math.max(0, startY - profitHeight);
-      const rectW3 = Math.max(1, barWidth - 4);
-      const rectH3 = Math.max(1, profitHeight);
+      pdf.rect(x, startY - profitHeight, barWidth - 4, profitHeight, 'F');
       
-      if (validateRectArgs(rectX3, rectY3, rectW3, rectH3)) {
-        pdf.rect(rectX3, rectY3, rectW3, rectH3, 'F');
-      }
-      
-      // Label do mes
+      // Label do mês
       pdf.setFontSize(8);
       pdf.setTextColor(0, 0, 0);
       pdf.text(item.month, x + barWidth/2 - 2, startY + 5);
@@ -1582,7 +1519,7 @@ export function exportDIEReportPDF(elementId: string, filename: string, data: an
     // Nova página para análise Detalhada
     pdf.addPage();
     pdf.setFontSize(16);
-    pdf.text(' Análise Detalhada por Mês', 20, 30);
+    pdf.text('📊 Análise Detalhada por Mês', 20, 30);
     
     // Tabela de projeções
     pdf.setFontSize(10);
@@ -1615,7 +1552,7 @@ export function exportDIEReportPDF(elementId: string, filename: string, data: an
     
     // Gráfico de evolução da Margem
     pdf.setFontSize(16);
-    pdf.text(' Evolução da Margem de Lucro', 20, 200);
+    pdf.text('📈 Evolução da Margem de Lucro', 20, 200);
     
     const marginEvolution = projectionsData.map(item => ({
       month: item.month,
@@ -1635,20 +1572,13 @@ export function exportDIEReportPDF(elementId: string, filename: string, data: an
     // Desenhar linha da Margem
     const marginBarWidth = marginChartWidth / marginEvolution.length;
     marginEvolution.forEach((item, index) => {
-      const x = Math.max(0, marginStartX + (index * marginBarWidth) + 2);
-      const height = Math.max(1, Math.min(marginChartHeight, (item.margin / maxMargin) * marginChartHeight));
+      const x = marginStartX + (index * marginBarWidth) + 2;
+      const height = (item.margin / maxMargin) * marginChartHeight;
       
       pdf.setFillColor(139, 92, 246); // Roxo para Margem
-      const rectX4 = Math.max(0, x);
-      const rectY4 = Math.max(0, marginStartY - height);
-      const rectW4 = Math.max(1, marginBarWidth - 4);
-      const rectH4 = Math.max(1, height);
+      pdf.rect(x, marginStartY - height, marginBarWidth - 4, height, 'F');
       
-      if (validateRectArgs(rectX4, rectY4, rectW4, rectH4)) {
-        pdf.rect(rectX4, rectY4, rectW4, rectH4, 'F');
-      }
-      
-      // Label do mes
+      // Label do mês
       pdf.setFontSize(8);
       pdf.text(item.month, x + marginBarWidth/2 - 2, marginStartY + 5);
     });
@@ -1771,11 +1701,11 @@ export function exportSalesReportPDF(elementId: string, filename: string, data: 
     // Desenhar barras de Receita
     const barWidth = chartWidth / salesEvolution.length;
     salesEvolution.forEach((item, index) => {
-      const x = Math.max(0, startX + (index * barWidth) + 2);
-      const height = Math.max(1, Math.min(chartHeight, (item.revenue / maxRevenue) * chartHeight));
+      const x = startX + (index * barWidth) + 2;
+      const height = (item.revenue / maxRevenue) * chartHeight;
       
       // Cor da barra baseada no valor
-      const intensity = Math.max(0, Math.min(1, item.revenue / maxRevenue));
+      const intensity = item.revenue / maxRevenue;
       if (intensity > 0.8) {
         pdf.setFillColor(16, 185, 129); // Verde para valores altos
       } else if (intensity > 0.6) {
@@ -1784,16 +1714,9 @@ export function exportSalesReportPDF(elementId: string, filename: string, data: 
         pdf.setFillColor(245, 158, 11); // Laranja para valores baixos
       }
       
-      const rectX5 = Math.max(0, x);
-      const rectY5 = Math.max(0, startY - height);
-      const rectW5 = Math.max(1, barWidth - 4);
-      const rectH5 = Math.max(1, height);
+      pdf.rect(x, startY - height, barWidth - 4, height, 'F');
       
-      if (validateRectArgs(rectX5, rectY5, rectW5, rectH5)) {
-        pdf.rect(rectX5, rectY5, rectW5, rectH5, 'F');
-      }
-      
-      // Label do mes
+      // Label do mês
       pdf.setFontSize(8);
       pdf.setTextColor(0, 0, 0);
       pdf.text(item.month, x + barWidth/2 - 2, startY + 5);
@@ -1802,7 +1725,7 @@ export function exportSalesReportPDF(elementId: string, filename: string, data: 
     // Nova página para análise por Origem
     pdf.addPage();
     pdf.setFontSize(16);
-    pdf.text(' Análise por Origem de Clientes', 20, 30);
+    pdf.text('🎯 Análise por Origem de Clientes', 20, 30);
     
     const sources = data.sourceData || [
       { name: 'Google Ads', value: 45, color: [59, 130, 246] },
@@ -1841,7 +1764,7 @@ export function exportSalesReportPDF(elementId: string, filename: string, data: 
     
     // Tabela Detalhada das origens
     pdf.setFontSize(16);
-    pdf.text(' Detalhamento por Origem', 20, 170);
+    pdf.text('📋 Detalhamento por Origem', 20, 170);
     
     pdf.setFontSize(10);
     pdf.text('Origem', 20, 190);
@@ -1872,7 +1795,7 @@ export function exportSalesReportPDF(elementId: string, filename: string, data: 
     
     // Gráfico de Performance por Origem
     pdf.setFontSize(16);
-    pdf.text(' Performance por Origem', 20, 250);
+    pdf.text('📊 Performance por Origem', 20, 250);
     
     const maxSourceValue = sources.length > 0 ? Math.max(...sources.map(s => s.value)) : 1;
     const PerformanceChartWidth = 150;
@@ -1888,18 +1811,11 @@ export function exportSalesReportPDF(elementId: string, filename: string, data: 
     if (sources.length > 0) {
       const PerformanceBarHeight = PerformanceChartHeight / sources.length;
       sources.forEach((source, index) => {
-        const y = Math.max(0, PerformanceStartY - (index * PerformanceBarHeight) - PerformanceBarHeight/2);
-        const width = Math.max(1, Math.min(PerformanceChartWidth, (source.value / maxSourceValue) * PerformanceChartWidth));
+        const y = PerformanceStartY - (index * PerformanceBarHeight) - PerformanceBarHeight/2;
+        const width = (source.value / maxSourceValue) * PerformanceChartWidth;
         
         pdf.setFillColor(source.color[0], source.color[1], source.color[2]);
-        const rectX6 = Math.max(0, PerformanceStartX);
-        const rectY6 = Math.max(0, y);
-        const rectW6 = Math.max(1, width);
-        const rectH6 = Math.max(1, PerformanceBarHeight - 2);
-        
-        if (validateRectArgs(rectX6, rectY6, rectW6, rectH6)) {
-          pdf.rect(rectX6, rectY6, rectW6, rectH6, 'F');
-        }
+        pdf.rect(PerformanceStartX, y, width, PerformanceBarHeight - 2, 'F');
       
         // Label da Origem
         pdf.setFontSize(8);
@@ -1945,7 +1861,7 @@ export function exportFinancialReportPDF(elementId: string, filename: string, da
     
     // Métricas Financeiras com cards visuais
     pdf.setFontSize(16);
-    pdf.text(' Métricas Financeiras', 20, 60);
+    pdf.text('💰 Métricas Financeiras', 20, 60);
     
     // Card Receita Total
     pdf.setFillColor(16, 185, 129);
@@ -1956,7 +1872,7 @@ export function exportFinancialReportPDF(elementId: string, filename: string, da
     pdf.text(`R$ ${data.metrics.totalRevenue.toLocaleString('pt-BR')}`, 25, 88);
     pdf.setFontSize(8);
     pdf.setTextColor(16, 185, 129);
-    pdf.text('+ +12.8% vs periodo anterior', 25, 92);
+    pdf.text('↗ +12.8% vs período anterior', 25, 92);
     
     // Card Despesas Totais
     pdf.setTextColor(0, 0, 0);
@@ -1968,7 +1884,7 @@ export function exportFinancialReportPDF(elementId: string, filename: string, da
     pdf.text(`R$ ${data.metrics.totalExpenses.toLocaleString('pt-BR')}`, 120, 88);
     pdf.setFontSize(8);
     pdf.setTextColor(239, 68, 68);
-    pdf.text('+ +8.2% vs periodo anterior', 120, 92);
+    pdf.text('↗ +8.2% vs período anterior', 120, 92);
     
     // Card Lucro Líquido
     pdf.setTextColor(0, 0, 0);
@@ -1980,19 +1896,19 @@ export function exportFinancialReportPDF(elementId: string, filename: string, da
     pdf.text(`R$ ${data.metrics.netProfit.toLocaleString('pt-BR')}`, 25, 123);
     pdf.setFontSize(8);
     pdf.setTextColor(34, 197, 94);
-    pdf.text('+ +18.5% vs periodo anterior', 25, 127);
+    pdf.text('↗ +18.5% vs período anterior', 25, 127);
     
     // Card Margem de Lucro
     pdf.setTextColor(0, 0, 0);
     pdf.setFillColor(139, 92, 246);
     pdf.rect(115, 105, 85, 25, 'F');
     pdf.setFontSize(10);
-    pdf.text(' Margem de Lucro', 120, 115);
+    pdf.text('📈 Margem de Lucro', 120, 115);
     pdf.setFontSize(14);
     pdf.text(`${data.metrics.profitMargin.toFixed(1)}%`, 120, 123);
     pdf.setFontSize(8);
     pdf.setTextColor(34, 197, 94);
-    pdf.text('+ +2.3% vs periodo anterior', 120, 127);
+    pdf.text('↗ +2.3% vs período anterior', 120, 127);
     
     // Gráfico de Fluxo de Caixa
     pdf.setFontSize(16);
@@ -2020,8 +1936,8 @@ export function exportFinancialReportPDF(elementId: string, filename: string, da
     // Desenhar barras do fluxo de caixa
     const barWidth = chartWidth / cashFlowData.length;
     cashFlowData.forEach((item, index) => {
-      const x = Math.max(0, startX + (index * barWidth) + 2);
-      const height = Math.max(1, Math.min(chartHeight, (Math.abs(item.amount) / maxAmount) * chartHeight));
+      const x = startX + (index * barWidth) + 2;
+      const height = (Math.abs(item.amount) / maxAmount) * chartHeight;
       
       if (item.type === 'in') {
         pdf.setFillColor(16, 185, 129); // Verde para entradas
@@ -2029,14 +1945,7 @@ export function exportFinancialReportPDF(elementId: string, filename: string, da
         pdf.setFillColor(239, 68, 68); // Vermelho para saídas
       }
       
-      const rectX7 = Math.max(0, x);
-      const rectY7 = Math.max(0, startY - height);
-      const rectW7 = Math.max(1, barWidth - 4);
-      const rectH7 = Math.max(1, height);
-      
-      if (validateRectArgs(rectX7, rectY7, rectW7, rectH7)) {
-        pdf.rect(rectX7, rectY7, rectW7, rectH7, 'F');
-      }
+      pdf.rect(x, startY - height, barWidth - 4, height, 'F');
       
       // Label da categoria
       pdf.setFontSize(6);
@@ -2047,7 +1956,7 @@ export function exportFinancialReportPDF(elementId: string, filename: string, da
     // Nova página para análise Detalhada
     pdf.addPage();
     pdf.setFontSize(16);
-    pdf.text(' Análise Detalhada do Fluxo de Caixa', 20, 30);
+    pdf.text('📊 Análise Detalhada do Fluxo de Caixa', 20, 30);
     
     // Tabela de fluxo de caixa
     pdf.setFontSize(10);
@@ -2081,7 +1990,7 @@ export function exportFinancialReportPDF(elementId: string, filename: string, da
     
     // Gráfico de evolução financeira
     pdf.setFontSize(16);
-    pdf.text(' Evolução Financeira (Últimos 6 meses)', 20, 200);
+    pdf.text('📈 Evolução Financeira (Últimos 6 meses)', 20, 200);
     
     const financialEvolution = data.financialEvolution || [
       { month: 'Jul', revenue: 45000, expenses: 30000, profit: 15000 },
@@ -2105,45 +2014,24 @@ export function exportFinancialReportPDF(elementId: string, filename: string, da
     // Desenhar barras empilhadas
     const financialBarWidth = financialChartWidth / financialEvolution.length;
     financialEvolution.forEach((item, index) => {
-      const x = Math.max(0, financialStartX + (index * financialBarWidth) + 2);
+      const x = financialStartX + (index * financialBarWidth) + 2;
       
       // Barra de Receita
-      const revenueHeight = Math.max(1, Math.min(financialChartHeight, (item.revenue / maxFinancialValue) * financialChartHeight));
+      const revenueHeight = (item.revenue / maxFinancialValue) * financialChartHeight;
       pdf.setFillColor(16, 185, 129); // Verde para Receita
-      const rectX8 = Math.max(0, x);
-      const rectY8 = Math.max(0, financialStartY - revenueHeight);
-      const rectW8 = Math.max(1, financialBarWidth - 4);
-      const rectH8 = Math.max(1, revenueHeight);
-      
-      if (validateRectArgs(rectX8, rectY8, rectW8, rectH8)) {
-        pdf.rect(rectX8, rectY8, rectW8, rectH8, 'F');
-      }
+      pdf.rect(x, financialStartY - revenueHeight, financialBarWidth - 4, revenueHeight, 'F');
       
       // Barra de despesas
-      const expensesHeight = Math.max(1, Math.min(financialChartHeight, (item.expenses / maxFinancialValue) * financialChartHeight));
+      const expensesHeight = (item.expenses / maxFinancialValue) * financialChartHeight;
       pdf.setFillColor(239, 68, 68); // Vermelho para despesas
-      const rectX9 = Math.max(0, x);
-      const rectY9 = Math.max(0, financialStartY - expensesHeight);
-      const rectW9 = Math.max(1, financialBarWidth - 4);
-      const rectH9 = Math.max(1, expensesHeight);
-      
-      if (validateRectArgs(rectX9, rectY9, rectW9, rectH9)) {
-        pdf.rect(rectX9, rectY9, rectW9, rectH9, 'F');
-      }
+      pdf.rect(x, financialStartY - expensesHeight, financialBarWidth - 4, expensesHeight, 'F');
       
       // Barra de Lucro
-      const profitHeight = Math.max(1, Math.min(financialChartHeight, (item.profit / maxFinancialValue) * financialChartHeight));
+      const profitHeight = (item.profit / maxFinancialValue) * financialChartHeight;
       pdf.setFillColor(34, 197, 94); // Verde claro para Lucro
-      const rectX10 = Math.max(0, x);
-      const rectY10 = Math.max(0, financialStartY - profitHeight);
-      const rectW10 = Math.max(1, financialBarWidth - 4);
-      const rectH10 = Math.max(1, profitHeight);
+      pdf.rect(x, financialStartY - profitHeight, financialBarWidth - 4, profitHeight, 'F');
       
-      if (validateRectArgs(rectX10, rectY10, rectW10, rectH10)) {
-        pdf.rect(rectX10, rectY10, rectW10, rectH10, 'F');
-      }
-      
-      // Label do mes
+      // Label do mês
       pdf.setFontSize(8);
       pdf.setTextColor(0, 0, 0);
       pdf.text(item.month, x + financialBarWidth/2 - 2, financialStartY + 5);
@@ -2187,7 +2075,7 @@ export function exportPerformanceReportPDF(elementId: string, filename: string, 
     
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(20);
-    pdf.text(' Relatório de Performance', 20, 25);
+    pdf.text('⚡ Relatório de Performance', 20, 25);
     
     pdf.setFontSize(12);
     pdf.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 35);
@@ -2197,42 +2085,42 @@ export function exportPerformanceReportPDF(elementId: string, filename: string, 
     
     // Métricas de Performance com cards visuais
     pdf.setFontSize(16);
-    pdf.text(' Métricas de Performance', 20, 60);
+    pdf.text('📊 Métricas de Performance', 20, 60);
     
     // Card Total de Clientes
     pdf.setFillColor(16, 185, 129);
     pdf.rect(20, 70, 85, 25, 'F');
     pdf.setFontSize(10);
-    pdf.text(' Total de Clientes', 25, 80);
+    pdf.text('👥 Total de Clientes', 25, 80);
     pdf.setFontSize(14);
     pdf.text(`${data.metrics.totalClients}`, 25, 88);
     pdf.setFontSize(8);
     pdf.setTextColor(16, 185, 129);
-    pdf.text('+ +15.3% vs periodo anterior', 25, 92);
+    pdf.text('↗ +15.3% vs período anterior', 25, 92);
     
     // Card Taxa de Conversão
     pdf.setTextColor(0, 0, 0);
     pdf.setFillColor(59, 130, 246);
     pdf.rect(115, 70, 85, 25, 'F');
     pdf.setFontSize(10);
-    pdf.text(' Taxa de Conversão', 120, 80);
+    pdf.text('🎯 Taxa de Conversão', 120, 80);
     pdf.setFontSize(14);
     pdf.text(`${data.metrics.conversionRate.toFixed(1)}%`, 120, 88);
     pdf.setFontSize(8);
     pdf.setTextColor(16, 185, 129);
-    pdf.text('+ +3.2% vs periodo anterior', 120, 92);
+    pdf.text('↗ +3.2% vs período anterior', 120, 92);
     
     // Card Pipeline Ativo
     pdf.setTextColor(0, 0, 0);
     pdf.setFillColor(139, 92, 246);
     pdf.rect(20, 105, 85, 25, 'F');
     pdf.setFontSize(10);
-    pdf.text(' Pipeline Ativo', 25, 115);
+    pdf.text('🔄 Pipeline Ativo', 25, 115);
     pdf.setFontSize(14);
     pdf.text(`${data.metrics.totalTasks}`, 25, 123);
     pdf.setFontSize(8);
     pdf.setTextColor(16, 185, 129);
-    pdf.text('+ +8.7% vs periodo anterior', 25, 127);
+    pdf.text('↗ +8.7% vs período anterior', 25, 127);
     
     // Card Performance Geral
     pdf.setTextColor(0, 0, 0);
@@ -2244,11 +2132,11 @@ export function exportPerformanceReportPDF(elementId: string, filename: string, 
     pdf.text('87%', 120, 123);
     pdf.setFontSize(8);
     pdf.setTextColor(16, 185, 129);
-    pdf.text('+ +5.1% vs periodo anterior', 120, 127);
+    pdf.text('↗ +5.1% vs período anterior', 120, 127);
     
     // Gráfico de Performance da Equipe
     pdf.setFontSize(16);
-    pdf.text(' Performance da Equipe', 20, 150);
+    pdf.text('👥 Performance da Equipe', 20, 150);
     
     const teamPerformance = data.teamPerformance || [
       { name: 'João Silva', sales: 12, clients: 8, conversion: 85, color: [16, 185, 129] },
@@ -2270,19 +2158,12 @@ export function exportPerformanceReportPDF(elementId: string, filename: string, 
     // Desenhar barras da equipe
     const barWidth = chartWidth / teamPerformance.length;
     teamPerformance.forEach((member, index) => {
-      const x = Math.max(0, startX + (index * barWidth) + 2);
-      const height = Math.max(1, Math.min(chartHeight, (member.sales / maxSales) * chartHeight));
+      const x = startX + (index * barWidth) + 2;
+      const height = (member.sales / maxSales) * chartHeight;
       
       // Cor baseada na Performance
       pdf.setFillColor(member.color[0], member.color[1], member.color[2]);
-      const rectX11 = Math.max(0, x);
-      const rectY11 = Math.max(0, startY - height);
-      const rectW11 = Math.max(1, barWidth - 4);
-      const rectH11 = Math.max(1, height);
-      
-      if (validateRectArgs(rectX11, rectY11, rectW11, rectH11)) {
-        pdf.rect(rectX11, rectY11, rectW11, rectH11, 'F');
-      }
+      pdf.rect(x, startY - height, barWidth - 4, height, 'F');
       
       // Label do nome
       pdf.setFontSize(6);
@@ -2293,7 +2174,7 @@ export function exportPerformanceReportPDF(elementId: string, filename: string, 
     // Nova página para análise Detalhada
     pdf.addPage();
     pdf.setFontSize(16);
-    pdf.text(' Análise Detalhada da Equipe', 20, 30);
+    pdf.text('📋 Análise Detalhada da Equipe', 20, 30);
     
     // Tabela de Performance da equipe
     pdf.setFontSize(10);
@@ -2331,7 +2212,7 @@ export function exportPerformanceReportPDF(elementId: string, filename: string, 
     
     // Gráfico de conversão por membro
     pdf.setFontSize(16);
-    pdf.text(' Taxa de Conversão por Membro', 20, 200);
+    pdf.text('📈 Taxa de Conversão por Membro', 20, 200);
     
     const maxConversion = Math.max(...teamPerformance.map(member => member.conversion));
     const conversionChartWidth = 150;
@@ -2346,8 +2227,8 @@ export function exportPerformanceReportPDF(elementId: string, filename: string, 
     // Desenhar barras de conversão
     const conversionBarWidth = conversionChartWidth / teamPerformance.length;
     teamPerformance.forEach((member, index) => {
-      const x = Math.max(0, conversionStartX + (index * conversionBarWidth) + 2);
-      const height = Math.max(1, Math.min(conversionChartHeight, (member.conversion / maxConversion) * conversionChartHeight));
+      const x = conversionStartX + (index * conversionBarWidth) + 2;
+      const height = (member.conversion / maxConversion) * conversionChartHeight;
       
       // Cor baseada na Taxa de conversão
       if (member.conversion >= 85) {
@@ -2358,14 +2239,7 @@ export function exportPerformanceReportPDF(elementId: string, filename: string, 
         pdf.setFillColor(239, 68, 68); // Vermelho para regular
       }
       
-      const rectX12 = Math.max(0, x);
-      const rectY12 = Math.max(0, conversionStartY - height);
-      const rectW12 = Math.max(1, conversionBarWidth - 4);
-      const rectH12 = Math.max(1, height);
-      
-      if (validateRectArgs(rectX12, rectY12, rectW12, rectH12)) {
-        pdf.rect(rectX12, rectY12, rectW12, rectH12, 'F');
-      }
+      pdf.rect(x, conversionStartY - height, conversionBarWidth - 4, height, 'F');
       
       // Label do nome
       pdf.setFontSize(6);
@@ -2375,7 +2249,7 @@ export function exportPerformanceReportPDF(elementId: string, filename: string, 
     
     // Gráfico de radar de competências
     pdf.setFontSize(16);
-    pdf.text(' Análise de Competências', 20, 270);
+    pdf.text('🎯 Análise de Competências', 20, 270);
     
     // Criar um gráfico de radar simples
     const competencies = [
@@ -2463,7 +2337,7 @@ export function exportGrowthReportPDF(elementId: string, filename: string, data:
     
     // Estratégias de Crescimento com cards visuais
     pdf.setFontSize(16);
-    pdf.text(' Estratégias de Crescimento', 20, 60);
+    pdf.text('📈 Estratégias de Crescimento', 20, 60);
     
     // Card Curto Prazo
     pdf.setFillColor(16, 185, 129);
@@ -2481,7 +2355,7 @@ export function exportGrowthReportPDF(elementId: string, filename: string, data:
     pdf.setFillColor(59, 130, 246);
     pdf.rect(80, 70, 50, 40, 'F');
     pdf.setFontSize(12);
-    pdf.text(' Médio Prazo', 85, 80);
+    pdf.text('🎯 Médio Prazo', 85, 80);
     pdf.setFontSize(10);
     pdf.text('6-12 meses', 85, 85);
     pdf.setFontSize(9);
@@ -2503,7 +2377,7 @@ export function exportGrowthReportPDF(elementId: string, filename: string, data:
     
     // Gráfico de Projeção de Crescimento
     pdf.setFontSize(16);
-    pdf.text(' Projeção de Crescimento (12 meses)', 20, 130);
+    pdf.text('📊 Projeção de Crescimento (12 meses)', 20, 130);
     
     const growthProjection = data.growthProjection || [
       { month: 'Jan', revenue: 45000, clients: 25, growth: 0 },
@@ -2533,8 +2407,8 @@ export function exportGrowthReportPDF(elementId: string, filename: string, data:
     // Desenhar linha de Crescimento
     const barWidth = chartWidth / growthProjection.length;
     growthProjection.forEach((item, index) => {
-      const x = Math.max(0, startX + (index * barWidth) + 2);
-      const height = Math.max(1, Math.min(chartHeight, (item.revenue / maxRevenue) * chartHeight));
+      const x = startX + (index * barWidth) + 2;
+      const height = (item.revenue / maxRevenue) * chartHeight;
       
       // Cor baseada no Crescimento
       if (item.growth > 10) {
@@ -2545,16 +2419,9 @@ export function exportGrowthReportPDF(elementId: string, filename: string, data:
         pdf.setFillColor(239, 68, 68); // Vermelho para declínio
       }
       
-      const rectX13 = Math.max(0, x);
-      const rectY13 = Math.max(0, startY - height);
-      const rectW13 = Math.max(1, barWidth - 4);
-      const rectH13 = Math.max(1, height);
+      pdf.rect(x, startY - height, barWidth - 4, height, 'F');
       
-      if (validateRectArgs(rectX13, rectY13, rectW13, rectH13)) {
-        pdf.rect(rectX13, rectY13, rectW13, rectH13, 'F');
-      }
-      
-      // Label do mes
+      // Label do mês
       pdf.setFontSize(6);
       pdf.setTextColor(0, 0, 0);
       pdf.text(item.month, x + barWidth/2 - 2, startY + 5);
@@ -2563,7 +2430,7 @@ export function exportGrowthReportPDF(elementId: string, filename: string, data:
     // Nova página para análise Detalhada
     pdf.addPage();
     pdf.setFontSize(16);
-    pdf.text(' Análise Detalhada de Crescimento', 20, 30);
+    pdf.text('📋 Análise Detalhada de Crescimento', 20, 30);
     
     // Tabela de projeção
     pdf.setFontSize(10);
@@ -2601,7 +2468,7 @@ export function exportGrowthReportPDF(elementId: string, filename: string, data:
     
     // Gráfico de evolução de Clientes
     pdf.setFontSize(16);
-    pdf.text(' Evolução de Clientes', 20, 200);
+    pdf.text('👥 Evolução de Clientes', 20, 200);
     
     const maxClients = Math.max(...growthProjection.map(d => d.clients));
     const clientsChartWidth = 150;
@@ -2616,20 +2483,13 @@ export function exportGrowthReportPDF(elementId: string, filename: string, data:
     // Desenhar linha de Clientes
     const clientsBarWidth = clientsChartWidth / growthProjection.length;
     growthProjection.forEach((item, index) => {
-      const x = Math.max(0, clientsStartX + (index * clientsBarWidth) + 2);
-      const height = Math.max(1, Math.min(clientsChartHeight, (item.clients / maxClients) * clientsChartHeight));
+      const x = clientsStartX + (index * clientsBarWidth) + 2;
+      const height = (item.clients / maxClients) * clientsChartHeight;
       
       pdf.setFillColor(139, 92, 246); // Roxo para Clientes
-      const rectX14 = Math.max(0, x);
-      const rectY14 = Math.max(0, clientsStartY - height);
-      const rectW14 = Math.max(1, clientsBarWidth - 4);
-      const rectH14 = Math.max(1, height);
+      pdf.rect(x, clientsStartY - height, clientsBarWidth - 4, height, 'F');
       
-      if (validateRectArgs(rectX14, rectY14, rectW14, rectH14)) {
-        pdf.rect(rectX14, rectY14, rectW14, rectH14, 'F');
-      }
-      
-      // Label do mes
+      // Label do mês
       pdf.setFontSize(6);
       pdf.setTextColor(0, 0, 0);
       pdf.text(item.month, x + clientsBarWidth/2 - 2, clientsStartY + 5);
@@ -2637,7 +2497,7 @@ export function exportGrowthReportPDF(elementId: string, filename: string, data:
     
     // Gráfico de radar de estratégias
     pdf.setFontSize(16);
-    pdf.text(' Análise de Estratégias', 20, 270);
+    pdf.text('🎯 Análise de Estratégias', 20, 270);
     
     // Criar um gráfico de radar para estratégias
     const strategies = [
