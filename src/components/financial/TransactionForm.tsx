@@ -54,6 +54,11 @@ const recurringIntervalOptions = [
 
 export function TransactionForm({ transaction, onSave, onCancel }: TransactionFormProps) {
   const { addTransaction, updateTransaction, employees } = useFinancial();
+  
+  // Debug: Log do componente
+  console.log('=== TRANSACTION FORM RENDERIZADO ===');
+  console.log('Transaction:', transaction);
+  console.log('Employees:', employees);
   const [formData, setFormData] = useState({
     type: 'despesa' as 'receita' | 'despesa',
     category: 'outros' as FinancialTransaction['category'],
@@ -108,29 +113,42 @@ export function TransactionForm({ transaction, onSave, onCancel }: TransactionFo
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (validateForm()) {
-      const transactionData = {
-        type: formData.type,
-        category: formData.category,
-        description: formData.description,
-        amount: formData.amount,
-        dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
-        status: formData.status,
-        paymentMethod: formData.paymentMethod,
-        notes: formData.notes,
-        recurring: formData.recurring,
-        recurringInterval: formData.recurringInterval,
-        assignedTo: formData.assignedTo || undefined,
-        paidDate: formData.status === 'pago' ? new Date() : null,
-      };
-
-      if (transaction) {
-        updateTransaction(transaction.id, transactionData);
-      } else {
-        addTransaction(transactionData);
-      }
+    try {
+      console.log('=== SUBMIT DO FORMULÁRIO ===');
+      console.log('FormData:', formData);
       
-      onSave();
+      if (validateForm()) {
+        const transactionData = {
+          type: formData.type,
+          category: formData.category,
+          description: formData.description,
+          amount: formData.amount,
+          dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
+          status: formData.status,
+          paymentMethod: formData.paymentMethod,
+          notes: formData.notes,
+          recurring: formData.recurring,
+          recurringInterval: formData.recurringInterval,
+          assignedTo: formData.assignedTo || undefined,
+          paidDate: formData.status === 'pago' ? new Date() : null,
+        };
+
+        console.log('TransactionData:', transactionData);
+
+        if (transaction) {
+          console.log('Atualizando transação:', transaction.id);
+          updateTransaction(transaction.id, transactionData);
+        } else {
+          console.log('Adicionando nova transação');
+          addTransaction(transactionData);
+        }
+        
+        onSave();
+      } else {
+        console.log('Formulário inválido:', errors);
+      }
+    } catch (error) {
+      console.error('Erro no submit do formulário:', error);
     }
   };
 

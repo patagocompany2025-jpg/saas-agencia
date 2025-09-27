@@ -46,6 +46,12 @@ export default function FinancialPage() {
     employees,
     fixedExpenses
   } = useFinancial();
+
+  // Debug: Verificar se o contexto está funcionando
+  console.log('=== CONTEXTO FINANCEIRO ===');
+  console.log('Transações:', transactions);
+  console.log('Funcionários:', employees);
+  console.log('Contas Fixas:', fixedExpenses);
   
   const [activeTab, setActiveTab] = useState<'overview' | 'transactions' | 'employees' | 'fixed-expenses'>('overview');
 
