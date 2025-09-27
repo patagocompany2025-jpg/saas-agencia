@@ -310,7 +310,6 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
         createdAt: string;
       }) => ({
         ...a,
-        dueDate: a.dueDate ? new Date(a.dueDate) : undefined,
         createdAt: new Date(a.createdAt),
       })));
     }
