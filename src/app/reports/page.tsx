@@ -259,7 +259,10 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="text-green-300 text-sm font-medium mb-2">Receita Total</p>
-                <p className="text-3xl font-bold text-white mb-2">R$ {metrics.totalRevenue.toLocaleString('pt-BR')}</p>
+                <p className="text-3xl font-bold text-white mb-2 flex items-baseline">
+                  <span className="text-lg">R$</span>
+                  <span>{metrics.totalRevenue.toLocaleString('pt-BR')}</span>
+                </p>
                 <p className="text-green-400 text-sm flex items-center">
                   <ArrowUpRight className="h-4 w-4 mr-1" />
                   +12.5% vs mês anterior
@@ -294,7 +297,7 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-purple-300 text-sm font-medium mb-2">Taxa de Conversão</p>
+                <p className="text-purple-300 text-sm font-medium mb-2 whitespace-nowrap">Taxa de Conversão</p>
                 <p className="text-3xl font-bold text-white mb-2">{conversionRate.toFixed(1)}%</p>
                 <p className="text-purple-400 text-sm flex items-center">
                   <ArrowUpRight className="h-4 w-4 mr-1" />
@@ -312,7 +315,7 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="text-orange-300 text-sm font-medium mb-2">Margem de Lucro</p>
+                <p className="text-orange-300 text-sm font-medium mb-2 whitespace-nowrap">Margem de Lucro</p>
                 <p className="text-3xl font-bold text-white mb-2">{metrics.profitMargin.toFixed(1)}%</p>
                 <p className="text-orange-400 text-sm flex items-center">
                   <ArrowUpRight className="h-4 w-4 mr-1" />
@@ -689,7 +692,10 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-300 text-sm font-medium">Receita Bruta</p>
-                <p className="text-2xl font-bold text-white">R$ {metrics.totalRevenue.toLocaleString('pt-BR')}</p>
+                <p className="text-2xl font-bold text-white flex items-baseline">
+                  <span className="text-base">R$</span>
+                  <span>{metrics.totalRevenue.toLocaleString('pt-BR')}</span>
+                </p>
               </div>
               <DollarSign className="h-8 w-8 text-green-400" />
             </div>
@@ -724,7 +730,7 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-300 text-sm font-medium">Margem de Lucro</p>
+                <p className="text-purple-300 text-sm font-medium whitespace-nowrap">Margem de Lucro</p>
                 <p className="text-2xl font-bold text-white">{metrics.profitMargin.toFixed(1)}%</p>
               </div>
               <Target className="h-8 w-8 text-purple-400" />
@@ -889,7 +895,10 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-300 text-sm font-medium">Receita Total</p>
-                <p className="text-3xl font-bold text-white">R$ {metrics.totalRevenue.toLocaleString('pt-BR')}</p>
+                <p className="text-3xl font-bold text-white flex items-baseline">
+                  <span className="text-lg">R$</span>
+                  <span>{metrics.totalRevenue.toLocaleString('pt-BR')}</span>
+                </p>
                 <p className="text-green-400 text-sm flex items-center mt-1">
                   <ArrowUpRight className="h-4 w-4 mr-1" />
                   +15.2% vs mês anterior
@@ -920,7 +929,7 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-300 text-sm font-medium">Taxa de Conversão</p>
+                <p className="text-purple-300 text-sm font-medium whitespace-nowrap">Taxa de Conversão</p>
                 <p className="text-3xl font-bold text-white">{conversionRate.toFixed(1)}%</p>
                 <p className="text-purple-400 text-sm flex items-center mt-1">
                   <ArrowUpRight className="h-4 w-4 mr-1" />
@@ -937,7 +946,10 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-orange-300 text-sm font-medium">Ticket Médio</p>
-                <p className="text-3xl font-bold text-white">R$ {totalClients > 0 ? (metrics.totalRevenue / totalClients).toLocaleString('pt-BR') : '0'}</p>
+                <p className="text-3xl font-bold text-white flex items-baseline">
+                  <span className="text-lg">R$</span>
+                  <span>{totalClients > 0 ? (metrics.totalRevenue / totalClients).toLocaleString('pt-BR') : '0'}</span>
+                </p>
                 <p className="text-orange-400 text-sm flex items-center mt-1">
                   <ArrowUpRight className="h-4 w-4 mr-1" />
                   +5.7% vs mês anterior
@@ -1089,7 +1101,10 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-300 text-sm font-medium">Receita Total</p>
-                <p className="text-3xl font-bold text-white">R$ {metrics.totalRevenue.toLocaleString('pt-BR')}</p>
+                <p className="text-3xl font-bold text-white flex items-baseline">
+                  <span className="text-lg">R$</span>
+                  <span>{metrics.totalRevenue.toLocaleString('pt-BR')}</span>
+                </p>
                 <p className="text-green-400 text-sm flex items-center mt-1">
                   <ArrowUpRight className="h-4 w-4 mr-1" />
                   +12.5% vs mês anterior
@@ -1105,7 +1120,10 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-red-300 text-sm font-medium">Despesas Totais</p>
-                <p className="text-3xl font-bold text-white">R$ {metrics.totalExpenses.toLocaleString('pt-BR')}</p>
+                <p className="text-3xl font-bold text-white flex items-baseline">
+                  <span className="text-lg">R$</span>
+                  <span>{metrics.totalExpenses.toLocaleString('pt-BR')}</span>
+                </p>
                 <p className="text-red-400 text-sm flex items-center mt-1">
                   <ArrowDownRight className="h-4 w-4 mr-1" />
                   -3.2% vs mês anterior
@@ -1121,7 +1139,10 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-300 text-sm font-medium">Lucro Líquido</p>
-                <p className="text-3xl font-bold text-white">R$ {metrics.netProfit.toLocaleString('pt-BR')}</p>
+                <p className="text-3xl font-bold text-white flex items-baseline">
+                  <span className="text-lg">R$</span>
+                  <span>{metrics.netProfit.toLocaleString('pt-BR')}</span>
+                </p>
                 <p className="text-blue-400 text-sm flex items-center mt-1">
                   <ArrowUpRight className="h-4 w-4 mr-1" />
                   +18.7% vs mês anterior
@@ -1136,7 +1157,7 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-300 text-sm font-medium">Margem de Lucro</p>
+                <p className="text-purple-300 text-sm font-medium whitespace-nowrap">Margem de Lucro</p>
                 <p className="text-3xl font-bold text-white">{metrics.profitMargin.toFixed(1)}%</p>
                 <p className="text-purple-400 text-sm flex items-center mt-1">
                   <ArrowUpRight className="h-4 w-4 mr-1" />
@@ -1225,7 +1246,7 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-300 text-sm font-medium">Taxa de Conversão</p>
+                <p className="text-purple-300 text-sm font-medium whitespace-nowrap">Taxa de Conversão</p>
                 <p className="text-3xl font-bold text-white">{conversionRate.toFixed(1)}%</p>
                 <p className="text-purple-400 text-sm flex items-center mt-1">
                   <ArrowUpRight className="h-4 w-4 mr-1" />
@@ -1511,7 +1532,10 @@ export default function ReportsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="text-center p-6 bg-gradient-to-br from-green-500/10 to-green-600/10 rounded-lg border border-green-500/20">
                 <DollarSign className="h-8 w-8 text-green-400 mx-auto mb-3" />
-                <div className="text-2xl font-bold text-white">R$ {metrics.totalRevenue.toLocaleString('pt-BR')}</div>
+                <div className="text-2xl font-bold text-white flex items-baseline justify-center">
+                  <span className="text-base">R$</span>
+                  <span>{metrics.totalRevenue.toLocaleString('pt-BR')}</span>
+                </div>
                 <div className="text-sm text-green-300">Receita Total</div>
                 <div className="text-xs text-green-400 mt-1 flex items-center justify-center">
                   <ArrowUpRight className="h-3 w-3 mr-1" />
@@ -1693,7 +1717,10 @@ export default function ReportsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="text-center p-6 bg-gradient-to-br from-green-500/10 to-green-600/10 rounded-lg border border-green-500/20">
                 <DollarSign className="h-8 w-8 text-green-400 mx-auto mb-3" />
-                <div className="text-2xl font-bold text-white">R$ {metrics.totalRevenue.toLocaleString('pt-BR')}</div>
+                <div className="text-2xl font-bold text-white flex items-baseline justify-center">
+                  <span className="text-base">R$</span>
+                  <span>{metrics.totalRevenue.toLocaleString('pt-BR')}</span>
+                </div>
                 <div className="text-sm text-green-300">Receita Total</div>
                 <div className="text-xs text-green-400 mt-1 flex items-center justify-center">
                   <ArrowUpRight className="h-3 w-3 mr-1" />
