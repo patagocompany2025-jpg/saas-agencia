@@ -34,14 +34,14 @@ export function ModernLayout({ children }: ModernLayoutProps) {
   const router = useRouter();
   const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({});
 
-  useEffect(() => {
-    console.log('=== MODERN LAYOUT - USUÁRIO RECEBIDO ===');
-    console.log('Usuário:', user);
-    console.log('Display Name:', user?.displayName);
-    console.log('Email:', user?.email);
-    console.log('Role:', user?.role);
-    console.log('Is Loading:', isLoading);
-  }, [user, isLoading]);
+  // useEffect(() => {
+  //   console.log('=== MODERN LAYOUT - USUÁRIO RECEBIDO ===');
+  //   console.log('Usuário:', user);
+  //   console.log('Display Name:', user?.displayName);
+  //   console.log('Email:', user?.email);
+  //   console.log('Role:', user?.role);
+  //   console.log('Is Loading:', isLoading);
+  // }, [user, isLoading]);
 
   if (isLoading) {
     return (
