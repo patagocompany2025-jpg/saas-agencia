@@ -48,6 +48,12 @@ export default function FinancialPage() {
   } = useFinancial();
   
   const [activeTab, setActiveTab] = useState<'overview' | 'transactions' | 'employees' | 'fixed-expenses'>('overview');
+
+  // Debug: Log da mudança de aba
+  useEffect(() => {
+    console.log('=== ABA ATIVA MUDOU ===');
+    console.log('Aba ativa:', activeTab);
+  }, [activeTab]);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [showEmployeeForm, setShowEmployeeForm] = useState(false);
   const [showFixedExpenseForm, setShowFixedExpenseForm] = useState(false);
@@ -56,6 +62,7 @@ export default function FinancialPage() {
   useEffect(() => {
     console.log('=== DADOS FINANCEIROS ATUALIZADOS ===');
     console.log('Transações:', transactions.length);
+    console.log('Transações detalhadas:', transactions);
     console.log('Funcionários:', employees.length);
     console.log('Contas Fixas:', fixedExpenses.length);
     console.log('Alertas:', alerts.length);
@@ -157,7 +164,12 @@ export default function FinancialPage() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as 'overview' | 'transactions' | 'fixed-expenses' | 'employees')}
+                onClick={() => {
+                  console.log('=== CLIQUE NA ABA ===');
+                  console.log('Aba clicada:', tab.id);
+                  console.log('Aba anterior:', activeTab);
+                  setActiveTab(tab.id as 'overview' | 'transactions' | 'fixed-expenses' | 'employees');
+                }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
                   activeTab === tab.id
                     ? 'bg-indigo-600 text-white'
@@ -287,8 +299,17 @@ export default function FinancialPage() {
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-white">Transações</h2>
               <Button 
-                onClick={() => setShowTransactionForm(true)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('=== CLIQUE NO BOTÃO NOVA TRANSAÇÃO ===');
+                  console.log('Evento:', e);
+                  console.log('Estado atual showTransactionForm:', showTransactionForm);
+                  setShowTransactionForm(true);
+                  console.log('Estado após setShowTransactionForm(true)');
+                }}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                type="button"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Nova Transação
@@ -296,6 +317,7 @@ export default function FinancialPage() {
             </div>
             <TransactionList 
               onEdit={(transaction: FinancialTransaction) => {
+                console.log('=== EDITANDO TRANSAÇÃO ===', transaction);
                 setEditingTransaction(transaction);
                 setShowTransactionForm(true);
               }}
@@ -352,10 +374,12 @@ export default function FinancialPage() {
           <TransactionForm
             transaction={editingTransaction}
             onSave={() => {
+              console.log('=== SALVANDO TRANSAÇÃO ===');
               setShowTransactionForm(false);
               setEditingTransaction(undefined);
             }}
             onCancel={() => {
+              console.log('=== CANCELANDO TRANSAÇÃO ===');
               setShowTransactionForm(false);
               setEditingTransaction(undefined);
             }}
