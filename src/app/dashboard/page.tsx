@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import {
   Users,
@@ -40,7 +40,7 @@ const mockMetrics = {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useStackAuth();
   const { clients } = useClients();
   const { tasks, getTotalValue } = useKanban();
 

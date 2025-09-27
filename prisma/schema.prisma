@@ -1,0 +1,168 @@
+// Prisma Schema para SaaS Agência
+// Sistema de gestão empresarial com autenticação e CRM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo de Usuários
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      UserRole @default(USER)
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  clients   Client[]
+  tasks     Task[]
+  transactions Transaction[]
+  expenses  Expense[]
+
+  @@map("users")
+}
+
+// Modelo de Clientes
+model Client {
+  id          String      @id @default(cuid())
+  name        String
+  email       String      @unique
+  phone       String?
+  company     String?
+  source      ClientSource @default(WEBSITE)
+  status      ClientStatus @default(LEAD)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  userId      String
+
+  // Relacionamentos
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+
+  @@map("clients")
+}
+
+// Modelo de Tarefas (Kanban)
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(PROSPECCAO)
+  priority    Priority   @default(MEDIUM)
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  userId      String
+  clientId    String?
+
+  // Relacionamentos
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client      Client?    @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@map("tasks")
+}
+
+// Modelo de Transações Financeiras
+model Transaction {
+  id          String            @id @default(cuid())
+  description String
+  amount      Decimal           @db.Decimal(10, 2)
+  type        TransactionType
+  category    String?
+  date        DateTime          @default(now())
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  userId      String
+
+  // Relacionamentos
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+// Modelo de Despesas Fixas
+model Expense {
+  id          String     @id @default(cuid())
+  name        String
+  amount      Decimal    @db.Decimal(10, 2)
+  category    String
+  isRecurring Boolean    @default(false)
+  frequency   String?    // monthly, yearly, etc.
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  userId      String
+
+  // Relacionamentos
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("expenses")
+}
+
+// Modelo de Funcionários
+model Employee {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String?
+  position  String
+  salary    Decimal  @db.Decimal(10, 2)
+  hireDate  DateTime @default(now())
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("employees")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  SOCIO
+  USER
+}
+
+enum ClientSource {
+  WEBSITE
+  FACEBOOK
+  INSTAGRAM
+  INDICACAO
+  GOOGLE
+  WHATSAPP
+}
+
+enum ClientStatus {
+  LEAD
+  PROSPECT
+  CLIENTE
+  INATIVO
+}
+
+enum TaskStatus {
+  PROSPECCAO
+  QUALIFICACAO
+  CONSULTORIA
+  PROPOSTA
+  NEGOCIACAO
+  FECHADO
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TransactionType {
+  RECEITA
+  DESPESA
+}

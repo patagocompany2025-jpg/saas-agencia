@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -198,7 +198,7 @@ const PATAGONIA_SERVICES = {
 };
 
 export default function CalculatorPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useStackAuth();
   const [isEditingServices, setIsEditingServices] = useState(false);
   const [editableServices, setEditableServices] = useState(PATAGONIA_SERVICES);
   

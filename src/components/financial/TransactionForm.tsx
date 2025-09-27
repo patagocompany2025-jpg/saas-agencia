@@ -134,7 +134,7 @@ export function TransactionForm({ transaction, onSave, onCancel }: TransactionFo
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -272,7 +272,7 @@ export function TransactionForm({ transaction, onSave, onCancel }: TransactionFo
                   id="paymentMethod"
                   className="flex h-10 w-full items-center justify-between rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
                   value={formData.paymentMethod}
-                  onChange={(e) => handleInputChange('paymentMethod', e.target.value as FinancialTransaction['paymentMethod'])}
+                  onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
                 >
                   {paymentMethodOptions.map(option => (
                     <option key={option.value} value={option.value} className="bg-gray-800">
@@ -311,7 +311,7 @@ export function TransactionForm({ transaction, onSave, onCancel }: TransactionFo
                     id="recurringInterval"
                     className="flex h-10 w-full items-center justify-between rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
                     value={formData.recurringInterval}
-                    onChange={(e) => handleInputChange('recurringInterval', e.target.value as FinancialTransaction['recurringInterval'])}
+                    onChange={(e) => handleInputChange('recurringInterval', e.target.value)}
                   >
                     {recurringIntervalOptions.map(option => (
                       <option key={option.value} value={option.value} className="bg-gray-800">

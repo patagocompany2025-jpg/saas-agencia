@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { ClientList } from '@/components/crm/ClientList';
 import { ClientForm } from '@/components/crm/ClientForm';
@@ -11,7 +11,7 @@ import { Client } from '@/lib/types';
 import { useClients } from '@/lib/contexts/ClientContext';
 
 export default function CRMPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useStackAuth();
   const { clients, addClient, updateClient } = useClients();
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | undefined>();

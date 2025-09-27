@@ -121,13 +121,13 @@ export function EmployeeForm({ employee, onSave, onCancel }: EmployeeFormProps) 
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...(prev[parent as keyof typeof prev] as any),
+          ...(prev[parent as keyof typeof prev] as Record<string, unknown>),
           [child]: value
         }
       }));

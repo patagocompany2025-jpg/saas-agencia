@@ -75,7 +75,17 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
 
     if (savedTransactions) {
       try {
-        const parsedTransactions = JSON.parse(savedTransactions).map((t: any) => ({
+        const parsedTransactions = JSON.parse(savedTransactions).map((t: {
+          id: string;
+          description: string;
+          amount: number;
+          type: string;
+          category: string;
+          date: string;
+          createdAt: string;
+          updatedAt: string;
+          userId: string;
+        }) => ({
           ...t,
           dueDate: t.dueDate ? new Date(t.dueDate) : undefined,
           paidDate: t.paidDate ? new Date(t.paidDate) : undefined,
@@ -153,7 +163,18 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
 
     if (savedEmployees) {
       try {
-        const parsedEmployees = JSON.parse(savedEmployees).map((e: any) => ({
+        const parsedEmployees = JSON.parse(savedEmployees).map((e: {
+          id: string;
+          name: string;
+          email: string;
+          phone: string;
+          position: string;
+          salary: number;
+          hireDate: string;
+          isActive: boolean;
+          createdAt: string;
+          updatedAt: string;
+        }) => ({
           ...e,
           createdAt: new Date(e.createdAt),
           updatedAt: new Date(e.updatedAt),
@@ -213,7 +234,17 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
 
     if (savedFixedExpenses) {
       try {
-        const parsedFixedExpenses = JSON.parse(savedFixedExpenses).map((e: any) => ({
+        const parsedFixedExpenses = JSON.parse(savedFixedExpenses).map((e: {
+          id: string;
+          name: string;
+          amount: number;
+          category: string;
+          isRecurring: boolean;
+          frequency: string;
+          createdAt: string;
+          updatedAt: string;
+          userId: string;
+        }) => ({
           ...e,
           createdAt: new Date(e.createdAt),
           updatedAt: new Date(e.updatedAt),
@@ -272,7 +303,14 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (savedAlerts) {
-      setAlerts(JSON.parse(savedAlerts).map((a: any) => ({
+      setAlerts(JSON.parse(savedAlerts).map((a: {
+        id: string;
+        type: string;
+        message: string;
+        severity: string;
+        isRead: boolean;
+        createdAt: string;
+      }) => ({
         ...a,
         dueDate: a.dueDate ? new Date(a.dueDate) : undefined,
         createdAt: new Date(a.createdAt),

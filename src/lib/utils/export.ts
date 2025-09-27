@@ -84,7 +84,14 @@ function loadLogoAsBase64(logoUrl: string): Promise<string> {
 }
 
 // Função específica para Relatório Executivo - Versão Funcional
-export function exportExecutiveReportPDF(elementId: string, filename: string, data: any) {
+export function exportExecutiveReportPDF(elementId: string, filename: string, data: {
+  companyName: string;
+  reportDate: string;
+  totalRevenue: number;
+  totalExpenses: number;
+  netProfit: number;
+  [key: string]: unknown;
+}) {
   // Carregar logo primeiro, depois gerar PDF
   loadLogoAsBase64('/LOGO_HORI_WHITE.png')
     .then(logoBase64 => {
@@ -96,7 +103,14 @@ export function exportExecutiveReportPDF(elementId: string, filename: string, da
     });
 }
 
-function generateExecutivePDFWithLogo(logoBase64: string | null, filename: string, data: any) {
+function generateExecutivePDFWithLogo(logoBase64: string | null, filename: string, data: {
+  companyName: string;
+  reportDate: string;
+  totalRevenue: number;
+  totalExpenses: number;
+  netProfit: number;
+  [key: string]: unknown;
+}) {
   try {
     const pdf = new jsPDF('p', 'mm', 'a4');
     pdf.setFont('helvetica', 'normal');
@@ -472,7 +486,7 @@ export function exportToPDF(elementId: string, filename: string) {
   });
 }
 
-export function exportToExcel(data: any[], filename: string) {
+export function exportToExcel(data: Record<string, unknown>[], filename: string) {
   try {
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
@@ -484,7 +498,7 @@ export function exportToExcel(data: any[], filename: string) {
   }
 }
 
-export function exportToCSV(data: any[], filename: string) {
+export function exportToCSV(data: Record<string, unknown>[], filename: string) {
   try {
     if (data.length === 0) {
       alert('Nenhum dado para exportar');

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,7 +51,7 @@ import {
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useStackAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -79,7 +79,7 @@ export default function SettingsPage() {
     if (user) {
       setProfileData(prev => ({
         ...prev,
-        name: user.name || '',
+        name: user?.displayName || user?.email || '',
         email: user.email || ''
       }));
     }
@@ -93,6 +93,7 @@ export default function SettingsPage() {
     }
   }, []);
 
+
   const [securityData, setSecurityData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -101,12 +102,25 @@ export default function SettingsPage() {
 
   // Estados para gerenciamento de usuários
   const [showUserForm, setShowUserForm] = useState(false);
-  const [editingUser, setEditingUser] = useState<any>(null);
+  const [editingUser, setEditingUser] = useState<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    permissions: string[];
+  } | null>(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
-  const [selectedUserPermissions, setSelectedUserPermissions] = useState<any>(null);
+  const [selectedUserPermissions, setSelectedUserPermissions] = useState<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    permissions: string[];
+  } | null>(null);
   const [userFormData, setUserFormData] = useState({
     name: '',
     email: '',
+    password: '',
     role: 'vendedor',
     permissions: [] as string[]
   });
@@ -154,6 +168,11 @@ export default function SettingsPage() {
       permissions: ['dashboard', 'crm']
     }
   ]);
+
+  // Debug: Log quando users muda
+  React.useEffect(() => {
+    console.log('Estado users atualizado:', users);
+  }, [users]);
 
   // Permissões disponíveis - Todas as funcionalidades do sistema
   const availablePermissions = [
@@ -404,6 +423,7 @@ export default function SettingsPage() {
   const getTabsForRole = () => {
     const allTabs = [
       { id: 'profile', name: 'Perfil', icon: User, roles: ['socio', 'vendedor'] },
+      { id: 'admin', name: 'Administração', icon: Shield, roles: ['socio'] },
       { id: 'company', name: 'Empresa', icon: Building2, roles: ['socio'] },
       { id: 'users', name: 'Usuários', icon: Users, roles: ['socio'] },
       { id: 'notifications', name: 'Notificações', icon: Bell, roles: ['socio', 'vendedor'] },
@@ -493,23 +513,80 @@ export default function SettingsPage() {
     }
   };
 
+  const handleChangePassword = async () => {
+    // Validações
+    if (!securityData.currentPassword.trim()) {
+      alert('Digite sua senha atual!');
+      return;
+    }
+
+    if (!securityData.newPassword.trim() || securityData.newPassword.length < 6) {
+      alert('A nova senha deve ter pelo menos 6 caracteres!');
+      return;
+    }
+
+    if (securityData.newPassword !== securityData.confirmPassword) {
+      alert('As senhas não coincidem!');
+      return;
+    }
+
+    if (securityData.currentPassword === securityData.newPassword) {
+      alert('A nova senha deve ser diferente da senha atual!');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Simular verificação da senha atual
+      if (securityData.currentPassword !== '123456') {
+        alert('Senha atual incorreta!');
+        setIsLoading(false);
+        return;
+      }
+
+      // Simular atualização da senha
+      alert('Senha alterada com sucesso!');
+      
+      // Limpar campos
+      setSecurityData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (error) {
+      alert('Erro ao alterar senha. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Funções para gerenciamento de usuários
   const handleNewUser = () => {
     setEditingUser(null);
     setUserFormData({
       name: '',
       email: '',
+      password: '',
       role: 'vendedor',
       permissions: []
     });
     setShowUserForm(true);
   };
 
-  const handleEditUser = (user: any) => {
+  const handleEditUser = (user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    permissions: string[];
+  }) => {
     setEditingUser(user);
     setUserFormData({
-      name: user.name,
+      name: user?.name || user?.email || 'Usuário',
       email: user.email,
+      password: '', // Senha vazia para edição
       role: user.role,
       permissions: user.permissions || []
     });
@@ -522,15 +599,25 @@ export default function SettingsPage() {
     setUserFormData({
       name: '',
       email: '',
+      password: '',
       role: 'vendedor',
       permissions: []
     });
   };
 
   const handleSaveUser = async () => {
+    console.log('Iniciando salvamento do usuário:', userFormData);
+    console.log('Usuários atuais:', users);
+    
     // Validações
     if (!userFormData.name.trim() || !userFormData.email.trim()) {
       alert('Nome e email são obrigatórios!');
+      return;
+    }
+
+    // Validar senha (apenas para novos usuários)
+    if (!editingUser && (!userFormData.password.trim() || userFormData.password.length < 6)) {
+      alert('A senha é obrigatória e deve ter pelo menos 6 caracteres!');
       return;
     }
 
@@ -568,11 +655,16 @@ export default function SettingsPage() {
       
       if (editingUser) {
         // Atualizar usuário existente
-        setUsers(prev => prev.map(u => 
-          u.id === editingUser.id 
-            ? { ...u, ...userFormData, updatedAt: new Date().toISOString().split('T')[0] }
-            : u
-        ));
+        console.log('Atualizando usuário existente:', editingUser.id);
+        setUsers(prev => {
+          const updated = prev.map(u => 
+            u.id === editingUser.id 
+              ? { ...u, ...userFormData, updatedAt: new Date().toISOString().split('T')[0] }
+              : u
+          );
+          console.log('Usuários após atualização:', updated);
+          return updated;
+        });
         alert('Usuário atualizado com sucesso!');
       } else {
         // Criar novo usuário
@@ -583,12 +675,18 @@ export default function SettingsPage() {
           createdAt: new Date().toISOString().split('T')[0],
           lastLogin: null
         };
-        setUsers(prev => [...prev, newUser]);
+        console.log('Criando novo usuário:', newUser);
+        setUsers(prev => {
+          const updated = [...prev, newUser];
+          console.log('Usuários após criação:', updated);
+          return updated;
+        });
         alert('Usuário criado com sucesso!');
       }
       
       handleCancelEdit();
     } catch (error) {
+      console.error('Erro ao salvar usuário:', error);
       alert('Erro ao salvar usuário. Tente novamente.');
     } finally {
       setIsLoading(false);
@@ -633,16 +731,29 @@ export default function SettingsPage() {
     }
   };
 
-  const handleViewPermissions = (user: any) => {
+  const handleViewPermissions = (user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    permissions: string[];
+  }) => {
     setSelectedUserPermissions(user);
     setShowPermissionsModal(true);
   };
 
-  const handleDuplicateUser = (user: any) => {
+  const handleDuplicateUser = (user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    permissions: string[];
+  }) => {
     setEditingUser(null);
     setUserFormData({
-      name: `${user.name} (Cópia)`,
+      name: `${user?.name || user?.email || 'Usuário'} (Cópia)`,
       email: `copia_${user.email}`,
+      password: '', // Senha vazia para duplicação
       role: user.role,
       permissions: user.permissions || []
     });
@@ -821,10 +932,10 @@ export default function SettingsPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                               <div className="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white font-semibold">
-                                {user.name.charAt(0).toUpperCase()}
+                                {(user?.name || user?.email || 'U').charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <h3 className="text-white font-semibold">{user.name}</h3>
+                                <h3 className="text-white font-semibold">{user?.name || user?.email || 'Usuário'}</h3>
                                 <p className="text-white/60 text-sm">{user.email}</p>
                                 <div className="flex items-center gap-2 mt-1">
                                   <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getRoleColor(user.role)}`}>
@@ -956,6 +1067,132 @@ export default function SettingsPage() {
                   </CardContent>
                 </Card>
               </div>
+            )}
+
+            {/* Trocar Senha */}
+            {activeTab === 'profile' && (
+              <Card className="bg-white/5 backdrop-blur-2xl border-white/10 mt-6">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-indigo-400" />
+                    Segurança da Conta
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-yellow-400 mb-2">
+                      <Shield className="h-4 w-4" />
+                      <span className="font-medium">Alterar Senha</span>
+                    </div>
+                    <p className="text-white/60 text-sm">
+                      Para sua segurança, recomendamos alterar sua senha regularmente.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-white/80">Senha Atual *</Label>
+                      <Input
+                        type="password"
+                        value={securityData.currentPassword}
+                        onChange={(e) => setSecurityData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                        className="bg-white/10 border-white/20 text-white"
+                        placeholder="Digite sua senha atual"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-white/80">Nova Senha *</Label>
+                      <Input
+                        type="password"
+                        value={securityData.newPassword}
+                        onChange={(e) => setSecurityData(prev => ({ ...prev, newPassword: e.target.value }))}
+                        className="bg-white/10 border-white/20 text-white"
+                        placeholder="Mínimo 6 caracteres"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-white/80">Confirmar Nova Senha *</Label>
+                    <Input
+                      type="password"
+                      value={securityData.confirmPassword}
+                      onChange={(e) => setSecurityData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      className="bg-white/10 border-white/20 text-white"
+                      placeholder="Confirme sua nova senha"
+                    />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleChangePassword}
+                      disabled={isLoading}
+                      className="bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      {isLoading ? 'Alterando...' : 'Alterar Senha'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Administração */}
+            {activeTab === 'admin' && (
+              <Card className="bg-white/5 backdrop-blur-2xl border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-indigo-400" />
+                    Administração do Sistema
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="bg-white/5 border-white/10">
+                      <CardHeader>
+                        <CardTitle className="text-white text-lg">Usuários Pendentes</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-white/60 mb-4">Gerencie usuários aguardando aprovação</p>
+                        <Button 
+                          onClick={() => window.open('/admin', '_blank')}
+                          className="w-full bg-indigo-600 hover:bg-indigo-700"
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          Gerenciar Usuários
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-white/5 border-white/10">
+                      <CardHeader>
+                        <CardTitle className="text-white text-lg">Estatísticas</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-white/60">Usuários Ativos:</span>
+                            <span className="text-white">2</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-white/60">Pendentes:</span>
+                            <span className="text-yellow-400">1</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-yellow-400">
+                      <Shield className="h-4 w-4" />
+                      <span className="font-medium">Acesso Restrito</span>
+                    </div>
+                    <p className="text-white/60 text-sm mt-2">
+                      Apenas administradores podem acessar as funcionalidades de administração.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
             {/* Configurações da Empresa */}
@@ -1283,6 +1520,21 @@ export default function SettingsPage() {
                     />
                   </div>
                 </div>
+
+                {/* Senha - Apenas para novos usuários */}
+                {!editingUser && (
+                  <div>
+                    <Label className="text-white/70">Senha *</Label>
+                    <Input
+                      value={userFormData.password}
+                      onChange={(e) => setUserFormData(prev => ({ ...prev, password: e.target.value }))}
+                      className="bg-gray-700 border-gray-600 text-white"
+                      placeholder="Mínimo 6 caracteres"
+                      type="password"
+                    />
+                    <p className="text-white/50 text-xs mt-1">A senha será usada para o primeiro login do usuário</p>
+                  </div>
+                )}
 
                 {/* Função/Role */}
                 <div>

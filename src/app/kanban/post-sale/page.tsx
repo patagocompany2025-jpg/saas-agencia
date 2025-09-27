@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { PostSaleKanbanBoard } from '@/components/kanban/PostSaleKanbanBoard';
 import { PostSaleTaskForm } from '@/components/kanban/PostSaleTaskForm';
@@ -134,11 +134,27 @@ const mockPostSaleTasks = [
 ];
 
 export default function PostSalePage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useStackAuth();
   const [tasks, setTasks] = useState(mockPostSaleTasks);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
-  const [editingTask, setEditingTask] = useState<any>(undefined);
+  const [editingTask, setEditingTask] = useState<{
+    id: string;
+    clientName: string;
+    service: string;
+    value: number;
+    status: 'aguardando' | 'contato' | 'satisfeito' | 'reclamacao' | 'fidelizado' | 'indicacao';
+    completionDate: string;
+    feedbackDate?: string;
+    satisfaction?: number;
+    feedback?: string;
+    nextContact: string;
+    assignedTo: string;
+    priority: 'baixa' | 'media' | 'alta';
+    notes?: string;
+    createdAt: string;
+    updatedAt: string;
+  } | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
   const [showFilters, setShowFilters] = useState(false);
@@ -157,12 +173,44 @@ export default function PostSalePage() {
     setShowForm(true);
   };
 
-  const handleEditTask = useCallback((task: any) => {
+  const handleEditTask = useCallback((task: {
+    id: string;
+    clientName: string;
+    service: string;
+    value: number;
+    status: 'aguardando' | 'contato' | 'satisfeito' | 'reclamacao' | 'fidelizado' | 'indicacao';
+    completionDate: string;
+    feedbackDate?: string;
+    satisfaction?: number;
+    feedback?: string;
+    nextContact: string;
+    assignedTo: string;
+    priority: 'baixa' | 'media' | 'alta';
+    notes?: string;
+    createdAt: string;
+    updatedAt: string;
+  }) => {
     setEditingTask(task);
     setShowForm(true);
   }, []);
 
-  const handleSaveTask = (taskData: any) => {
+  const handleSaveTask = (taskData: Partial<{
+    id: string;
+    clientName: string;
+    service: string;
+    value: number;
+    status: 'aguardando' | 'contato' | 'satisfeito' | 'reclamacao' | 'fidelizado' | 'indicacao';
+    completionDate: string;
+    feedbackDate?: string;
+    satisfaction?: number;
+    feedback?: string;
+    nextContact: string;
+    assignedTo: string;
+    priority: 'baixa' | 'media' | 'alta';
+    notes?: string;
+    createdAt: string;
+    updatedAt: string;
+  }>) => {
     try {
       if (editingTask) {
         // Atualizar tarefa existente

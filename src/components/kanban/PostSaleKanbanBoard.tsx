@@ -49,7 +49,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
 
 // Interface para tarefas de pós-venda
 interface PostSaleTask {
@@ -143,9 +143,9 @@ const mockPostSaleTasks: PostSaleTask[] = [
     value: 8500,
     status: 'contato',
     completionDate: '2024-01-27',
-    feedbackDate: null,
-    satisfaction: null,
-    feedback: null,
+    feedbackDate: undefined,
+    satisfaction: undefined,
+    feedback: undefined,
     nextContact: '2024-02-03',
     assignedTo: 'Amanda',
     priority: 'alta',
@@ -207,7 +207,7 @@ const mockPostSaleTasks: PostSaleTask[] = [
 ];
 
 export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {}, onUpdateCustomColumn, onDeleteCustomColumn }: PostSaleKanbanBoardProps) {
-  const { user } = useAuth();
+  const { user } = useStackAuth();
   const [tasks, setTasks] = useState<PostSaleTask[]>(mockPostSaleTasks);
   const [draggedTask, setDraggedTask] = useState<PostSaleTask | null>(null);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
@@ -608,7 +608,7 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
                           {task.feedback && (
                             <div className="bg-white/5 rounded-lg p-2">
                               <div className="text-white/70 text-xs mb-1">Feedback:</div>
-                              <div className="text-white text-xs italic line-clamp-2">"{task.feedback}"</div>
+                              <div className="text-white text-xs italic line-clamp-2">&ldquo;{task.feedback}&rdquo;</div>
                             </div>
                           )}
 

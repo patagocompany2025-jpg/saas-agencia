@@ -96,13 +96,13 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...(prev[parent as keyof typeof prev] as any),
+          ...(prev[parent as keyof typeof prev] as Record<string, unknown>),
           [child]: value
         }
       }));
@@ -351,7 +351,7 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
                   <input
                     type="date"
                     value={formData.travelDates.departure && formData.travelDates.departure instanceof Date ? formData.travelDates.departure.toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleInputChange('travelDates.departure', e.target.value ? new Date(e.target.value) : undefined)}
+                    onChange={(e) => handleInputChange('travelDates.departure', e.target.value ? new Date(e.target.value).toISOString() : '')}
                     className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
@@ -360,7 +360,7 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
                   <input
                     type="date"
                     value={formData.travelDates.return && formData.travelDates.return instanceof Date ? formData.travelDates.return.toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleInputChange('travelDates.return', e.target.value ? new Date(e.target.value) : undefined)}
+                    onChange={(e) => handleInputChange('travelDates.return', e.target.value ? new Date(e.target.value).toISOString() : '')}
                     className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>

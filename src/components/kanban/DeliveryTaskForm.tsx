@@ -78,7 +78,7 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
     }
   }, [task]);
 
-  const handleInputChange = (field: keyof DeliveryTask, value: any) => {
+  const handleInputChange = (field: keyof DeliveryTask, value: string | number | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

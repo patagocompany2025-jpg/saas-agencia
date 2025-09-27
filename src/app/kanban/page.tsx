@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { TaskForm } from '@/components/kanban/TaskForm';
@@ -13,12 +13,13 @@ import { KanbanTask } from '@/lib/types';
 import { useKanban } from '@/lib/contexts/KanbanContext';
 
 export default function KanbanPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useStackAuth();
   const { addTask, updateTask, deleteTask, tasks } = useKanban();
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<KanbanTask | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
+  const [showFilters, setShowFilters] = useState(false);
   const [showAddColumn, setShowAddColumn] = useState(false);
   const [newColumnData, setNewColumnData] = useState({
     title: '',
@@ -114,7 +115,7 @@ export default function KanbanPage() {
   };
 
   const handleFilters = () => {
-    alert('Funcionalidade de filtros será implementada em breve!');
+    setShowFilters(!showFilters);
   };
 
   const handleAddColumn = () => {
@@ -262,6 +263,88 @@ export default function KanbanPage() {
             Nova Oportunidade
           </Button>
         </div>
+
+        {/* Painel de Filtros */}
+        {showFilters && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Filtros Avançados</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowFilters(false)}
+                  className="text-white/60 hover:text-white"
+                >
+                  ✕
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-white/80 mb-2">Status</label>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="todos">Todos os Status</option>
+                    <option value="prospeccao">Prospecção</option>
+                    <option value="qualificacao">Qualificação</option>
+                    <option value="consultoria">Consultoria</option>
+                    <option value="proposta">Proposta</option>
+                    <option value="negociacao">Negociação</option>
+                    <option value="fechado">Fechado</option>
+                    <option value="perdido">Perdido</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-white/80 mb-2">Prioridade</label>
+                  <select className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="todas">Todas as Prioridades</option>
+                    <option value="alta">Alta</option>
+                    <option value="media">Média</option>
+                    <option value="baixa">Baixa</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-white/80 mb-2">Período</label>
+                  <select className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="todos">Todos os Períodos</option>
+                    <option value="hoje">Hoje</option>
+                    <option value="semana">Esta Semana</option>
+                    <option value="mes">Este Mês</option>
+                    <option value="trimestre">Este Trimestre</option>
+                    <option value="ano">Este Ano</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="flex justify-end mt-6 space-x-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setStatusFilter('todos');
+                    setSearchTerm('');
+                  }}
+                  className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
+                >
+                  Limpar Filtros
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setShowFilters(false)}
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                >
+                  Aplicar Filtros
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <KanbanBoard
           onNewTask={handleNewTask}

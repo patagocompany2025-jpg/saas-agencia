@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
 import { useFinancial } from '@/lib/contexts/FinancialContext';
 import { useKanban } from '@/lib/contexts/KanbanContext';
 import { useClients } from '@/lib/contexts/ClientContext';
@@ -49,7 +49,7 @@ type ReportType = 'executive' | 'sales' | 'financial' | 'performance' | 'die' | 
 
 
 export default function ReportsPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useStackAuth();
   const { getTotalRevenue, getTotalExpenses } = useFinancial();
   const { tasks } = useKanban();
   const { clients } = useClients();
@@ -188,7 +188,17 @@ export default function ReportsPage() {
         
         switch (reportType) {
           case 'executivo':
-            exportExecutiveReportPDF('', filename, data);
+            const executiveData = {
+              companyName: 'Agência Patagônia',
+              reportDate: new Date().toLocaleDateString('pt-BR'),
+              totalRevenue: totalRevenue,
+              totalExpenses: totalExpenses,
+              netProfit: netProfit,
+              profitMargin: profitMargin,
+              totalClients: clients.length,
+              activeClients: clients.filter(c => c.status === 'cliente').length
+            };
+            exportExecutiveReportPDF('', filename, executiveData);
             break;
           case 'die':
             alert('Relatório DIE em desenvolvimento');

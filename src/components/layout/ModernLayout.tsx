@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
 import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -11,6 +11,7 @@ import {
   DollarSign,
   BarChart3,
   Settings,
+  Shield,
   LogOut,
   Home,
   FileText,
@@ -29,7 +30,7 @@ interface ModernLayoutProps {
 }
 
 export function ModernLayout({ children }: ModernLayoutProps) {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useStackAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({});
@@ -91,7 +92,7 @@ export function ModernLayout({ children }: ModernLayoutProps) {
   const navigation = getNavigationItems();
 
   const handleLogout = () => {
-    logout();
+    signOut();
     router.push('/login');
   };
 
@@ -186,22 +187,26 @@ export function ModernLayout({ children }: ModernLayoutProps) {
 
               {/* User Profile */}
               <div className="bg-gray-700/80 backdrop-blur-xl rounded-xl p-4 mt-auto border border-white/10">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                <div className="flex items-center justify-between min-h-[60px]">
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+                      {user?.displayName ? user.displayName.split(' ').map(n => n[0]).join('').toUpperCase() : 
+                       user?.email ? user.email.split('@')[0].substring(0, 2).toUpperCase() : 'U'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-medium truncate">{user?.displayName || user?.email || 'Usuário'}</p>
+                      <p className="text-white/60 text-xs capitalize truncate">{user?.role || 'Usuário'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-white text-sm font-medium">{user.name}</p>
-                    <p className="text-white/60 text-xs capitalize">{user.role}</p>
-                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center space-x-1 text-white/60 hover:text-white transition-colors text-sm px-3 py-2 rounded-md hover:bg-white/10 flex-shrink-0 ml-2"
+                    title="Sair do sistema"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="text-xs">Sair</span>
+                  </button>
                 </div>
-                <button
-                  onClick={handleLogout}
-                  className="w-full mt-3 flex items-center space-x-2 text-white/60 hover:text-white transition-colors text-sm"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Sair</span>
-                </button>
               </div>
             </aside>
 

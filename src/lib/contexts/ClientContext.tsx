@@ -64,7 +64,19 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
     const savedClients = localStorage.getItem('clients');
     if (savedClients) {
       try {
-        const parsedClients = JSON.parse(savedClients).map((client: any) => ({
+        const parsedClients = JSON.parse(savedClients).map((client: {
+          id: string;
+          name: string;
+          email: string;
+          phone: string;
+          company: string;
+          source: string;
+          status: string;
+          notes: string;
+          createdAt: string;
+          updatedAt: string;
+          userId: string;
+        }) => ({
           ...client,
           createdAt: new Date(client.createdAt),
           updatedAt: new Date(client.updatedAt),

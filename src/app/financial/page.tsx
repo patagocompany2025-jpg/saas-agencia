@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
 import { useFinancial } from '@/lib/contexts/FinancialContext';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,7 +32,7 @@ import {
 } from '@/components/financial';
 
 export default function FinancialPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useStackAuth();
   const { 
     getTotalRevenue, 
     getTotalExpenses, 
@@ -157,7 +157,7 @@ export default function FinancialPage() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as 'overview' | 'transactions' | 'fixed-expenses' | 'employees')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
                   activeTab === tab.id
                     ? 'bg-indigo-600 text-white'

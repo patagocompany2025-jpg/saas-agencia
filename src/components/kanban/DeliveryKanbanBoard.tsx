@@ -45,7 +45,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
 
 // Interface para tarefas de entrega
 interface DeliveryTask {
@@ -186,7 +186,7 @@ const mockDeliveryTasks: DeliveryTask[] = [
 ];
 
 export function DeliveryKanbanBoard({ onNewTask, onEditTask, customColumns = {}, onUpdateCustomColumn, onDeleteCustomColumn }: DeliveryKanbanBoardProps) {
-  const { user } = useAuth();
+  const { user } = useStackAuth();
   const [tasks, setTasks] = useState<DeliveryTask[]>(mockDeliveryTasks);
   const [draggedTask, setDraggedTask] = useState<DeliveryTask | null>(null);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);

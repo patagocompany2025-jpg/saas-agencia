@@ -24,7 +24,18 @@ export function KanbanProvider({ children }: { children: React.ReactNode }) {
     const savedTasks = localStorage.getItem('kanbanTasks');
     if (savedTasks) {
       try {
-        const parsedTasks = JSON.parse(savedTasks).map((task: any) => ({
+        const parsedTasks = JSON.parse(savedTasks).map((task: {
+          id: string;
+          title: string;
+          description: string;
+          status: string;
+          priority: string;
+          dueDate: string;
+          createdAt: string;
+          updatedAt: string;
+          userId: string;
+          clientId: string;
+        }) => ({
           ...task,
           // Garantir que os novos campos tenham valores padrão
           travelDates: task.travelDates || {},

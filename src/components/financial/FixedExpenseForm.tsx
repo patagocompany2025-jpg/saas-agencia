@@ -82,7 +82,7 @@ export function FixedExpenseForm({ expense, onSave, onCancel }: FixedExpenseForm
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));

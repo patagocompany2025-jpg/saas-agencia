@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { DeliveryKanbanBoard } from '@/components/kanban/DeliveryKanbanBoard';
 import { DeliveryTaskForm } from '@/components/kanban/DeliveryTaskForm';
@@ -20,9 +20,25 @@ import {
 import Link from 'next/link';
 
 export default function DeliveryPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useStackAuth();
   const [showForm, setShowForm] = useState(false);
-  const [editingTask, setEditingTask] = useState<any>(undefined);
+  const [editingTask, setEditingTask] = useState<{
+    id: string;
+    clientName: string;
+    service: string;
+    value: number;
+    status: 'confirmado' | 'planejamento' | 'preparacao' | 'execucao' | 'concluido' | 'pos-venda';
+    priority: 'baixa' | 'media' | 'alta';
+    paymentDate: string;
+    startDate: string;
+    endDate: string;
+    travelers: number;
+    destination: string;
+    assignedTo: string;
+    notes?: string;
+    createdAt: string;
+    updatedAt: string;
+  } | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
   const [showFilters, setShowFilters] = useState(false);
@@ -42,7 +58,23 @@ export default function DeliveryPage() {
     setShowForm(true);
   };
 
-  const handleEditTask = useCallback((task: any) => {
+  const handleEditTask = useCallback((task: {
+    id: string;
+    clientName: string;
+    service: string;
+    value: number;
+    status: 'confirmado' | 'planejamento' | 'preparacao' | 'execucao' | 'concluido' | 'pos-venda';
+    priority: 'baixa' | 'media' | 'alta';
+    paymentDate: string;
+    startDate: string;
+    endDate: string;
+    travelers: number;
+    destination: string;
+    assignedTo: string;
+    notes?: string;
+    createdAt: string;
+    updatedAt: string;
+  }) => {
     setEditingTask(task);
     setShowForm(true);
   }, []);
@@ -69,7 +101,23 @@ export default function DeliveryPage() {
     );
   }
 
-  const handleSaveTask = (taskData: any) => {
+  const handleSaveTask = (taskData: Partial<{
+    id: string;
+    clientName: string;
+    service: string;
+    value: number;
+    status: 'confirmado' | 'planejamento' | 'preparacao' | 'execucao' | 'concluido' | 'pos-venda';
+    priority: 'baixa' | 'media' | 'alta';
+    paymentDate: string;
+    startDate: string;
+    endDate: string;
+    travelers: number;
+    destination: string;
+    assignedTo: string;
+    notes?: string;
+    createdAt: string;
+    updatedAt: string;
+  }>) => {
     try {
       if (editingTask) {
         // Atualizar tarefa existente

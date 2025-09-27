@@ -16,7 +16,8 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
+import { useRouter } from 'next/navigation';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -30,7 +31,13 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const router = useRouter();
+  const { user, signOut } = useStackAuth();
+
+  const handleLogout = () => {
+    signOut();
+    router.push('/login');
+  };
 
   return (
     <div className="flex h-full w-64 flex-col bg-gray-900 text-white">
@@ -67,19 +74,19 @@ export function Sidebar() {
           <div className="flex-shrink-0">
             <div className="h-8 w-8 rounded-full bg-gray-600 flex items-center justify-center">
               <span className="text-sm font-medium">
-                {user?.name?.charAt(0).toUpperCase()}
+                {user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
               </span>
             </div>
           </div>
           <div className="ml-3 flex-1">
-            <p className="text-sm font-medium text-white">{user?.name}</p>
+            <p className="text-sm font-medium text-white">{user?.displayName || user?.email}</p>
             <p className="text-xs text-gray-400 capitalize">{user?.role}</p>
           </div>
         </div>
         <Button
           variant="ghost"
           size="sm"
-          onClick={logout}
+          onClick={handleLogout}
           className="mt-2 w-full justify-start text-gray-300 hover:text-white hover:bg-gray-700"
         >
           <LogOut className="mr-2 h-4 w-4" />
