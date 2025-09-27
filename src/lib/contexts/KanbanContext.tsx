@@ -38,14 +38,14 @@ export function KanbanProvider({ children }: { children: React.ReactNode }) {
         }) => ({
           ...task,
           // Garantir que os novos campos tenham valores padrão
-          travelDates: task.travelDates || {},
-          travelers: task.travelers || { adults: 1, children: 0, infants: 0 },
-          budget: task.budget || { disclosed: false },
-          interests: task.interests || [],
-          accommodation: task.accommodation || { type: 'hotel', category: 'medio' },
-          nextAction: task.nextAction || null,
-          source: task.source || 'outros',
-          expectedValue: task.expectedValue || 0,
+          travelDates: (task as any).travelDates || {},
+          travelers: (task as any).travelers || { adults: 1, children: 0, infants: 0 },
+          budget: (task as any).budget || { disclosed: false },
+          interests: (task as any).interests || [],
+          accommodation: (task as any).accommodation || { type: 'hotel', category: 'medio' },
+          nextAction: (task as any).nextAction || null,
+          source: (task as any).source || 'outros',
+          expectedValue: (task as any).expectedValue || 0,
           createdAt: new Date(task.createdAt),
           updatedAt: new Date(task.updatedAt),
         }));
