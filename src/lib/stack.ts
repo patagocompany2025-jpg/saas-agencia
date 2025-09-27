@@ -13,11 +13,4 @@ export const stackServerApp = new StackServerApp({
     afterSignIn: "/dashboard",
     afterSignUp: "/auth/setup-profile",
   },
-  // Configurações de segurança básicas
-  cookies: {
-    secure: process.env.NODE_ENV === "production",
-    httpOnly: true,
-    sameSite: "strict",
-    maxAge: 24 * 60 * 60 * 1000, // 24 horas
-  },
 });
