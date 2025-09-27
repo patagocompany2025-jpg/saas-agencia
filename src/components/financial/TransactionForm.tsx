@@ -56,9 +56,9 @@ export function TransactionForm({ transaction, onSave, onCancel }: TransactionFo
   const { addTransaction, updateTransaction, employees } = useFinancial();
   
   // Debug: Log do componente
-  console.log('=== TRANSACTION FORM RENDERIZADO ===');
-  console.log('Transaction:', transaction);
-  console.log('Employees:', employees);
+  // console.log('=== TRANSACTION FORM RENDERIZADO ===');
+  // console.log('Transaction:', transaction);
+  // console.log('Employees:', employees);
   const [formData, setFormData] = useState({
     type: 'despesa' as 'receita' | 'despesa',
     category: 'outros' as FinancialTransaction['category'],
@@ -114,9 +114,6 @@ export function TransactionForm({ transaction, onSave, onCancel }: TransactionFo
     e.preventDefault();
     
     try {
-      console.log('=== SUBMIT DO FORMULÁRIO ===');
-      console.log('FormData:', formData);
-      
       if (validateForm()) {
         const transactionData = {
           type: formData.type,
@@ -133,19 +130,13 @@ export function TransactionForm({ transaction, onSave, onCancel }: TransactionFo
           paidDate: formData.status === 'pago' ? new Date() : null,
         };
 
-        console.log('TransactionData:', transactionData);
-
         if (transaction) {
-          console.log('Atualizando transação:', transaction.id);
           updateTransaction(transaction.id, transactionData);
         } else {
-          console.log('Adicionando nova transação');
           addTransaction(transactionData);
         }
         
         onSave();
-      } else {
-        console.log('Formulário inválido:', errors);
       }
     } catch (error) {
       console.error('Erro no submit do formulário:', error);

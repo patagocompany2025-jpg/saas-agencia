@@ -48,31 +48,31 @@ export default function FinancialPage() {
   } = useFinancial();
 
   // Debug: Verificar se o contexto está funcionando
-  console.log('=== CONTEXTO FINANCEIRO ===');
-  console.log('Transações:', transactions);
-  console.log('Funcionários:', employees);
-  console.log('Contas Fixas:', fixedExpenses);
+  // console.log('=== CONTEXTO FINANCEIRO ===');
+  // console.log('Transações:', transactions);
+  // console.log('Funcionários:', employees);
+  // console.log('Contas Fixas:', fixedExpenses);
   
   const [activeTab, setActiveTab] = useState<'overview' | 'transactions' | 'employees' | 'fixed-expenses'>('overview');
 
   // Debug: Log da mudança de aba
-  useEffect(() => {
-    console.log('=== ABA ATIVA MUDOU ===');
-    console.log('Aba ativa:', activeTab);
-  }, [activeTab]);
+  // useEffect(() => {
+  //   console.log('=== ABA ATIVA MUDOU ===');
+  //   console.log('Aba ativa:', activeTab);
+  // }, [activeTab]);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [showEmployeeForm, setShowEmployeeForm] = useState(false);
   const [showFixedExpenseForm, setShowFixedExpenseForm] = useState(false);
 
   // Monitorar mudanças nos dados
-  useEffect(() => {
-    console.log('=== DADOS FINANCEIROS ATUALIZADOS ===');
-    console.log('Transações:', transactions.length);
-    console.log('Transações detalhadas:', transactions);
-    console.log('Funcionários:', employees.length);
-    console.log('Contas Fixas:', fixedExpenses.length);
-    console.log('Alertas:', alerts.length);
-  }, [transactions, employees, fixedExpenses, alerts]);
+  // useEffect(() => {
+  //   console.log('=== DADOS FINANCEIROS ATUALIZADOS ===');
+  //   console.log('Transações:', transactions.length);
+  //   console.log('Transações detalhadas:', transactions);
+  //   console.log('Funcionários:', employees.length);
+  //   console.log('Contas Fixas:', fixedExpenses.length);
+  //   console.log('Alertas:', alerts.length);
+  // }, [transactions, employees, fixedExpenses, alerts]);
   const [editingTransaction, setEditingTransaction] = useState<FinancialTransaction | undefined>();
   const [editingEmployee, setEditingEmployee] = useState<Employee | undefined>();
   const [editingFixedExpense, setEditingFixedExpense] = useState<FixedExpense | undefined>();
@@ -171,9 +171,6 @@ export default function FinancialPage() {
               <button
                 key={tab.id}
                 onClick={() => {
-                  console.log('=== CLIQUE NA ABA ===');
-                  console.log('Aba clicada:', tab.id);
-                  console.log('Aba anterior:', activeTab);
                   setActiveTab(tab.id as 'overview' | 'transactions' | 'fixed-expenses' | 'employees');
                 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
@@ -308,11 +305,7 @@ export default function FinancialPage() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('=== CLIQUE NO BOTÃO NOVA TRANSAÇÃO ===');
-                  console.log('Evento:', e);
-                  console.log('Estado atual showTransactionForm:', showTransactionForm);
                   setShowTransactionForm(true);
-                  console.log('Estado após setShowTransactionForm(true)');
                 }}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white"
                 type="button"
@@ -323,7 +316,6 @@ export default function FinancialPage() {
             </div>
             <TransactionList 
               onEdit={(transaction: FinancialTransaction) => {
-                console.log('=== EDITANDO TRANSAÇÃO ===', transaction);
                 setEditingTransaction(transaction);
                 setShowTransactionForm(true);
               }}
@@ -380,12 +372,10 @@ export default function FinancialPage() {
           <TransactionForm
             transaction={editingTransaction}
             onSave={() => {
-              console.log('=== SALVANDO TRANSAÇÃO ===');
               setShowTransactionForm(false);
               setEditingTransaction(undefined);
             }}
             onCancel={() => {
-              console.log('=== CANCELANDO TRANSAÇÃO ===');
               setShowTransactionForm(false);
               setEditingTransaction(undefined);
             }}

@@ -55,23 +55,24 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     console.log('=== INICIANDO CARREGAMENTO DO LOCALSTORAGE ===');
     console.log('Carregando dados do localStorage...');
     
-    // Verificar se localStorage está disponível
-    if (typeof window === 'undefined') {
-      console.log('localStorage não disponível (SSR)');
-      return;
-    }
+    try {
+      // Verificar se localStorage está disponível
+      if (typeof window === 'undefined') {
+        console.log('localStorage não disponível (SSR)');
+        return;
+      }
     
-    const savedTransactions = localStorage.getItem('financialTransactions');
-    const savedEmployees = localStorage.getItem('financialEmployees');
-    const savedFixedExpenses = localStorage.getItem('financialFixedExpenses');
-    const savedAlerts = localStorage.getItem('financialAlerts');
+      const savedTransactions = localStorage.getItem('financialTransactions');
+      const savedEmployees = localStorage.getItem('financialEmployees');
+      const savedFixedExpenses = localStorage.getItem('financialFixedExpenses');
+      const savedAlerts = localStorage.getItem('financialAlerts');
 
-    console.log('Dados salvos encontrados:', {
-      transactions: savedTransactions ? JSON.parse(savedTransactions).length : 0,
-      employees: savedEmployees ? JSON.parse(savedEmployees).length : 0,
-      fixedExpenses: savedFixedExpenses ? JSON.parse(savedFixedExpenses).length : 0,
-      alerts: savedAlerts ? JSON.parse(savedAlerts).length : 0
-    });
+      console.log('Dados salvos encontrados:', {
+        transactions: savedTransactions ? JSON.parse(savedTransactions).length : 0,
+        employees: savedEmployees ? JSON.parse(savedEmployees).length : 0,
+        fixedExpenses: savedFixedExpenses ? JSON.parse(savedFixedExpenses).length : 0,
+        alerts: savedAlerts ? JSON.parse(savedAlerts).length : 0
+      });
 
     if (savedTransactions) {
       try {
@@ -300,18 +301,21 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('financialFixedExpenses', JSON.stringify(initialFixedExpenses));
     }
 
-    if (savedAlerts) {
-      setAlerts(JSON.parse(savedAlerts).map((a: {
-        id: string;
-        type: string;
-        message: string;
-        severity: string;
-        isRead: boolean;
-        createdAt: string;
-      }) => ({
-        ...a,
-        createdAt: new Date(a.createdAt),
-      })));
+      if (savedAlerts) {
+        setAlerts(JSON.parse(savedAlerts).map((a: {
+          id: string;
+          type: string;
+          message: string;
+          severity: string;
+          isRead: boolean;
+          createdAt: string;
+        }) => ({
+          ...a,
+          createdAt: new Date(a.createdAt),
+        })));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados do localStorage:', error);
     }
   }, []);
 
