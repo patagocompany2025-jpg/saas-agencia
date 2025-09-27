@@ -87,8 +87,6 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
           userId: string;
         }) => ({
           ...t,
-          dueDate: t.dueDate ? new Date(t.dueDate) : undefined,
-          paidDate: t.paidDate ? new Date(t.paidDate) : undefined,
           createdAt: new Date(t.createdAt),
           updatedAt: new Date(t.updatedAt),
         }));
