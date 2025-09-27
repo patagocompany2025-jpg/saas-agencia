@@ -12,7 +12,6 @@ export const stackServerApp = new StackServerApp({
     home: "/dashboard",
     afterSignIn: "/dashboard",
     afterSignUp: "/auth/setup-profile",
-    afterPasswordReset: "/dashboard",
   },
   // Configurações de segurança básicas
   cookies: {
