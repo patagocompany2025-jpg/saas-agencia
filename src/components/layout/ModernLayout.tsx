@@ -30,16 +30,18 @@ interface ModernLayoutProps {
 }
 
 export function ModernLayout({ children }: ModernLayoutProps) {
-  const { user, signOut } = useStackAuth();
+  const { user, signOut, isLoading } = useStackAuth();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
   const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
-    if (user) {
-      setIsLoading(false);
-    }
-  }, [user]);
+    console.log('=== MODERN LAYOUT - USUÁRIO RECEBIDO ===');
+    console.log('Usuário:', user);
+    console.log('Display Name:', user?.displayName);
+    console.log('Email:', user?.email);
+    console.log('Role:', user?.role);
+    console.log('Is Loading:', isLoading);
+  }, [user, isLoading]);
 
   if (isLoading) {
     return (
@@ -47,17 +49,6 @@ export function ModernLayout({ children }: ModernLayoutProps) {
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
           <p className="mt-4 text-gray-300">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Acesso Negado</h1>
-          <p className="text-gray-300">Você precisa fazer login para acessar esta página.</p>
         </div>
       </div>
     );
@@ -194,18 +185,37 @@ export function ModernLayout({ children }: ModernLayoutProps) {
                        user?.email ? user.email.split('@')[0].substring(0, 2).toUpperCase() : 'U'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm font-medium truncate">{user?.displayName || user?.email || 'Usuário'}</p>
-                      <p className="text-white/60 text-xs capitalize truncate">{user?.role || 'Usuário'}</p>
+                      <p className="text-white text-sm font-medium truncate">
+                        {user?.displayName || user?.email || 'Usuário não logado'}
+                      </p>
+                      <p className="text-white/60 text-xs capitalize truncate">
+                        {user?.role || 'Sem permissão'}
+                      </p>
+                      {!user && (
+                        <p className="text-red-400 text-xs mt-1">
+                          Faça login para acessar
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center space-x-1 text-white/60 hover:text-white transition-colors text-sm px-3 py-2 rounded-md hover:bg-white/10 flex-shrink-0 ml-2"
-                    title="Sair do sistema"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span className="text-xs">Sair</span>
-                  </button>
+                  {user ? (
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center space-x-1 text-white/60 hover:text-white transition-colors text-sm px-3 py-2 rounded-md hover:bg-white/10 flex-shrink-0 ml-2"
+                      title="Sair do sistema"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span className="text-xs">Sair</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => router.push('/login')}
+                      className="flex items-center space-x-1 text-white/60 hover:text-white transition-colors text-sm px-3 py-2 rounded-md hover:bg-white/10 flex-shrink-0 ml-2"
+                      title="Fazer login"
+                    >
+                      <span className="text-xs">Login</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </aside>

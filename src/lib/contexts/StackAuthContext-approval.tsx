@@ -37,7 +37,7 @@ const StackAuthContext = createContext<StackAuthContextType | undefined>(undefin
 
 export function StackAuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
 
@@ -62,6 +62,8 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
   ];
 
   useEffect(() => {
+    console.log('=== INICIANDO CARREGAMENTO DO USUÁRIO ===');
+    
     // Carregar usuários pendentes do localStorage
     const savedPendingUsers = localStorage.getItem('pendingUsers');
     if (savedPendingUsers) {
@@ -95,36 +97,60 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
     
     // Verificar se há usuário logado
     const savedUser = localStorage.getItem('simpleUser');
+    console.log('Usuário salvo encontrado:', savedUser);
+    
     if (savedUser) {
-      const userData = JSON.parse(savedUser);
-      if (userData.status === 'approved') {
-        setUser(userData);
-        setIsSignedIn(true);
+      try {
+        const userData = JSON.parse(savedUser);
+        console.log('Dados do usuário parseados:', userData);
+        console.log('Status do usuário:', userData.status);
+        
+        if (userData.status === 'approved') {
+          console.log('Usuário aprovado, definindo como logado');
+          setUser(userData);
+          setIsSignedIn(true);
+        } else {
+          console.log('Usuário não aprovado, status:', userData.status);
+        }
+      } catch (error) {
+        console.error('Erro ao fazer parse do usuário salvo:', error);
       }
+    } else {
+      console.log('Nenhum usuário salvo encontrado');
     }
+    
+    // Finalizar loading independentemente do resultado
+    setIsLoading(false);
   }, []);
 
   const signIn = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
+      console.log('=== INICIANDO LOGIN ===');
+      console.log('Email:', email);
+      console.log('Password:', password);
       
       // Simular delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Verificar se o usuário existe e está aprovado
       const foundUser = approvedUsers.find(u => u.email === email);
+      console.log('Usuário encontrado:', foundUser);
       
       if (foundUser && password === '123456') {
         if (foundUser.status === 'approved') {
+          console.log('Usuário aprovado, fazendo login');
           setUser(foundUser);
           setIsSignedIn(true);
           localStorage.setItem('simpleUser', JSON.stringify(foundUser));
+          console.log('Usuário salvo no localStorage');
           return true;
         } else {
           throw new Error('Usuário aguardando aprovação');
         }
       }
       
+      console.log('Login falhou - usuário não encontrado ou senha incorreta');
       return false;
     } catch (error) {
       console.error('Erro no login:', error);
