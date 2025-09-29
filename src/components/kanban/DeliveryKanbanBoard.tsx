@@ -189,7 +189,6 @@ const mockDeliveryTasks: DeliveryTask[] = [
 export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, customColumns = {}, onUpdateCustomColumn, onDeleteCustomColumn }: DeliveryKanbanBoardProps) {
   const { user } = useStackAuth();
   const [tasks, setTasks] = useState<DeliveryTask[]>([]);
-  const [deletedTasks, setDeletedTasks] = useState<Set<string>>(new Set());
   const [draggedTask, setDraggedTask] = useState<DeliveryTask | null>(null);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [columnOrder, setColumnOrder] = useState<(DeliveryTask['status'] | string)[]>([
@@ -207,21 +206,6 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   // Carregar tarefas e tarefas excluídas do localStorage
   useEffect(() => {
     console.log('🔄 INICIALIZANDO DELIVERY KANBAN BOARD');
-    
-    // Carregar tarefas excluídas primeiro
-    const savedDeletedTasks = localStorage.getItem('deletedDeliveryTasks');
-    let deletedTasksSet = new Set<string>();
-    
-    if (savedDeletedTasks) {
-      try {
-        const parsedDeletedTasks = JSON.parse(savedDeletedTasks);
-        deletedTasksSet = new Set(parsedDeletedTasks);
-        console.log('🗑️ TAREFAS EXCLUÍDAS CARREGADAS:', [...deletedTasksSet]);
-      } catch (error) {
-        console.error('Erro ao carregar tarefas excluídas:', error);
-      }
-    }
-    setDeletedTasks(deletedTasksSet);
 
     // Carregar tarefas do localStorage ou usar mock
     const savedTasks = localStorage.getItem('deliveryTasks');
@@ -385,15 +369,8 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
     if (confirm('Tem certeza que deseja excluir esta entrega?')) {
       console.log('🗑️ CONFIRMAÇÃO ACEITA - EXCLUINDO TASK:', taskId);
       
-      // Adicionar à lista de tarefas excluídas
-      const newDeletedTasks = new Set([...deletedTasks, taskId]);
-      setDeletedTasks(newDeletedTasks);
-      localStorage.setItem('deletedDeliveryTasks', JSON.stringify([...newDeletedTasks]));
-      
       // Remover da lista de tarefas (useEffect automático salvará)
       setTasks(prev => prev.filter(task => task.id !== taskId));
-      
-      // Não precisa chamar onDeleteTask - useEffect automático cuida da persistência
       
       console.log('🗑️ TASK EXCLUÍDA - useEffect automático salvará');
     } else {
@@ -502,13 +479,11 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   };
 
   const getTasksByStatus = (status: string) => {
-    const allTasksForStatus = tasks.filter(task => task.status === status);
-    const filteredTasks = allTasksForStatus.filter(task => !deletedTasks.has(task.id));
+    const filteredTasks = tasks.filter(task => task.status === status);
     
     console.log(`📊 GET TASKS BY STATUS (${status}):`);
-    console.log(`  - Total tasks for status: ${allTasksForStatus.length}`);
-    console.log(`  - Deleted tasks: ${[...deletedTasks]}`);
-    console.log(`  - Filtered tasks: ${filteredTasks.length}`);
+    console.log(`  - Total tasks: ${tasks.length}`);
+    console.log(`  - Tasks for status: ${filteredTasks.length}`);
     console.log(`  - Task IDs: ${filteredTasks.map(t => t.id)}`);
     
     return filteredTasks;
