@@ -534,7 +534,7 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
         <div className="space-y-2">
           <Label htmlFor="startDate" className="text-white/70 flex items-center gap-2">
             <Calendar className="h-4 w-4" />
-            Data de Início
+            Data de Início *
           </Label>
           <Input
             id="startDate"
@@ -542,13 +542,14 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
             value={formData.startDate || ''}
             onChange={(e) => handleInputChange('startDate', e.target.value)}
             className="bg-gray-700 border-gray-600 text-white"
+            required
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="endDate" className="text-white/70 flex items-center gap-2">
             <Calendar className="h-4 w-4" />
-            Data de Fim
+            Data de Fim *
           </Label>
           <Input
             id="endDate"
@@ -556,6 +557,7 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
             value={formData.endDate || ''}
             onChange={(e) => handleInputChange('endDate', e.target.value)}
             className="bg-gray-700 border-gray-600 text-white"
+            required
           />
         </div>
       </div>
