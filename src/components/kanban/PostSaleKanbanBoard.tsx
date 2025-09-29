@@ -223,11 +223,11 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   // Estado para armazenar configurações personalizadas das colunas padrão
   const [customColumnConfigs, setCustomColumnConfigs] = useState<{[key: string]: {title: string, subtitle: string}}>({});
   
-  // Carregar tarefas e tarefas excluídas do localStorage
+  // Carregar tarefas do localStorage (NUNCA recarregar mock data automaticamente)
   useEffect(() => {
     console.log('🔄 INICIALIZANDO POST SALE KANBAN BOARD');
 
-    // Carregar tarefas do localStorage ou usar mock
+    // Carregar tarefas do localStorage
     const savedTasks = localStorage.getItem('postSaleTasks');
     if (savedTasks) {
       try {
@@ -240,10 +240,8 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
         setTasks([]);
       }
     } else {
-      console.log('📋 PRIMEIRA VEZ - USANDO TAREFAS PÓS-VENDA MOCK');
-      setTasks(mockPostSaleTasks);
-      // Salvar tarefas mock no localStorage
-      localStorage.setItem('postSaleTasks', JSON.stringify(mockPostSaleTasks));
+      console.log('📋 PRIMEIRA VEZ - INICIANDO COM ARRAY VAZIO (sem mock data)');
+      setTasks([]);
     }
   }, []);
 

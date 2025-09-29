@@ -203,11 +203,11 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   // Estado para armazenar configurações personalizadas das colunas padrão
   const [customColumnConfigs, setCustomColumnConfigs] = useState<{[key: string]: {title: string, subtitle: string}}>({});
   
-  // Carregar tarefas e tarefas excluídas do localStorage
+  // Carregar tarefas do localStorage (NUNCA recarregar mock data automaticamente)
   useEffect(() => {
     console.log('🔄 INICIALIZANDO DELIVERY KANBAN BOARD');
 
-    // Carregar tarefas do localStorage ou usar mock
+    // Carregar tarefas do localStorage
     const savedTasks = localStorage.getItem('deliveryTasks');
     if (savedTasks) {
       try {
@@ -220,10 +220,8 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
         setTasks([]);
       }
     } else {
-      console.log('📋 PRIMEIRA VEZ - USANDO TAREFAS MOCK');
-      setTasks(mockDeliveryTasks);
-      // Salvar tarefas mock no localStorage
-      localStorage.setItem('deliveryTasks', JSON.stringify(mockDeliveryTasks));
+      console.log('📋 PRIMEIRA VEZ - INICIANDO COM ARRAY VAZIO (sem mock data)');
+      setTasks([]);
     }
   }, []);
 
