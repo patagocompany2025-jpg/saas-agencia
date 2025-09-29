@@ -75,6 +75,7 @@ export default function DeliveryPage() {
     createdAt: string;
     updatedAt: string;
   }) => {
+    console.log('🔧 HANDLE EDIT TASK CHAMADO:', task);
     setEditingTask(task);
     setShowForm(true);
   }, []);
@@ -138,6 +139,7 @@ export default function DeliveryPage() {
   };
 
   const handleDeleteTask = (taskId: string) => {
+    console.log('🗑️ HANDLE DELETE TASK CHAMADO NA PÁGINA:', taskId);
     // Implementar lógica de exclusão
     console.log('Excluindo tarefa:', taskId);
     alert(`Entrega ${taskId} excluída com sucesso!`);

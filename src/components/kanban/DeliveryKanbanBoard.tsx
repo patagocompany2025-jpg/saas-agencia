@@ -333,12 +333,21 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   };
 
   const handleDeleteTask = (taskId: string) => {
+    console.log('🗑️ HANDLE DELETE TASK CHAMADO:', taskId);
+    console.log('🗑️ ON DELETE TASK DISPONÍVEL:', !!onDeleteTask);
+    
     if (confirm('Tem certeza que deseja excluir esta entrega?')) {
+      console.log('🗑️ CONFIRMAÇÃO ACEITA - EXCLUINDO TASK:', taskId);
+      
       if (onDeleteTask) {
+        console.log('🗑️ CHAMANDO ON DELETE TASK EXTERNA');
         onDeleteTask(taskId);
       } else {
+        console.log('🗑️ USANDO DELETE LOCAL');
         setTasks(prev => prev.filter(task => task.id !== taskId));
       }
+    } else {
+      console.log('🗑️ EXCLUSÃO CANCELADA');
     }
   };
 
@@ -605,12 +614,13 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
+                            console.log('🔧 BOTÃO EDITAR CLICADO:', task.id, task.clientName);
                             onEditTask(task);
                           }}
-                          className="p-1.5 hover:bg-white/20 rounded-lg transition-all duration-200 flex-shrink-0 hover:scale-110"
+                          className="p-1.5 hover:bg-white/20 rounded-lg transition-all duration-200 flex-shrink-0 hover:scale-110 bg-blue-500/20 border border-blue-500/30"
                           title="Editar entrega"
                         >
-                          <Edit className="h-3.5 w-3.5 text-white/70 hover:text-white" />
+                          <Edit className="h-3.5 w-3.5 text-blue-300 hover:text-blue-100" />
                         </button>
                       </div>
 
@@ -668,6 +678,7 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
                                 <DropdownMenuItem 
                                   onClick={(e) => {
                                     e.stopPropagation();
+                                    console.log('🔧 MENU EDITAR CLICADO:', task.id, task.clientName);
                                     onEditTask(task);
                                   }}
                                   className="text-white hover:bg-gray-700"
@@ -678,6 +689,7 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
                                 <DropdownMenuItem 
                                   onClick={(e) => {
                                     e.stopPropagation();
+                                    console.log('🗑️ MENU EXCLUIR CLICADO:', task.id, task.clientName);
                                     handleDeleteTask(task.id);
                                   }}
                                   className="text-red-400 hover:bg-red-500/10"
