@@ -252,10 +252,8 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
         setTasks(parsedTasks);
       } catch (error) {
         console.error('Erro ao carregar tarefas pós-venda:', error);
-        console.log('📋 USANDO TAREFAS PÓS-VENDA MOCK');
-        setTasks(mockPostSaleTasks);
-        // Salvar tarefas mock no localStorage
-        localStorage.setItem('postSaleTasks', JSON.stringify(mockPostSaleTasks));
+        console.log('📋 ERRO NO PARSE - INICIANDO COM ARRAY VAZIO');
+        setTasks([]);
       }
     } else {
       console.log('📋 PRIMEIRA VEZ - USANDO TAREFAS PÓS-VENDA MOCK');

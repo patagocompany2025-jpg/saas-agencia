@@ -232,10 +232,8 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
         setTasks(parsedTasks);
       } catch (error) {
         console.error('Erro ao carregar tarefas:', error);
-        console.log('📋 USANDO TAREFAS MOCK');
-        setTasks(mockDeliveryTasks);
-        // Salvar tarefas mock no localStorage
-        localStorage.setItem('deliveryTasks', JSON.stringify(mockDeliveryTasks));
+        console.log('📋 ERRO NO PARSE - INICIANDO COM ARRAY VAZIO');
+        setTasks([]);
       }
     } else {
       console.log('📋 PRIMEIRA VEZ - USANDO TAREFAS MOCK');
