@@ -140,6 +140,7 @@ export default function SettingsPage() {
 
   // Atualizar lista de usuários quando approvedUsers mudar
   React.useEffect(() => {
+    console.log('approvedUsers do contexto:', approvedUsers);
     const convertedUsers = approvedUsers.map(user => ({
       id: user.id,
       name: user.displayName || user.email,
