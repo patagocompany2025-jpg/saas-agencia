@@ -383,29 +383,48 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
     if (confirm('Tem certeza que deseja excluir esta entrega?')) {
       console.log('🗑️ CONFIRMAÇÃO ACEITA - EXCLUINDO TASK:', taskId);
       
-      // Adicionar à lista de tarefas excluídas
-      const newDeletedTasks = new Set([...deletedTasks, taskId]);
-      setDeletedTasks(newDeletedTasks);
-      
-      // Salvar tarefas excluídas no localStorage
-      localStorage.setItem('deletedDeliveryTasks', JSON.stringify([...newDeletedTasks]));
-      console.log('🗑️ TAREFAS EXCLUÍDAS SALVAS NO LOCALSTORAGE:', [...newDeletedTasks]);
-      
-      // Atualizar estado das tarefas (remover da lista)
-      const updatedTasks = tasks.filter(task => task.id !== taskId);
-      setTasks(updatedTasks);
-      localStorage.setItem('deliveryTasks', JSON.stringify(updatedTasks));
-      console.log('🗑️ TAREFAS ATUALIZADAS SALVAS NO LOCALSTORAGE:', updatedTasks.length);
-      
-      if (onDeleteTask) {
-        console.log('🗑️ CHAMANDO ON DELETE TASK EXTERNA');
-        onDeleteTask(taskId);
+      try {
+        // 1. Adicionar à lista de tarefas excluídas
+        const newDeletedTasks = new Set([...deletedTasks, taskId]);
+        setDeletedTasks(newDeletedTasks);
+        
+        // 2. Salvar tarefas excluídas no localStorage IMEDIATAMENTE
+        const deletedTasksArray = [...newDeletedTasks];
+        localStorage.setItem('deletedDeliveryTasks', JSON.stringify(deletedTasksArray));
+        console.log('🗑️ TAREFAS EXCLUÍDAS SALVAS NO LOCALSTORAGE:', deletedTasksArray);
+        
+        // 3. Atualizar estado das tarefas (remover da lista)
+        const updatedTasks = tasks.filter(task => task.id !== taskId);
+        setTasks(updatedTasks);
+        
+        // 4. Salvar tarefas atualizadas no localStorage IMEDIATAMENTE
+        localStorage.setItem('deliveryTasks', JSON.stringify(updatedTasks));
+        console.log('🗑️ TAREFAS ATUALIZADAS SALVAS NO LOCALSTORAGE:', updatedTasks.length);
+        
+        // 5. Verificar se foi salvo corretamente
+        const savedTasks = localStorage.getItem('deliveryTasks');
+        const savedDeleted = localStorage.getItem('deletedDeliveryTasks');
+        console.log('🗑️ VERIFICAÇÃO IMEDIATA:');
+        console.log('  - deliveryTasks salvas:', savedTasks ? JSON.parse(savedTasks).length : 'ERRO');
+        console.log('  - deletedDeliveryTasks salvas:', savedDeleted ? JSON.parse(savedDeleted).length : 'ERRO');
+        
+        if (onDeleteTask) {
+          console.log('🗑️ CHAMANDO ON DELETE TASK EXTERNA');
+          onDeleteTask(taskId);
+        }
+        
+        // 6. Forçar re-render
+        setTimeout(() => {
+          console.log('🗑️ FORÇANDO RE-RENDER APÓS EXCLUSÃO');
+          setTasks(prev => prev.filter(task => task.id !== taskId));
+        }, 100);
+        
+        console.log('🗑️ TASK EXCLUÍDA PERMANENTEMENTE:', taskId);
+        
+      } catch (error) {
+        console.error('🗑️ ERRO AO EXCLUIR TASK:', error);
+        alert('Erro ao excluir a entrega. Tente novamente.');
       }
-      
-      console.log('🗑️ TASK EXCLUÍDA PERMANENTEMENTE:', taskId);
-      console.log('🗑️ VERIFICAÇÃO LOCALSTORAGE:');
-      console.log('  - deliveryTasks:', localStorage.getItem('deliveryTasks'));
-      console.log('  - deletedDeliveryTasks:', localStorage.getItem('deletedDeliveryTasks'));
     } else {
       console.log('🗑️ EXCLUSÃO CANCELADA');
     }
@@ -528,8 +547,37 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
     return getTasksByStatus(status).reduce((total, task) => total + task.value, 0);
   };
 
+  // Função para limpar dados e resetar (debug)
+  const clearAllData = () => {
+    console.log('🧹 LIMPANDO TODOS OS DADOS');
+    localStorage.removeItem('deliveryTasks');
+    localStorage.removeItem('deletedDeliveryTasks');
+    setTasks(mockDeliveryTasks);
+    setDeletedTasks(new Set());
+    localStorage.setItem('deliveryTasks', JSON.stringify(mockDeliveryTasks));
+    console.log('🧹 DADOS LIMPOS E RESETADOS');
+  };
+
+  // Adicionar botão de debug (apenas para desenvolvimento)
+  const addDebugButton = () => {
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      return (
+        <button 
+          onClick={clearAllData}
+          className="fixed bottom-4 right-4 bg-red-600 text-white px-4 py-2 rounded-lg z-50"
+        >
+          🧹 Reset Dados
+        </button>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="space-y-6">
+      {/* Botão de Debug */}
+      {addDebugButton()}
+      
       {/* Board Kanban - Layout Horizontal */}
       <div className="kanban-scroll">
         <div className="flex gap-4" style={{ minWidth: 'calc(100vw - 200px)' }}>
