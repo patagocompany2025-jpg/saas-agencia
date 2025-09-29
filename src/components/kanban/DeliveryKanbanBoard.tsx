@@ -381,12 +381,17 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
 
   const handleDeleteTask = (taskId: string) => {
     console.log('🗑️ HANDLE DELETE TASK CHAMADO:', taskId);
+    console.log('🗑️ TASKS ANTES DA EXCLUSÃO:', tasks.length);
     
     if (confirm('Tem certeza que deseja excluir esta entrega?')) {
       console.log('🗑️ CONFIRMAÇÃO ACEITA - EXCLUINDO TASK:', taskId);
       
       // Remover da lista de tarefas (useEffect automático salvará)
-      setTasks(prev => prev.filter(task => task.id !== taskId));
+      setTasks(prev => {
+        const filtered = prev.filter(task => task.id !== taskId);
+        console.log('🗑️ TASKS APÓS FILTRO:', filtered.length);
+        return filtered;
+      });
       
       console.log('🗑️ TASK EXCLUÍDA - useEffect automático salvará');
     } else {
