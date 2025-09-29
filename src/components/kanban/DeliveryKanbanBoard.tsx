@@ -611,17 +611,42 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
                             {task.service}
                           </p>
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            console.log('🔧 BOTÃO EDITAR CLICADO:', task.id, task.clientName);
-                            onEditTask(task);
-                          }}
-                          className="p-1.5 hover:bg-white/20 rounded-lg transition-all duration-200 flex-shrink-0 hover:scale-110 bg-blue-500/20 border border-blue-500/30"
-                          title="Editar entrega"
-                        >
-                          <Edit className="h-3.5 w-3.5 text-blue-300 hover:text-blue-100" />
-                        </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-blue-300 hover:text-blue-100 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg transition-all duration-200 hover:scale-110"
+                              title="Opções da entrega"
+                            >
+                              <Edit className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                            <DropdownMenuItem 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                console.log('🔧 MENU EDITAR CLICADO:', task.id, task.clientName);
+                                onEditTask(task);
+                              }}
+                              className="text-white hover:bg-gray-700"
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                console.log('🗑️ MENU EXCLUIR CLICADO:', task.id, task.clientName);
+                                handleDeleteTask(task.id);
+                              }}
+                              className="text-red-400 hover:bg-red-500/10"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
 
                       {/* Informações Compactas */}
@@ -659,46 +684,13 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
                         </div>
 
                         {/* Prioridade */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-center">
                           <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                             task.priority === 'alta' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
                             task.priority === 'media' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
                             'bg-green-500/20 text-green-300 border border-green-500/30'
                           }`}>
                             {task.priority.toUpperCase()}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/60 hover:text-white">
-                                  <MoreHorizontal className="h-3 w-3" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
-                                <DropdownMenuItem 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    console.log('🔧 MENU EDITAR CLICADO:', task.id, task.clientName);
-                                    onEditTask(task);
-                                  }}
-                                  className="text-white hover:bg-gray-700"
-                                >
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Editar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    console.log('🗑️ MENU EXCLUIR CLICADO:', task.id, task.clientName);
-                                    handleDeleteTask(task.id);
-                                  }}
-                                  className="text-red-400 hover:bg-red-500/10"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Excluir
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
                           </div>
                         </div>
                       </div>
