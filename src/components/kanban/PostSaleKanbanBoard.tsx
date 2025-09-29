@@ -208,7 +208,8 @@ const mockPostSaleTasks: PostSaleTask[] = [
 
 export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {}, onUpdateCustomColumn, onDeleteCustomColumn }: PostSaleKanbanBoardProps) {
   const { user } = useStackAuth();
-  const [tasks, setTasks] = useState<PostSaleTask[]>(mockPostSaleTasks);
+  const [tasks, setTasks] = useState<PostSaleTask[]>([]);
+  const [deletedTasks, setDeletedTasks] = useState<Set<string>>(new Set());
   const [draggedTask, setDraggedTask] = useState<PostSaleTask | null>(null);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [columnOrder, setColumnOrder] = useState<(PostSaleTask['status'] | string)[]>([
@@ -222,6 +223,47 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   });
   // Estado para armazenar configurações personalizadas das colunas padrão
   const [customColumnConfigs, setCustomColumnConfigs] = useState<{[key: string]: {title: string, subtitle: string}}>({});
+  
+  // Carregar tarefas e tarefas excluídas do localStorage
+  useEffect(() => {
+    console.log('🔄 INICIALIZANDO POST SALE KANBAN BOARD');
+    
+    // Carregar tarefas excluídas primeiro
+    const savedDeletedTasks = localStorage.getItem('deletedPostSaleTasks');
+    let deletedTasksSet = new Set<string>();
+    
+    if (savedDeletedTasks) {
+      try {
+        const parsedDeletedTasks = JSON.parse(savedDeletedTasks);
+        deletedTasksSet = new Set(parsedDeletedTasks);
+        console.log('🗑️ TAREFAS PÓS-VENDA EXCLUÍDAS CARREGADAS:', [...deletedTasksSet]);
+      } catch (error) {
+        console.error('Erro ao carregar tarefas pós-venda excluídas:', error);
+      }
+    }
+    setDeletedTasks(deletedTasksSet);
+
+    // Carregar tarefas do localStorage ou usar mock
+    const savedTasks = localStorage.getItem('postSaleTasks');
+    if (savedTasks) {
+      try {
+        const parsedTasks = JSON.parse(savedTasks);
+        console.log('📋 TAREFAS PÓS-VENDA CARREGADAS DO LOCALSTORAGE:', parsedTasks.length);
+        setTasks(parsedTasks);
+      } catch (error) {
+        console.error('Erro ao carregar tarefas pós-venda:', error);
+        console.log('📋 USANDO TAREFAS PÓS-VENDA MOCK');
+        setTasks(mockPostSaleTasks);
+        // Salvar tarefas mock no localStorage
+        localStorage.setItem('postSaleTasks', JSON.stringify(mockPostSaleTasks));
+      }
+    } else {
+      console.log('📋 PRIMEIRA VEZ - USANDO TAREFAS PÓS-VENDA MOCK');
+      setTasks(mockPostSaleTasks);
+      // Salvar tarefas mock no localStorage
+      localStorage.setItem('postSaleTasks', JSON.stringify(mockPostSaleTasks));
+    }
+  }, []);
 
   // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas
   useEffect(() => {
@@ -302,8 +344,52 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   };
 
   const handleDeleteTask = (taskId: string) => {
+    console.log('🗑️ HANDLE DELETE POST SALE TASK CHAMADO:', taskId);
+    console.log('🗑️ TAREFAS PÓS-VENDA ATUAIS:', tasks.length);
+    console.log('🗑️ TAREFAS PÓS-VENDA EXCLUÍDAS ATUAIS:', [...deletedTasks]);
+    
     if (confirm('Tem certeza que deseja excluir esta atividade de pós-venda?')) {
-      setTasks(prev => prev.filter(task => task.id !== taskId));
+      console.log('🗑️ CONFIRMAÇÃO ACEITA - EXCLUINDO POST SALE TASK:', taskId);
+      
+      try {
+        // 1. Adicionar à lista de tarefas excluídas
+        const newDeletedTasks = new Set([...deletedTasks, taskId]);
+        setDeletedTasks(newDeletedTasks);
+        
+        // 2. Salvar tarefas excluídas no localStorage IMEDIATAMENTE
+        const deletedTasksArray = [...newDeletedTasks];
+        localStorage.setItem('deletedPostSaleTasks', JSON.stringify(deletedTasksArray));
+        console.log('🗑️ TAREFAS PÓS-VENDA EXCLUÍDAS SALVAS NO LOCALSTORAGE:', deletedTasksArray);
+        
+        // 3. Atualizar estado das tarefas (remover da lista)
+        const updatedTasks = tasks.filter(task => task.id !== taskId);
+        setTasks(updatedTasks);
+        
+        // 4. Salvar tarefas atualizadas no localStorage IMEDIATAMENTE
+        localStorage.setItem('postSaleTasks', JSON.stringify(updatedTasks));
+        console.log('🗑️ TAREFAS PÓS-VENDA ATUALIZADAS SALVAS NO LOCALSTORAGE:', updatedTasks.length);
+        
+        // 5. Verificar se foi salvo corretamente
+        const savedTasks = localStorage.getItem('postSaleTasks');
+        const savedDeleted = localStorage.getItem('deletedPostSaleTasks');
+        console.log('🗑️ VERIFICAÇÃO IMEDIATA PÓS-VENDA:');
+        console.log('  - postSaleTasks salvas:', savedTasks ? JSON.parse(savedTasks).length : 'ERRO');
+        console.log('  - deletedPostSaleTasks salvas:', savedDeleted ? JSON.parse(savedDeleted).length : 'ERRO');
+        
+        // 6. Forçar re-render
+        setTimeout(() => {
+          console.log('🗑️ FORÇANDO RE-RENDER APÓS EXCLUSÃO PÓS-VENDA');
+          setTasks(prev => prev.filter(task => task.id !== taskId));
+        }, 100);
+        
+        console.log('🗑️ POST SALE TASK EXCLUÍDA PERMANENTEMENTE:', taskId);
+        
+      } catch (error) {
+        console.error('🗑️ ERRO AO EXCLUIR POST SALE TASK:', error);
+        alert('Erro ao excluir a atividade de pós-venda. Tente novamente.');
+      }
+    } else {
+      console.log('🗑️ EXCLUSÃO PÓS-VENDA CANCELADA');
     }
   };
 
@@ -408,7 +494,16 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   };
 
   const getTasksByStatus = (status: string) => {
-    return tasks.filter(task => task.status === status);
+    const allTasksForStatus = tasks.filter(task => task.status === status);
+    const filteredTasks = allTasksForStatus.filter(task => !deletedTasks.has(task.id));
+    
+    console.log(`📊 GET POST SALE TASKS BY STATUS (${status}):`);
+    console.log(`  - Total tasks for status: ${allTasksForStatus.length}`);
+    console.log(`  - Deleted tasks: ${[...deletedTasks]}`);
+    console.log(`  - Filtered tasks: ${filteredTasks.length}`);
+    console.log(`  - Task IDs: ${filteredTasks.map(t => t.id)}`);
+    
+    return filteredTasks;
   };
 
   const getTotalValue = (status: string) => {
