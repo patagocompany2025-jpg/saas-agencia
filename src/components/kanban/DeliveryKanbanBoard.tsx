@@ -397,9 +397,7 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
       // Remover da lista de tarefas (useEffect automático salvará)
       setTasks(prev => prev.filter(task => task.id !== taskId));
       
-      if (onDeleteTask) {
-        onDeleteTask(taskId);
-      }
+      // Não precisa chamar onDeleteTask - useEffect automático cuida da persistência
       
       console.log('🗑️ TASK EXCLUÍDA - useEffect automático salvará');
     } else {

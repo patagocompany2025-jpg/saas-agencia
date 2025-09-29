@@ -428,7 +428,6 @@ export default function DeliveryPage() {
         <DeliveryKanbanBoard
           onNewTask={handleNewTask}
           onEditTask={handleEditTask}
-          onDeleteTask={handleDeleteTask}
           customColumns={customColumns}
           onUpdateCustomColumn={handleUpdateCustomColumn}
           onDeleteCustomColumn={handleDeleteCustomColumn}
