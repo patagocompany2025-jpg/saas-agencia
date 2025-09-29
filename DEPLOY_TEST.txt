@@ -1,0 +1,6 @@
+Deploy test - $(date)
+Botões de limpeza adicionados:
+- DeliveryKanbanBoard.tsx: Botão vermelho centralizado
+- PostSaleKanbanBoard.tsx: Botão vermelho centralizado
+- Função clearAllCards() implementada
+- localStorage será limpo completamente
