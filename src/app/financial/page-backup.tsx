@@ -48,18 +48,18 @@ export default function FinancialPage() {
   } = useFinancial();
 
   // Debug: Verificar se o contexto está funcionando
-  console.log('=== CONTEXTO FINANCEIRO ===');
-  console.log('Transações:', transactions);
-  console.log('Funcionários:', employees);
-  console.log('Contas Fixas:', fixedExpenses);
+  // console.log('=== CONTEXTO FINANCEIRO ===');
+  // console.log('Transações:', transactions);
+  // console.log('Funcionários:', employees);
+  // console.log('Contas Fixas:', fixedExpenses);
   
   const [activeTab, setActiveTab] = useState<'overview' | 'transactions' | 'employees' | 'fixed-expenses'>('overview');
 
   // Debug: Log da mudança de aba
-  useEffect(() => {
-    console.log('=== ABA ATIVA MUDOU ===');
-    console.log('Aba ativa:', activeTab);
-  }, [activeTab]);
+  // useEffect(() => {
+  //   console.log('=== ABA ATIVA MUDOU ===');
+  //   console.log('Aba ativa:', activeTab);
+  // }, [activeTab]);
   const [showTransactionForm, setShowTransactionForm] = useState(false);
   const [showEmployeeForm, setShowEmployeeForm] = useState(false);
   const [showFixedExpenseForm, setShowFixedExpenseForm] = useState(false);
@@ -303,12 +303,9 @@ export default function FinancialPage() {
               <h2 className="text-2xl font-bold text-white">Transações</h2>
               <Button 
                 onClick={(e) => {
-                  console.log('=== BOTÃO NOVA TRANSAÇÃO CLICADO ===');
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Abrindo formulário de transação...');
                   setShowTransactionForm(true);
-                  console.log('showTransactionForm definido como true');
                 }}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white"
                 type="button"
@@ -372,20 +369,17 @@ export default function FinancialPage() {
 
         {/* Modais */}
         {showTransactionForm && (
-          <>
-            {console.log('=== RENDERIZANDO MODAL DE TRANSAÇÃO ===', { showTransactionForm, editingTransaction })}
-            <TransactionForm
-              transaction={editingTransaction}
-              onSave={() => {
-                setShowTransactionForm(false);
-                setEditingTransaction(undefined);
-              }}
-              onCancel={() => {
-                setShowTransactionForm(false);
-                setEditingTransaction(undefined);
-              }}
-            />
-          </>
+          <TransactionForm
+            transaction={editingTransaction}
+            onSave={() => {
+              setShowTransactionForm(false);
+              setEditingTransaction(undefined);
+            }}
+            onCancel={() => {
+              setShowTransactionForm(false);
+              setEditingTransaction(undefined);
+            }}
+          />
         )}
 
         {showEmployeeForm && (
