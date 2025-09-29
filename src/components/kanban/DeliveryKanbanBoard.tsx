@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { DeliveryTaskForm } from './DeliveryTaskForm';
 import { 
   MoreHorizontal, 
   Edit, 
@@ -189,6 +190,8 @@ const mockDeliveryTasks: DeliveryTask[] = [
 export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, customColumns = {}, onUpdateCustomColumn, onDeleteCustomColumn }: DeliveryKanbanBoardProps) {
   const { user } = useStackAuth();
   const [tasks, setTasks] = useState<DeliveryTask[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<DeliveryTask | undefined>(undefined);
   const [draggedTask, setDraggedTask] = useState<DeliveryTask | null>(null);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [columnOrder, setColumnOrder] = useState<(DeliveryTask['status'] | string)[]>([
@@ -493,9 +496,67 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
     return getTasksByStatus(status).reduce((total, task) => total + task.value, 0);
   };
 
+  // Função para criar nova tarefa
+  const handleCreateTask = () => {
+    setEditingTask(undefined);
+    setShowForm(true);
+  };
+
+  // Função para salvar tarefa
+  const handleSaveTask = (taskData: Partial<DeliveryTask>) => {
+    try {
+      if (editingTask) {
+        // Atualizar tarefa existente
+        setTasks(prev => prev.map(task => 
+          task.id === editingTask.id 
+            ? { ...task, ...taskData, updatedAt: new Date().toISOString() }
+            : task
+        ));
+        console.log('✅ TAREFA ATUALIZADA:', taskData);
+      } else {
+        // Criar nova tarefa
+        const newTask: DeliveryTask = {
+          id: Date.now().toString(),
+          clientName: taskData.clientName || '',
+          service: taskData.service || '',
+          value: taskData.value || 0,
+          status: taskData.status || 'confirmado',
+          priority: taskData.priority || 'media',
+          paymentDate: taskData.paymentDate || '',
+          startDate: taskData.startDate || '',
+          endDate: taskData.endDate || '',
+          travelers: taskData.travelers || 1,
+          destination: taskData.destination || '',
+          assignedTo: taskData.assignedTo || '',
+          notes: taskData.notes || '',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        setTasks(prev => [...prev, newTask]);
+        console.log('✅ NOVA TAREFA CRIADA:', newTask);
+      }
+      
+      setShowForm(false);
+      setEditingTask(undefined);
+    } catch (error) {
+      console.error('❌ ERRO AO SALVAR TAREFA:', error);
+    }
+  };
+
 
   return (
     <div className="space-y-6">
+      {/* Botão Nova Entrega */}
+      <div className="flex justify-end">
+        <Button 
+          onClick={handleCreateTask}
+          className="px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-lg font-medium hover:from-orange-700 hover:to-red-700 transition-all shadow-lg flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Nova Entrega
+        </Button>
+      </div>
       
       {/* Board Kanban - Layout Horizontal */}
       <div className="kanban-scroll">
@@ -792,6 +853,25 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Criação/Edição de Tarefa */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-white mb-6">
+              {editingTask ? 'Editar Entrega' : 'Nova Entrega'}
+            </h2>
+            <DeliveryTaskForm
+              task={editingTask}
+              onSave={handleSaveTask}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingTask(undefined);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
