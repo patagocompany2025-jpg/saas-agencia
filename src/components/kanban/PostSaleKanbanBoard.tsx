@@ -269,6 +269,15 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
     localStorage.setItem('postSaleTasks', JSON.stringify(tasks));
   }, [tasks, isInitialized]);
 
+  // Função para limpar todos os cards
+  const clearAllCards = () => {
+    console.log('🧹 LIMPANDO TODOS OS CARDS DE POST-SALE');
+    setTasks([]);
+    localStorage.removeItem('postSaleTasks');
+    localStorage.removeItem('postSaleUserInteracted');
+    console.log('🧹 CARDS DE POST-SALE LIMPOS');
+  };
+
   // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas
   useEffect(() => {
     const customColumnIds = Object.keys(customColumns);
@@ -497,6 +506,15 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
 
   return (
     <div className="space-y-6">
+      {/* Botão para limpar todos os cards */}
+      <div className="flex justify-end">
+        <button
+          onClick={clearAllCards}
+          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+        >
+          🧹 Limpar Todos os Cards
+        </button>
+      </div>
       
       {/* Board Kanban - Layout Horizontal */}
       <div className="kanban-scroll">
