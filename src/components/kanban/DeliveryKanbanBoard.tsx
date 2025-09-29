@@ -506,9 +506,7 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   const debugLocalStorage = () => {
     console.log('🔍 DEBUG LOCALSTORAGE DELIVERY:');
     console.log('  - deliveryTasks:', localStorage.getItem('deliveryTasks'));
-    console.log('  - deletedDeliveryTasks:', localStorage.getItem('deletedDeliveryTasks'));
     console.log('  - Tasks state:', tasks.length);
-    console.log('  - Deleted tasks state:', [...deletedTasks]);
   };
 
   // Adicionar botão de debug (apenas para desenvolvimento)
