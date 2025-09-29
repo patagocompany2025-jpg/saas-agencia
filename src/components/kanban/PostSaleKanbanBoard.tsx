@@ -228,11 +228,22 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   useEffect(() => {
     console.log('🔄 INICIALIZANDO POST SALE KANBAN BOARD');
 
-    // FORÇAR LIMPEZA - SEMPRE INICIAR VAZIO
-    console.log('🧹 FORÇANDO LIMPEZA - INICIANDO SEMPRE VAZIO');
-    setTasks([]);
+    // SOLUÇÃO DEFINITIVA - LIMPAR TUDO E FORÇAR VAZIO
+    console.log('🧹 SOLUÇÃO DEFINITIVA - LIMPANDO TUDO');
+    
+    // Limpar localStorage completamente
     localStorage.removeItem('postSaleTasks');
     localStorage.removeItem('postSaleUserInteracted');
+    localStorage.removeItem('postSaleDeletedTasks');
+    
+    // Forçar array vazio
+    setTasks([]);
+    
+    // Forçar re-render
+    setTimeout(() => {
+      setTasks([]);
+      console.log('✅ CARDS FORÇADAMENTE LIMPOS');
+    }, 100);
     
     // Marcar como inicializado
     setIsInitialized(true);
@@ -493,7 +504,17 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
     setTasks([]);
     localStorage.removeItem('postSaleTasks');
     localStorage.removeItem('postSaleUserInteracted');
+    localStorage.removeItem('postSaleDeletedTasks');
     console.log('✅ CARDS DE POST-SALE LIMPOS VIA CONSOLE');
+  };
+
+  // Função global para limpar TUDO (disponível no console)
+  (window as any).clearAllData = () => {
+    console.log('🧹 LIMPANDO TUDO - SOLUÇÃO DEFINITIVA');
+    localStorage.clear();
+    setTasks([]);
+    window.location.reload();
+    console.log('✅ TUDO LIMPO - PÁGINA RECARREGADA');
   };
   
   return (

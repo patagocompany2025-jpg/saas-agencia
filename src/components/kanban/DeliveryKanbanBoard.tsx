@@ -208,11 +208,22 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   useEffect(() => {
     console.log('🔄 INICIALIZANDO DELIVERY KANBAN BOARD');
 
-    // FORÇAR LIMPEZA - SEMPRE INICIAR VAZIO
-    console.log('🧹 FORÇANDO LIMPEZA - INICIANDO SEMPRE VAZIO');
-    setTasks([]);
+    // SOLUÇÃO DEFINITIVA - LIMPAR TUDO E FORÇAR VAZIO
+    console.log('🧹 SOLUÇÃO DEFINITIVA - LIMPANDO TUDO');
+    
+    // Limpar localStorage completamente
     localStorage.removeItem('deliveryTasks');
     localStorage.removeItem('deliveryUserInteracted');
+    localStorage.removeItem('deliveryDeletedTasks');
+    
+    // Forçar array vazio
+    setTasks([]);
+    
+    // Forçar re-render
+    setTimeout(() => {
+      setTasks([]);
+      console.log('✅ CARDS FORÇADAMENTE LIMPOS');
+    }, 100);
     
     // Marcar como inicializado
     setIsInitialized(true);
@@ -513,7 +524,17 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
     setTasks([]);
     localStorage.removeItem('deliveryTasks');
     localStorage.removeItem('deliveryUserInteracted');
+    localStorage.removeItem('deliveryDeletedTasks');
     console.log('✅ CARDS DE DELIVERY LIMPOS VIA CONSOLE');
+  };
+
+  // Função global para limpar TUDO (disponível no console)
+  (window as any).clearAllData = () => {
+    console.log('🧹 LIMPANDO TUDO - SOLUÇÃO DEFINITIVA');
+    localStorage.clear();
+    setTasks([]);
+    window.location.reload();
+    console.log('✅ TUDO LIMPO - PÁGINA RECARREGADA');
   };
   
   return (
