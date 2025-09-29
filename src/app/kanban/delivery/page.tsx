@@ -127,11 +127,39 @@ export default function DeliveryPage() {
       } else {
         // Criar nova tarefa
         console.log('Criando nova tarefa:', taskData);
+        
+        // Criar nova tarefa com ID único
+        const newTask = {
+          id: `delivery_${Date.now()}`,
+          clientName: taskData.clientName || '',
+          service: taskData.service || '',
+          value: taskData.value || 0,
+          status: (taskData.status as 'confirmado' | 'planejamento' | 'preparacao' | 'execucao' | 'concluido' | 'pos-venda') || 'confirmado',
+          priority: (taskData.priority as 'baixa' | 'media' | 'alta') || 'media',
+          paymentDate: taskData.paymentDate || '',
+          startDate: taskData.startDate || '',
+          endDate: taskData.endDate || '',
+          travelers: taskData.travelers || 1,
+          destination: taskData.destination || '',
+          assignedTo: taskData.assignedTo || '',
+          notes: taskData.notes || '',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        // Adicionar nova tarefa ao localStorage
+        const existingTasks = JSON.parse(localStorage.getItem('deliveryTasks') || '[]');
+        const updatedTasks = [...existingTasks, newTask];
+        localStorage.setItem('deliveryTasks', JSON.stringify(updatedTasks));
+        
         alert(`Nova entrega "${taskData.clientName}" criada com sucesso!`);
       }
       
       setShowForm(false);
       setEditingTask(undefined);
+      
+      // Recarregar a página para mostrar a nova tarefa
+      window.location.reload();
     } catch (error) {
       console.error('Erro ao salvar tarefa:', error);
       alert('Erro ao salvar a entrega. Tente novamente.');
@@ -415,6 +443,13 @@ export default function DeliveryPage() {
               </Button>
             )}
           </div>
+          <Button 
+            onClick={handleNewTask}
+            className="px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-lg font-medium hover:from-orange-700 hover:to-red-700 transition-all shadow-lg flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Nova Entrega
+          </Button>
         </div>
 
         {/* Board Kanban */}
