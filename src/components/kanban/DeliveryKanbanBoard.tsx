@@ -188,7 +188,8 @@ const mockDeliveryTasks: DeliveryTask[] = [
 
 export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, customColumns = {}, onUpdateCustomColumn, onDeleteCustomColumn }: DeliveryKanbanBoardProps) {
   const { user } = useStackAuth();
-  const [tasks, setTasks] = useState<DeliveryTask[]>(mockDeliveryTasks);
+  const [tasks, setTasks] = useState<DeliveryTask[]>([]);
+  const [deletedTasks, setDeletedTasks] = useState<Set<string>>(new Set());
   const [draggedTask, setDraggedTask] = useState<DeliveryTask | null>(null);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [columnOrder, setColumnOrder] = useState<(DeliveryTask['status'] | string)[]>([
@@ -202,6 +203,35 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   });
   // Estado para armazenar configurações personalizadas das colunas padrão
   const [customColumnConfigs, setCustomColumnConfigs] = useState<{[key: string]: {title: string, subtitle: string}}>({});
+  
+  // Carregar tarefas e tarefas excluídas do localStorage
+  useEffect(() => {
+    // Carregar tarefas do localStorage ou usar mock
+    const savedTasks = localStorage.getItem('deliveryTasks');
+    if (savedTasks) {
+      try {
+        const parsedTasks = JSON.parse(savedTasks);
+        setTasks(parsedTasks);
+      } catch (error) {
+        console.error('Erro ao carregar tarefas:', error);
+        setTasks(mockDeliveryTasks);
+      }
+    } else {
+      setTasks(mockDeliveryTasks);
+    }
+
+    // Carregar tarefas excluídas
+    const savedDeletedTasks = localStorage.getItem('deletedDeliveryTasks');
+    if (savedDeletedTasks) {
+      try {
+        const parsedDeletedTasks = JSON.parse(savedDeletedTasks);
+        setDeletedTasks(new Set(parsedDeletedTasks));
+      } catch (error) {
+        console.error('Erro ao carregar tarefas excluídas:', error);
+      }
+    }
+  }, []);
+
   // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas
   useEffect(() => {
     const customColumnIds = Object.keys(customColumns);
@@ -339,13 +369,24 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
     if (confirm('Tem certeza que deseja excluir esta entrega?')) {
       console.log('🗑️ CONFIRMAÇÃO ACEITA - EXCLUINDO TASK:', taskId);
       
+      // Adicionar à lista de tarefas excluídas
+      const newDeletedTasks = new Set([...deletedTasks, taskId]);
+      setDeletedTasks(newDeletedTasks);
+      
+      // Salvar no localStorage
+      localStorage.setItem('deletedDeliveryTasks', JSON.stringify([...newDeletedTasks]));
+      
+      // Salvar tarefas atualizadas no localStorage
+      const updatedTasks = tasks.filter(task => task.id !== taskId);
+      setTasks(updatedTasks);
+      localStorage.setItem('deliveryTasks', JSON.stringify(updatedTasks));
+      
       if (onDeleteTask) {
         console.log('🗑️ CHAMANDO ON DELETE TASK EXTERNA');
         onDeleteTask(taskId);
-      } else {
-        console.log('🗑️ USANDO DELETE LOCAL');
-        setTasks(prev => prev.filter(task => task.id !== taskId));
       }
+      
+      console.log('🗑️ TASK EXCLUÍDA PERMANENTEMENTE:', taskId);
     } else {
       console.log('🗑️ EXCLUSÃO CANCELADA');
     }
@@ -452,7 +493,7 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   };
 
   const getTasksByStatus = (status: string) => {
-    return tasks.filter(task => task.status === status);
+    return tasks.filter(task => task.status === status && !deletedTasks.has(task.id));
   };
 
   const getTotalValue = (status: string) => {
