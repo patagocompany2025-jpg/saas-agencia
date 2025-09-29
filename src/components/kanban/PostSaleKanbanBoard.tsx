@@ -465,9 +465,7 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   const clearAllData = () => {
     console.log('🧹 LIMPANDO TODOS OS DADOS PÓS-VENDA');
     localStorage.removeItem('postSaleTasks');
-    localStorage.removeItem('deletedPostSaleTasks');
     setTasks(mockPostSaleTasks);
-    setDeletedTasks(new Set());
     localStorage.setItem('postSaleTasks', JSON.stringify(mockPostSaleTasks));
     console.log('🧹 DADOS PÓS-VENDA LIMPOS E RESETADOS');
   };

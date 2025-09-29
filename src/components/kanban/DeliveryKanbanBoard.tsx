@@ -497,9 +497,7 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   const clearAllData = () => {
     console.log('🧹 LIMPANDO TODOS OS DADOS');
     localStorage.removeItem('deliveryTasks');
-    localStorage.removeItem('deletedDeliveryTasks');
     setTasks(mockDeliveryTasks);
-    setDeletedTasks(new Set());
     localStorage.setItem('deliveryTasks', JSON.stringify(mockDeliveryTasks));
     console.log('🧹 DADOS LIMPOS E RESETADOS');
   };
