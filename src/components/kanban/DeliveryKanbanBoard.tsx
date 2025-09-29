@@ -616,10 +616,11 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-8 w-8 p-0 text-blue-300 hover:text-blue-100 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg transition-all duration-200 hover:scale-110"
+                              className="h-8 px-2 text-white bg-orange-500 hover:bg-orange-600 border border-orange-400 rounded-lg transition-all duration-200 hover:scale-110 shadow-lg flex items-center gap-1"
                               title="Opções da entrega"
                             >
                               <Edit className="h-3.5 w-3.5" />
+                              <span className="text-xs font-medium">Ações</span>
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
