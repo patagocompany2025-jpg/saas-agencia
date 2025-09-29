@@ -498,6 +498,13 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   // Debug: verificar se o componente está sendo renderizado
   console.log('🔍 POST-SALE KANBAN BOARD RENDERIZANDO - TASKS:', tasks.length);
   
+  // SOLUÇÃO DEFINITIVA - FORÇAR LIMPEZA IMEDIATA
+  if (tasks.length > 0) {
+    console.log('🚨 CARDS DETECTADOS - FORÇANDO LIMPEZA IMEDIATA');
+    setTasks([]);
+    localStorage.clear();
+  }
+  
   // Função global para limpar cards (disponível no console)
   (window as any).clearPostSaleCards = () => {
     console.log('🧹 LIMPANDO TODOS OS CARDS DE POST-SALE VIA CONSOLE');
