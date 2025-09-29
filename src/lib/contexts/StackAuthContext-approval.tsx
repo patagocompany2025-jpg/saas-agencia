@@ -30,6 +30,7 @@ interface StackAuthContextType {
   pendingUsers: PendingUser[];
   approveUser: (userId: string) => Promise<boolean>;
   rejectUser: (userId: string) => Promise<boolean>;
+  createUser: (email: string, password: string, name: string, role: string) => Promise<boolean>;
   isAdmin: boolean;
 }
 
@@ -41,8 +42,8 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
 
-  // Usuários aprovados (simulando banco de dados)
-  const approvedUsers: User[] = [
+  // Estado para usuários aprovados
+  const [approvedUsers, setApprovedUsers] = useState<User[]>([
     {
       id: '1',
       email: 'kyra@patagonia.com',
@@ -59,7 +60,7 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
       status: 'approved',
       createdAt: new Date('2024-01-01')
     }
-  ];
+  ]);
 
   useEffect(() => {
     console.log('=== INICIANDO CARREGAMENTO DO USUÁRIO ===');
@@ -95,6 +96,28 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('pendingUsers', JSON.stringify(initialPendingUsers));
     }
     
+    // Carregar usuários aprovados do localStorage
+    const savedApprovedUsers = localStorage.getItem('approvedUsers');
+    if (savedApprovedUsers) {
+      try {
+        const parsedUsers = JSON.parse(savedApprovedUsers).map((u: {
+          id: string;
+          email: string;
+          displayName: string;
+          role: string;
+          status: string;
+          createdAt: string;
+        }) => ({
+          ...u,
+          createdAt: new Date(u.createdAt)
+        }));
+        setApprovedUsers(parsedUsers);
+        console.log('Usuários aprovados carregados:', parsedUsers.length);
+      } catch (error) {
+        console.error('Erro ao carregar usuários aprovados:', error);
+      }
+    }
+
     // Verificar se há usuário logado
     const savedUser = localStorage.getItem('simpleUser');
     console.log('Usuário salvo encontrado:', savedUser);
@@ -136,6 +159,7 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
       // Verificar se o usuário existe e está aprovado
       const foundUser = approvedUsers.find(u => u.email === email);
       console.log('Usuário encontrado:', foundUser);
+      console.log('Lista de usuários aprovados:', approvedUsers);
       
       if (foundUser && password === '123456') {
         if (foundUser.status === 'approved') {
@@ -236,6 +260,14 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
         status: 'approved'
       };
       
+      // Adicionar à lista de aprovados
+      setApprovedUsers(prev => {
+        const updated = [...prev, approvedUser];
+        localStorage.setItem('approvedUsers', JSON.stringify(updated));
+        console.log('Usuário adicionado aos aprovados:', approvedUser);
+        return updated;
+      });
+      
       // Remover da lista de pendentes
       setPendingUsers(prev => {
         const updated = prev.filter(u => u.id !== userId);
@@ -244,8 +276,7 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
         return updated;
       });
       
-      // Adicionar à lista de aprovados (simular)
-      console.log('Usuário aprovado:', approvedUser);
+      console.log('Usuário aprovado com sucesso:', approvedUser);
       
       return true;
     } catch (error) {
@@ -284,6 +315,51 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const createUser = async (email: string, password: string, name: string, role: string): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      console.log('Criando novo usuário:', { email, name, role });
+      
+      // Simular delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Verificar se email já existe
+      const emailExists = approvedUsers.find(u => u.email === email) || 
+                         pendingUsers.find(u => u.email === email);
+      
+      if (emailExists) {
+        console.log('Email já existe:', email);
+        return false;
+      }
+      
+      // Criar usuário aprovado diretamente
+      const newUser: User = {
+        id: Date.now().toString(),
+        email: email,
+        displayName: name,
+        role: role,
+        status: 'approved',
+        createdAt: new Date()
+      };
+      
+      // Adicionar à lista de aprovados
+      setApprovedUsers(prev => {
+        const updated = [...prev, newUser];
+        localStorage.setItem('approvedUsers', JSON.stringify(updated));
+        console.log('Usuário criado e aprovado:', newUser);
+        return updated;
+      });
+      
+      console.log('Usuário criado com sucesso:', newUser);
+      return true;
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Verificar se é admin (apenas para demonstração)
   const isAdmin = user?.role === 'socio';
 
@@ -298,6 +374,7 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
       pendingUsers,
       approveUser,
       rejectUser,
+      createUser,
       isAdmin
     }}>
       {children}
