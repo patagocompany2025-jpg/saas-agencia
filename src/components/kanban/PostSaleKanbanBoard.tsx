@@ -209,6 +209,7 @@ const mockPostSaleTasks: PostSaleTask[] = [
 export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {}, onUpdateCustomColumn, onDeleteCustomColumn }: PostSaleKanbanBoardProps) {
   const { user } = useStackAuth();
   const [tasks, setTasks] = useState<PostSaleTask[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [draggedTask, setDraggedTask] = useState<PostSaleTask | null>(null);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [columnOrder, setColumnOrder] = useState<(PostSaleTask['status'] | string)[]>([
@@ -254,13 +255,19 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
         localStorage.setItem('postSaleUserInteracted', 'true');
       }
     }
+    
+    // Marcar como inicializado
+    setIsInitialized(true);
   }, []);
 
   // useEffect automático para salvar tarefas no localStorage (igual ao KanbanContext)
   useEffect(() => {
+    // Só salva depois da inicialização
+    if (!isInitialized) return;
+    
     console.log('💾 SALVANDO TAREFAS PÓS-VENDA AUTOMATICAMENTE:', tasks.length);
     localStorage.setItem('postSaleTasks', JSON.stringify(tasks));
-  }, [tasks]);
+  }, [tasks, isInitialized]);
 
   // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas
   useEffect(() => {
