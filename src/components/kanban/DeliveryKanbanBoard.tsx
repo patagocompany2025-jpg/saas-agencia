@@ -206,7 +206,7 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   // Estado para armazenar configurações personalizadas das colunas padrão
   const [customColumnConfigs, setCustomColumnConfigs] = useState<{[key: string]: {title: string, subtitle: string}}>({});
   
-  // Carregar tarefas do localStorage (mock data apenas na primeira vez)
+  // Carregar tarefas do localStorage (compartilhado entre usuários)
   useEffect(() => {
     console.log('🔄 INICIALIZANDO DELIVERY KANBAN BOARD');
 
@@ -230,7 +230,7 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
     }
   }, []);
 
-  // useEffect automático para salvar tarefas no localStorage (igual ao KanbanContext)
+  // useEffect automático para salvar tarefas no localStorage (compartilhado entre usuários)
   useEffect(() => {
     console.log('💾 SALVANDO TAREFAS DELIVERY AUTOMATICAMENTE:', tasks.length);
     localStorage.setItem('deliveryTasks', JSON.stringify(tasks));
