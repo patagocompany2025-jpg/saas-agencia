@@ -209,7 +209,7 @@ const mockPostSaleTasks: PostSaleTask[] = [
 export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {}, onUpdateCustomColumn, onDeleteCustomColumn }: PostSaleKanbanBoardProps) {
   const { user } = useStackAuth();
   const [tasks, setTasks] = useState<PostSaleTask[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
+qy  const [isInitialized, setIsInitialized] = useState(false);
   const [draggedTask, setDraggedTask] = useState<PostSaleTask | null>(null);
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null);
   const [columnOrder, setColumnOrder] = useState<(PostSaleTask['status'] | string)[]>([
@@ -477,44 +477,6 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
     return getTasksByStatus(status).reduce((total, task) => total + task.value, 0);
   };
 
-  // Função para limpar dados e resetar (debug)
-  const clearAllData = () => {
-    console.log('🧹 LIMPANDO TODOS OS DADOS PÓS-VENDA');
-    localStorage.removeItem('postSaleTasks');
-    setTasks(mockPostSaleTasks);
-    localStorage.setItem('postSaleTasks', JSON.stringify(mockPostSaleTasks));
-    console.log('🧹 DADOS PÓS-VENDA LIMPOS E RESETADOS');
-  };
-
-  // Função para debug do localStorage
-  const debugLocalStorage = () => {
-    console.log('🔍 DEBUG LOCALSTORAGE PÓS-VENDA:');
-    console.log('  - postSaleTasks:', localStorage.getItem('postSaleTasks'));
-    console.log('  - Tasks state:', tasks.length);
-  };
-
-  // Adicionar botão de debug (apenas para desenvolvimento)
-  const addDebugButton = () => {
-    if (typeof window !== 'undefined') {
-      return (
-        <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-50">
-          <button 
-            onClick={clearAllData}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg"
-          >
-            🧹 Reset Pós-Venda
-          </button>
-          <button 
-            onClick={debugLocalStorage}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-          >
-            🔍 Debug Pós-Venda
-          </button>
-        </div>
-      );
-    }
-    return null;
-  };
 
   const renderStars = (rating: number | null) => {
     if (!rating) return <span className="text-white/40">Sem avaliação</span>;
@@ -535,8 +497,6 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
 
   return (
     <div className="space-y-6">
-      {/* Botão de Debug */}
-      {addDebugButton()}
       
       {/* Board Kanban - Layout Horizontal */}
       <div className="kanban-scroll">
