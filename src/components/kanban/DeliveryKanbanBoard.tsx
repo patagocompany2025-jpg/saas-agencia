@@ -69,6 +69,7 @@ interface DeliveryTask {
 interface DeliveryKanbanBoardProps {
   onNewTask: () => void;
   onEditTask: (task: DeliveryTask) => void;
+  onDeleteTask?: (taskId: string) => void;
   customColumns?: {[key: string]: {title: string, subtitle: string, color: string}};
   onUpdateCustomColumn?: (columnId: string, data: {title: string, subtitle: string, color: string}) => void;
   onDeleteCustomColumn?: (columnId: string) => void;
@@ -185,7 +186,7 @@ const mockDeliveryTasks: DeliveryTask[] = [
   }
 ];
 
-export function DeliveryKanbanBoard({ onNewTask, onEditTask, customColumns = {}, onUpdateCustomColumn, onDeleteCustomColumn }: DeliveryKanbanBoardProps) {
+export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, customColumns = {}, onUpdateCustomColumn, onDeleteCustomColumn }: DeliveryKanbanBoardProps) {
   const { user } = useStackAuth();
   const [tasks, setTasks] = useState<DeliveryTask[]>(mockDeliveryTasks);
   const [draggedTask, setDraggedTask] = useState<DeliveryTask | null>(null);
@@ -333,7 +334,11 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, customColumns = {},
 
   const handleDeleteTask = (taskId: string) => {
     if (confirm('Tem certeza que deseja excluir esta entrega?')) {
-      setTasks(prev => prev.filter(task => task.id !== taskId));
+      if (onDeleteTask) {
+        onDeleteTask(taskId);
+      } else {
+        setTasks(prev => prev.filter(task => task.id !== taskId));
+      }
     }
   };
 

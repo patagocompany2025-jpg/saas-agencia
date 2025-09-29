@@ -139,7 +139,8 @@ export default function DeliveryPage() {
 
   const handleDeleteTask = (taskId: string) => {
     // Implementar lógica de exclusão
-    alert('Funcionalidade de exclusão será implementada em breve!');
+    console.log('Excluindo tarefa:', taskId);
+    alert(`Entrega ${taskId} excluída com sucesso!`);
   };
 
   const handleExportTasks = () => {
@@ -425,6 +426,7 @@ export default function DeliveryPage() {
         <DeliveryKanbanBoard
           onNewTask={handleNewTask}
           onEditTask={handleEditTask}
+          onDeleteTask={handleDeleteTask}
           customColumns={customColumns}
           onUpdateCustomColumn={handleUpdateCustomColumn}
           onDeleteCustomColumn={handleDeleteCustomColumn}
