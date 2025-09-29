@@ -527,12 +527,12 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   return (
     <div className="space-y-6">
       {/* Botão para limpar todos os cards */}
-      <div className="flex justify-end">
+      <div className="flex justify-center mb-4">
         <button
           onClick={clearAllCards}
-          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-lg font-bold shadow-lg"
         >
-          🧹 Limpar Todos os Cards
+          🧹 LIMPAR TODOS OS CARDS DE ENTREGA
         </button>
       </div>
       
