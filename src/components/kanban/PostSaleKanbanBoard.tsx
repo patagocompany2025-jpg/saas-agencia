@@ -223,7 +223,7 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   // Estado para armazenar configurações personalizadas das colunas padrão
   const [customColumnConfigs, setCustomColumnConfigs] = useState<{[key: string]: {title: string, subtitle: string}}>({});
   
-  // Carregar tarefas do localStorage (mock data apenas na primeira vez)
+  // Carregar tarefas e tarefas excluídas do localStorage
   useEffect(() => {
     console.log('🔄 INICIALIZANDO POST SALE KANBAN BOARD');
 
@@ -240,10 +240,19 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
         setTasks([]);
       }
     } else {
-      console.log('📋 PRIMEIRA VEZ - USANDO TAREFAS PÓS-VENDA MOCK');
-      setTasks(mockPostSaleTasks);
-      // Salvar tarefas mock no localStorage
-      localStorage.setItem('postSaleTasks', JSON.stringify(mockPostSaleTasks));
+      // Verificar se o usuário já interagiu com o sistema
+      const hasUserInteracted = localStorage.getItem('postSaleUserInteracted');
+      if (hasUserInteracted) {
+        console.log('📋 USUÁRIO JÁ INTERAGIU - INICIANDO COM ARRAY VAZIO');
+        setTasks([]);
+      } else {
+        console.log('📋 PRIMEIRA VEZ - USANDO TAREFAS PÓS-VENDA MOCK');
+        setTasks(mockPostSaleTasks);
+        // Salvar tarefas mock no localStorage
+        localStorage.setItem('postSaleTasks', JSON.stringify(mockPostSaleTasks));
+        // Marcar que o usuário interagiu
+        localStorage.setItem('postSaleUserInteracted', 'true');
+      }
     }
   }, []);
 
@@ -461,6 +470,44 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
     return getTasksByStatus(status).reduce((total, task) => total + task.value, 0);
   };
 
+  // Função para limpar dados e resetar (debug)
+  const clearAllData = () => {
+    console.log('🧹 LIMPANDO TODOS OS DADOS PÓS-VENDA');
+    localStorage.removeItem('postSaleTasks');
+    setTasks(mockPostSaleTasks);
+    localStorage.setItem('postSaleTasks', JSON.stringify(mockPostSaleTasks));
+    console.log('🧹 DADOS PÓS-VENDA LIMPOS E RESETADOS');
+  };
+
+  // Função para debug do localStorage
+  const debugLocalStorage = () => {
+    console.log('🔍 DEBUG LOCALSTORAGE PÓS-VENDA:');
+    console.log('  - postSaleTasks:', localStorage.getItem('postSaleTasks'));
+    console.log('  - Tasks state:', tasks.length);
+  };
+
+  // Adicionar botão de debug (apenas para desenvolvimento)
+  const addDebugButton = () => {
+    if (typeof window !== 'undefined') {
+      return (
+        <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-50">
+          <button 
+            onClick={clearAllData}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg"
+          >
+            🧹 Reset Pós-Venda
+          </button>
+          <button 
+            onClick={debugLocalStorage}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+          >
+            🔍 Debug Pós-Venda
+          </button>
+        </div>
+      );
+    }
+    return null;
+  };
 
   const renderStars = (rating: number | null) => {
     if (!rating) return <span className="text-white/40">Sem avaliação</span>;
@@ -481,6 +528,8 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
 
   return (
     <div className="space-y-6">
+      {/* Botão de Debug */}
+      {addDebugButton()}
       
       {/* Board Kanban - Layout Horizontal */}
       <div className="kanban-scroll">
