@@ -73,7 +73,7 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
       if (savedApprovedUsers) {
         try {
           const parsed = JSON.parse(savedApprovedUsers);
-          const hasFakeUsers = parsed.some((u: any) => 
+          const hasFakeUsers = parsed.some((u: { email: string }) => 
             u.email === 'alexandre@agenciapatagonia.com' || 
             u.email === 'maria@agenciapatagonia.com' || 
             u.email === 'joao@agenciapatagonia.com'

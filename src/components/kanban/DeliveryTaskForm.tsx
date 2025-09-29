@@ -107,7 +107,7 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
   );
 
   // Selecionar cliente existente
-  const handleSelectClient = (client: any) => {
+  const handleSelectClient = (client: { id: string; name: string; email: string; company?: string }) => {
     setFormData(prev => ({
       ...prev,
       clientName: client.name
