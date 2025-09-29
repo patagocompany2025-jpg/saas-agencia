@@ -267,10 +267,8 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
 
   // useEffect automático para salvar tarefas no localStorage (igual ao KanbanContext)
   useEffect(() => {
-    if (tasks.length > 0) {
-      console.log('💾 SALVANDO TAREFAS PÓS-VENDA AUTOMATICAMENTE:', tasks.length);
-      localStorage.setItem('postSaleTasks', JSON.stringify(tasks));
-    }
+    console.log('💾 SALVANDO TAREFAS PÓS-VENDA AUTOMATICAMENTE:', tasks.length);
+    localStorage.setItem('postSaleTasks', JSON.stringify(tasks));
   }, [tasks]);
 
   // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas

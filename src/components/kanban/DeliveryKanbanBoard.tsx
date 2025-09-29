@@ -247,10 +247,8 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
 
   // useEffect automático para salvar tarefas no localStorage (igual ao KanbanContext)
   useEffect(() => {
-    if (tasks.length > 0) {
-      console.log('💾 SALVANDO TAREFAS DELIVERY AUTOMATICAMENTE:', tasks.length);
-      localStorage.setItem('deliveryTasks', JSON.stringify(tasks));
-    }
+    console.log('💾 SALVANDO TAREFAS DELIVERY AUTOMATICAMENTE:', tasks.length);
+    localStorage.setItem('deliveryTasks', JSON.stringify(tasks));
   }, [tasks]);
 
   // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas
