@@ -27,7 +27,8 @@ import {
   Home,
   Heart,
   Plus,
-  Search
+  Search,
+  X
 } from 'lucide-react';
 
 interface DeliveryTask {
