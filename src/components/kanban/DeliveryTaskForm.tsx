@@ -55,10 +55,12 @@ interface DeliveryTaskFormProps {
 }
 
 export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormProps) {
-  const { clients, addClient } = useClients();
+  const { clients, addClient, deleteClient } = useClients();
   const [showClientSelector, setShowClientSelector] = useState(false);
   const [clientSearchTerm, setClientSearchTerm] = useState('');
   const [showNewClientForm, setShowNewClientForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<{ id: string; name: string } | null>(null);
   const [newClientData, setNewClientData] = useState({
     name: '',
     email: '',
@@ -139,6 +141,39 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
       setShowNewClientForm(false);
       setShowClientSelector(false);
     }
+  };
+
+  // Encontrar cliente atual pelo nome
+  const findCurrentClient = () => {
+    return clients.find(client => client.name === formData.clientName);
+  };
+
+  // Iniciar exclusão de cliente
+  const handleDeleteClient = () => {
+    const currentClient = findCurrentClient();
+    if (currentClient) {
+      setSelectedClient({ id: currentClient.id, name: currentClient.name });
+      setShowDeleteConfirm(true);
+    }
+  };
+
+  // Confirmar exclusão de cliente
+  const confirmDeleteClient = () => {
+    if (selectedClient) {
+      deleteClient(selectedClient.id);
+      setFormData(prev => ({
+        ...prev,
+        clientName: ''
+      }));
+      setShowDeleteConfirm(false);
+      setSelectedClient(null);
+    }
+  };
+
+  // Cancelar exclusão
+  const cancelDeleteClient = () => {
+    setShowDeleteConfirm(false);
+    setSelectedClient(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -237,9 +272,21 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
               onClick={() => setShowClientSelector(true)}
               variant="outline"
               className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
+              title="Buscar cliente"
             >
               <Search className="h-4 w-4" />
             </Button>
+            {formData.clientName && findCurrentClient() && (
+              <Button
+                type="button"
+                onClick={handleDeleteClient}
+                variant="outline"
+                className="bg-red-600 border-red-600 text-white hover:bg-red-700"
+                title="Excluir cliente"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
           
           {/* Seletor de Clientes */}
@@ -547,6 +594,50 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
           {task ? 'Atualizar Entrega' : 'Criar Entrega'}
         </Button>
       </div>
+
+      {/* Modal de Confirmação de Exclusão */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 border border-gray-600 rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+                <X className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold">Excluir Cliente</h3>
+                <p className="text-gray-400 text-sm">Esta ação não pode ser desfeita</p>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-white">
+                Tem certeza que deseja excluir o cliente <strong>{selectedClient?.name}</strong>?
+              </p>
+              <p className="text-gray-400 text-sm mt-2">
+                O cliente será removido permanentemente do sistema e não aparecerá mais em nenhuma página.
+              </p>
+            </div>
+            
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                onClick={confirmDeleteClient}
+                className="bg-red-600 hover:bg-red-700 text-white flex-1"
+              >
+                Sim, Excluir
+              </Button>
+              <Button
+                type="button"
+                onClick={cancelDeleteClient}
+                variant="outline"
+                className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600 flex-1"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
