@@ -146,7 +146,19 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
 
   // Encontrar cliente atual pelo nome
   const findCurrentClient = () => {
-    return clients.find(client => client.name === formData.clientName);
+    const client = clients.find(client => client.name === formData.clientName);
+    console.log('Buscando cliente:', formData.clientName);
+    console.log('Clientes disponíveis:', clients.map(c => c.name));
+    console.log('Cliente encontrado:', client);
+    return client;
+  };
+
+  // Verificar se deve mostrar botão de excluir
+  const shouldShowDeleteButton = () => {
+    const hasClientName = formData.clientName && formData.clientName.trim() !== '';
+    const clientExists = findCurrentClient();
+    console.log('Deve mostrar botão:', hasClientName && clientExists);
+    return hasClientName && clientExists;
   };
 
   // Iniciar exclusão de cliente
@@ -277,7 +289,7 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
             >
               <Search className="h-4 w-4" />
             </Button>
-            {formData.clientName && findCurrentClient() && (
+            {shouldShowDeleteButton() && (
               <Button
                 type="button"
                 onClick={handleDeleteClient}
