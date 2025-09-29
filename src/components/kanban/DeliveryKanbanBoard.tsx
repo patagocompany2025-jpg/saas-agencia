@@ -252,10 +252,12 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   // Função para limpar todos os cards
   const clearAllCards = () => {
     console.log('🧹 LIMPANDO TODOS OS CARDS DE DELIVERY');
+    alert('🧹 LIMPANDO TODOS OS CARDS DE DELIVERY!');
     setTasks([]);
     localStorage.removeItem('deliveryTasks');
     localStorage.removeItem('deliveryUserInteracted');
     console.log('🧹 CARDS DE DELIVERY LIMPOS');
+    alert('✅ CARDS LIMPOS COM SUCESSO!');
   };
 
   // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas
@@ -530,9 +532,9 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
       <div className="flex justify-center mb-4">
         <button
           onClick={clearAllCards}
-          className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-lg font-bold shadow-lg"
+          className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-xl hover:from-red-700 hover:to-red-900 transition-all duration-300 text-xl font-bold shadow-2xl border-4 border-yellow-400 animate-pulse"
         >
-          🧹 LIMPAR TODOS OS CARDS DE ENTREGA
+          🧹 LIMPAR TODOS OS CARDS DE ENTREGA 🧹
         </button>
       </div>
       
