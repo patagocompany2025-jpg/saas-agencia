@@ -51,7 +51,7 @@ import {
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user, isLoading: authLoading } = useStackAuth();
+  const { user, isLoading: authLoading, createUser } = useStackAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -667,21 +667,34 @@ export default function SettingsPage() {
         });
         alert('Usuário atualizado com sucesso!');
       } else {
-        // Criar novo usuário
-        const newUser = {
-          id: Date.now().toString(),
-          ...userFormData,
-          status: 'active',
-          createdAt: new Date().toISOString().split('T')[0],
-          lastLogin: null
-        };
-        console.log('Criando novo usuário:', newUser);
-        setUsers(prev => {
-          const updated = [...prev, newUser];
-          console.log('Usuários após criação:', updated);
-          return updated;
-        });
-        alert('Usuário criado com sucesso!');
+        // Criar novo usuário usando o contexto de autenticação
+        console.log('Criando novo usuário via contexto:', userFormData);
+        const success = await createUser(
+          userFormData.email,
+          userFormData.password,
+          userFormData.name,
+          userFormData.role
+        );
+        
+        if (success) {
+          // Atualizar lista local de usuários
+          const newUser = {
+            id: Date.now().toString(),
+            ...userFormData,
+            status: 'active',
+            createdAt: new Date().toISOString().split('T')[0],
+            lastLogin: null
+          };
+          setUsers(prev => {
+            const updated = [...prev, newUser];
+            console.log('Usuários após criação:', updated);
+            return updated;
+          });
+          alert('Usuário criado com sucesso!');
+        } else {
+          alert('Erro ao criar usuário. Email pode já existir.');
+          return;
+        }
       }
       
       handleCancelEdit();
