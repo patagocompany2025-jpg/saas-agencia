@@ -61,6 +61,7 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
   const [clientSearchTerm, setClientSearchTerm] = useState('');
   const [showNewClientForm, setShowNewClientForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteCardConfirm, setShowDeleteCardConfirm] = useState(false);
   const [selectedClient, setSelectedClient] = useState<{ id: string; name: string } | null>(null);
   const [newClientData, setNewClientData] = useState({
     name: '',
@@ -187,6 +188,27 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
   const cancelDeleteClient = () => {
     setShowDeleteConfirm(false);
     setSelectedClient(null);
+  };
+
+  // Iniciar exclusão do card
+  const handleDeleteCard = () => {
+    setShowDeleteCardConfirm(true);
+  };
+
+  // Confirmar exclusão do card
+  const confirmDeleteCard = () => {
+    if (task) {
+      // Aqui você pode implementar a lógica para excluir o card
+      // Por enquanto, vamos apenas fechar o modal e cancelar
+      console.log('Excluindo card:', task.id);
+      setShowDeleteCardConfirm(false);
+      onCancel(); // Fecha o modal de edição
+    }
+  };
+
+  // Cancelar exclusão do card
+  const cancelDeleteCard = () => {
+    setShowDeleteCardConfirm(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -600,6 +622,16 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
         >
           Cancelar
         </Button>
+        {task && (
+          <Button
+            type="button"
+            onClick={handleDeleteCard}
+            className="bg-red-600 hover:bg-red-700 text-white flex-1"
+          >
+            <X className="h-4 w-4 mr-2" />
+            Excluir Card
+          </Button>
+        )}
         <Button
           type="submit"
           className="bg-orange-600 hover:bg-orange-700 text-white flex-1"
@@ -642,6 +674,50 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
               <Button
                 type="button"
                 onClick={cancelDeleteClient}
+                variant="outline"
+                className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600 flex-1"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmação de Exclusão do Card */}
+      {showDeleteCardConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 border border-gray-600 rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+                <X className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold">Excluir Card de Entrega</h3>
+                <p className="text-gray-400 text-sm">Esta ação não pode ser desfeita</p>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-white">
+                Tem certeza que deseja excluir o card de entrega <strong>{task?.clientName}</strong>?
+              </p>
+              <p className="text-gray-400 text-sm mt-2">
+                O card será removido permanentemente do sistema e não aparecerá mais no kanban.
+              </p>
+            </div>
+            
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                onClick={confirmDeleteCard}
+                className="bg-red-600 hover:bg-red-700 text-white flex-1"
+              >
+                Sim, Excluir Card
+              </Button>
+              <Button
+                type="button"
+                onClick={cancelDeleteCard}
                 variant="outline"
                 className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600 flex-1"
               >
