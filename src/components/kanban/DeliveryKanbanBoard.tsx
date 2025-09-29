@@ -208,33 +208,11 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   useEffect(() => {
     console.log('🔄 INICIALIZANDO DELIVERY KANBAN BOARD');
 
-    // Carregar tarefas do localStorage
-    const savedTasks = localStorage.getItem('deliveryTasks');
-    if (savedTasks) {
-      try {
-        const parsedTasks = JSON.parse(savedTasks);
-        console.log('📋 TAREFAS CARREGADAS DO LOCALSTORAGE:', parsedTasks.length);
-        setTasks(parsedTasks);
-      } catch (error) {
-        console.error('Erro ao carregar tarefas:', error);
-        console.log('📋 ERRO NO PARSE - INICIANDO COM ARRAY VAZIO');
-        setTasks([]);
-      }
-    } else {
-      // Verificar se o usuário já interagiu com o sistema
-      const hasUserInteracted = localStorage.getItem('deliveryUserInteracted');
-      if (hasUserInteracted) {
-        console.log('📋 USUÁRIO JÁ INTERAGIU - INICIANDO COM ARRAY VAZIO');
-        setTasks([]);
-      } else {
-        console.log('📋 PRIMEIRA VEZ - USANDO TAREFAS MOCK');
-        setTasks(mockDeliveryTasks);
-        // Salvar tarefas mock no localStorage
-        localStorage.setItem('deliveryTasks', JSON.stringify(mockDeliveryTasks));
-        // Marcar que o usuário interagiu
-        localStorage.setItem('deliveryUserInteracted', 'true');
-      }
-    }
+    // FORÇAR LIMPEZA - SEMPRE INICIAR VAZIO
+    console.log('🧹 FORÇANDO LIMPEZA - INICIANDO SEMPRE VAZIO');
+    setTasks([]);
+    localStorage.removeItem('deliveryTasks');
+    localStorage.removeItem('deliveryUserInteracted');
     
     // Marcar como inicializado
     setIsInitialized(true);
@@ -526,17 +504,20 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   };
 
 
+  // Debug: verificar se o componente está sendo renderizado
+  console.log('🔍 DELIVERY KANBAN BOARD RENDERIZANDO - TASKS:', tasks.length);
+  
+  // Função global para limpar cards (disponível no console)
+  (window as any).clearDeliveryCards = () => {
+    console.log('🧹 LIMPANDO TODOS OS CARDS DE DELIVERY VIA CONSOLE');
+    setTasks([]);
+    localStorage.removeItem('deliveryTasks');
+    localStorage.removeItem('deliveryUserInteracted');
+    console.log('✅ CARDS DE DELIVERY LIMPOS VIA CONSOLE');
+  };
+  
   return (
     <div className="space-y-6">
-      {/* Botão para limpar todos os cards */}
-      <div className="flex justify-center mb-4">
-        <button
-          onClick={clearAllCards}
-          className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-xl hover:from-red-700 hover:to-red-900 transition-all duration-300 text-xl font-bold shadow-2xl border-4 border-yellow-400 animate-pulse"
-        >
-          🧹 LIMPAR TODOS OS CARDS DE ENTREGA 🧹
-        </button>
-      </div>
       
       {/* Board Kanban - Layout Horizontal */}
       <div className="kanban-scroll">

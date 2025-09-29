@@ -228,33 +228,11 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   useEffect(() => {
     console.log('🔄 INICIALIZANDO POST SALE KANBAN BOARD');
 
-    // Carregar tarefas do localStorage
-    const savedTasks = localStorage.getItem('postSaleTasks');
-    if (savedTasks) {
-      try {
-        const parsedTasks = JSON.parse(savedTasks);
-        console.log('📋 TAREFAS PÓS-VENDA CARREGADAS DO LOCALSTORAGE:', parsedTasks.length);
-        setTasks(parsedTasks);
-      } catch (error) {
-        console.error('Erro ao carregar tarefas pós-venda:', error);
-        console.log('📋 ERRO NO PARSE - INICIANDO COM ARRAY VAZIO');
-        setTasks([]);
-      }
-    } else {
-      // Verificar se o usuário já interagiu com o sistema
-      const hasUserInteracted = localStorage.getItem('postSaleUserInteracted');
-      if (hasUserInteracted) {
-        console.log('📋 USUÁRIO JÁ INTERAGIU - INICIANDO COM ARRAY VAZIO');
-        setTasks([]);
-      } else {
-        console.log('📋 PRIMEIRA VEZ - USANDO TAREFAS PÓS-VENDA MOCK');
-        setTasks(mockPostSaleTasks);
-        // Salvar tarefas mock no localStorage
-        localStorage.setItem('postSaleTasks', JSON.stringify(mockPostSaleTasks));
-        // Marcar que o usuário interagiu
-        localStorage.setItem('postSaleUserInteracted', 'true');
-      }
-    }
+    // FORÇAR LIMPEZA - SEMPRE INICIAR VAZIO
+    console.log('🧹 FORÇANDO LIMPEZA - INICIANDO SEMPRE VAZIO');
+    setTasks([]);
+    localStorage.removeItem('postSaleTasks');
+    localStorage.removeItem('postSaleUserInteracted');
     
     // Marcar como inicializado
     setIsInitialized(true);
@@ -506,17 +484,20 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
     );
   };
 
+  // Debug: verificar se o componente está sendo renderizado
+  console.log('🔍 POST-SALE KANBAN BOARD RENDERIZANDO - TASKS:', tasks.length);
+  
+  // Função global para limpar cards (disponível no console)
+  (window as any).clearPostSaleCards = () => {
+    console.log('🧹 LIMPANDO TODOS OS CARDS DE POST-SALE VIA CONSOLE');
+    setTasks([]);
+    localStorage.removeItem('postSaleTasks');
+    localStorage.removeItem('postSaleUserInteracted');
+    console.log('✅ CARDS DE POST-SALE LIMPOS VIA CONSOLE');
+  };
+  
   return (
     <div className="space-y-6">
-      {/* Botão para limpar todos os cards */}
-      <div className="flex justify-center mb-4">
-        <button
-          onClick={clearAllCards}
-          className="px-8 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-xl hover:from-red-700 hover:to-red-900 transition-all duration-300 text-xl font-bold shadow-2xl border-4 border-yellow-400 animate-pulse"
-        >
-          🧹 LIMPAR TODOS OS CARDS DE PÓS-VENDA 🧹
-        </button>
-      </div>
       
       {/* Board Kanban - Layout Horizontal */}
       <div className="kanban-scroll">
