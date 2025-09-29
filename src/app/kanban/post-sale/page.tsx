@@ -219,11 +219,39 @@ export default function PostSalePage() {
       } else {
         // Criar nova tarefa
         console.log('Criando nova tarefa:', taskData);
+        
+        // Criar nova tarefa com ID único
+        const newTask = {
+          id: `postsale_${Date.now()}`,
+          clientName: taskData.clientName || '',
+          service: taskData.service || '',
+          value: taskData.value || 0,
+          status: (taskData.status as 'aguardando' | 'contato' | 'satisfeito' | 'reclamacao' | 'fidelizado' | 'indicacao') || 'aguardando',
+          completionDate: taskData.completionDate || '',
+          feedbackDate: taskData.feedbackDate || '',
+          satisfaction: taskData.satisfaction || null,
+          feedback: taskData.feedback || '',
+          nextContact: taskData.nextContact || '',
+          assignedTo: taskData.assignedTo || '',
+          priority: (taskData.priority as 'baixa' | 'media' | 'alta') || 'media',
+          notes: taskData.notes || '',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        // Adicionar nova tarefa ao localStorage
+        const existingTasks = JSON.parse(localStorage.getItem('postSaleTasks') || '[]');
+        const updatedTasks = [...existingTasks, newTask];
+        localStorage.setItem('postSaleTasks', JSON.stringify(updatedTasks));
+        
         alert(`Nova atividade de pós-venda "${taskData.clientName}" criada com sucesso!`);
       }
       
       setShowForm(false);
       setEditingTask(undefined);
+      
+      // Recarregar a página para mostrar a nova tarefa
+      window.location.reload();
     } catch (error) {
       console.error('Erro ao salvar tarefa:', error);
       alert('Erro ao salvar a atividade de pós-venda. Tente novamente.');
