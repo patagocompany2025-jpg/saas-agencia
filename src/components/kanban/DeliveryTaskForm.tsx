@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useClients } from '@/lib/contexts/ClientContext';
 import { 
   User, 
   MapPin, 
@@ -24,7 +25,9 @@ import {
   Package,
   Truck,
   Home,
-  Heart
+  Heart,
+  Plus,
+  Search
 } from 'lucide-react';
 
 interface DeliveryTask {
@@ -52,6 +55,17 @@ interface DeliveryTaskFormProps {
 }
 
 export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormProps) {
+  const { clients, addClient } = useClients();
+  const [showClientSelector, setShowClientSelector] = useState(false);
+  const [clientSearchTerm, setClientSearchTerm] = useState('');
+  const [showNewClientForm, setShowNewClientForm] = useState(false);
+  const [newClientData, setNewClientData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: ''
+  });
+
   const [formData, setFormData] = useState<Partial<DeliveryTask>>({
     clientName: '',
     service: '',
@@ -83,6 +97,48 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
       ...prev,
       [field]: value
     }));
+  };
+
+  // Filtrar clientes baseado na busca
+  const filteredClients = clients.filter(client => 
+    client.name.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+    client.email.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+    client.company?.toLowerCase().includes(clientSearchTerm.toLowerCase())
+  );
+
+  // Selecionar cliente existente
+  const handleSelectClient = (client: any) => {
+    setFormData(prev => ({
+      ...prev,
+      clientName: client.name
+    }));
+    setShowClientSelector(false);
+    setClientSearchTerm('');
+  };
+
+  // Criar novo cliente
+  const handleCreateClient = () => {
+    if (newClientData.name && newClientData.email) {
+      addClient({
+        name: newClientData.name,
+        email: newClientData.email,
+        phone: newClientData.phone,
+        company: newClientData.company,
+        status: 'cliente',
+        source: 'Entrega de Serviço',
+        notes: 'Cliente criado durante processo de entrega',
+        assignedTo: '1'
+      });
+      
+      setFormData(prev => ({
+        ...prev,
+        clientName: newClientData.name
+      }));
+      
+      setNewClientData({ name: '', email: '', phone: '', company: '' });
+      setShowNewClientForm(false);
+      setShowClientSelector(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -167,14 +223,126 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
             <User className="h-4 w-4" />
             Nome do Cliente *
           </Label>
-          <Input
-            id="clientName"
-            value={formData.clientName || ''}
-            onChange={(e) => handleInputChange('clientName', e.target.value)}
-            className="bg-gray-700 border-gray-600 text-white"
-            placeholder="Ex: Família Silva"
-            required
-          />
+          <div className="flex gap-2">
+            <Input
+              id="clientName"
+              value={formData.clientName || ''}
+              onChange={(e) => handleInputChange('clientName', e.target.value)}
+              className="bg-gray-700 border-gray-600 text-white"
+              placeholder="Ex: Família Silva"
+              required
+            />
+            <Button
+              type="button"
+              onClick={() => setShowClientSelector(true)}
+              variant="outline"
+              className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {/* Seletor de Clientes */}
+          {showClientSelector && (
+            <div className="absolute z-50 w-full bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="p-3 border-b border-gray-600">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Buscar cliente..."
+                    value={clientSearchTerm}
+                    onChange={(e) => setClientSearchTerm(e.target.value)}
+                    className="bg-gray-700 border-gray-600 text-white"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => setShowNewClientForm(true)}
+                    className="bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="max-h-40 overflow-y-auto">
+                {filteredClients.map((client) => (
+                  <button
+                    key={client.id}
+                    type="button"
+                    onClick={() => handleSelectClient(client)}
+                    className="w-full p-3 text-left hover:bg-gray-700 border-b border-gray-600 last:border-b-0"
+                  >
+                    <div className="text-white font-medium">{client.name}</div>
+                    <div className="text-gray-400 text-sm">{client.email}</div>
+                    {client.company && (
+                      <div className="text-gray-500 text-xs">{client.company}</div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="p-2 border-t border-gray-600">
+                <Button
+                  type="button"
+                  onClick={() => setShowClientSelector(false)}
+                  variant="outline"
+                  className="w-full bg-gray-700 border-gray-600 text-white"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          {/* Formulário de Novo Cliente */}
+          {showNewClientForm && (
+            <div className="absolute z-50 w-full bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-4">
+              <h3 className="text-white font-medium mb-3">Criar Novo Cliente</h3>
+              <div className="space-y-3">
+                <Input
+                  placeholder="Nome completo"
+                  value={newClientData.name}
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, name: e.target.value }))}
+                  className="bg-gray-700 border-gray-600 text-white"
+                />
+                <Input
+                  placeholder="Email"
+                  type="email"
+                  value={newClientData.email}
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, email: e.target.value }))}
+                  className="bg-gray-700 border-gray-600 text-white"
+                />
+                <Input
+                  placeholder="Telefone"
+                  value={newClientData.phone}
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, phone: e.target.value }))}
+                  className="bg-gray-700 border-gray-600 text-white"
+                />
+                <Input
+                  placeholder="Empresa (opcional)"
+                  value={newClientData.company}
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, company: e.target.value }))}
+                  className="bg-gray-700 border-gray-600 text-white"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={handleCreateClient}
+                    className="bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    Criar Cliente
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setShowNewClientForm(false)}
+                    variant="outline"
+                    className="bg-gray-700 border-gray-600 text-white"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         
         <div className="space-y-2">
