@@ -206,29 +206,42 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   
   // Carregar tarefas e tarefas excluídas do localStorage
   useEffect(() => {
+    console.log('🔄 INICIALIZANDO DELIVERY KANBAN BOARD');
+    
+    // Carregar tarefas excluídas primeiro
+    const savedDeletedTasks = localStorage.getItem('deletedDeliveryTasks');
+    let deletedTasksSet = new Set<string>();
+    
+    if (savedDeletedTasks) {
+      try {
+        const parsedDeletedTasks = JSON.parse(savedDeletedTasks);
+        deletedTasksSet = new Set(parsedDeletedTasks);
+        console.log('🗑️ TAREFAS EXCLUÍDAS CARREGADAS:', [...deletedTasksSet]);
+      } catch (error) {
+        console.error('Erro ao carregar tarefas excluídas:', error);
+      }
+    }
+    setDeletedTasks(deletedTasksSet);
+
     // Carregar tarefas do localStorage ou usar mock
     const savedTasks = localStorage.getItem('deliveryTasks');
     if (savedTasks) {
       try {
         const parsedTasks = JSON.parse(savedTasks);
+        console.log('📋 TAREFAS CARREGADAS DO LOCALSTORAGE:', parsedTasks.length);
         setTasks(parsedTasks);
       } catch (error) {
         console.error('Erro ao carregar tarefas:', error);
+        console.log('📋 USANDO TAREFAS MOCK');
         setTasks(mockDeliveryTasks);
+        // Salvar tarefas mock no localStorage
+        localStorage.setItem('deliveryTasks', JSON.stringify(mockDeliveryTasks));
       }
     } else {
+      console.log('📋 PRIMEIRA VEZ - USANDO TAREFAS MOCK');
       setTasks(mockDeliveryTasks);
-    }
-
-    // Carregar tarefas excluídas
-    const savedDeletedTasks = localStorage.getItem('deletedDeliveryTasks');
-    if (savedDeletedTasks) {
-      try {
-        const parsedDeletedTasks = JSON.parse(savedDeletedTasks);
-        setDeletedTasks(new Set(parsedDeletedTasks));
-      } catch (error) {
-        console.error('Erro ao carregar tarefas excluídas:', error);
-      }
+      // Salvar tarefas mock no localStorage
+      localStorage.setItem('deliveryTasks', JSON.stringify(mockDeliveryTasks));
     }
   }, []);
 
@@ -364,7 +377,8 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
 
   const handleDeleteTask = (taskId: string) => {
     console.log('🗑️ HANDLE DELETE TASK CHAMADO:', taskId);
-    console.log('🗑️ ON DELETE TASK DISPONÍVEL:', !!onDeleteTask);
+    console.log('🗑️ TAREFAS ATUAIS:', tasks.length);
+    console.log('🗑️ TAREFAS EXCLUÍDAS ATUAIS:', [...deletedTasks]);
     
     if (confirm('Tem certeza que deseja excluir esta entrega?')) {
       console.log('🗑️ CONFIRMAÇÃO ACEITA - EXCLUINDO TASK:', taskId);
@@ -373,13 +387,15 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
       const newDeletedTasks = new Set([...deletedTasks, taskId]);
       setDeletedTasks(newDeletedTasks);
       
-      // Salvar no localStorage
+      // Salvar tarefas excluídas no localStorage
       localStorage.setItem('deletedDeliveryTasks', JSON.stringify([...newDeletedTasks]));
+      console.log('🗑️ TAREFAS EXCLUÍDAS SALVAS NO LOCALSTORAGE:', [...newDeletedTasks]);
       
-      // Salvar tarefas atualizadas no localStorage
+      // Atualizar estado das tarefas (remover da lista)
       const updatedTasks = tasks.filter(task => task.id !== taskId);
       setTasks(updatedTasks);
       localStorage.setItem('deliveryTasks', JSON.stringify(updatedTasks));
+      console.log('🗑️ TAREFAS ATUALIZADAS SALVAS NO LOCALSTORAGE:', updatedTasks.length);
       
       if (onDeleteTask) {
         console.log('🗑️ CHAMANDO ON DELETE TASK EXTERNA');
@@ -387,6 +403,9 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
       }
       
       console.log('🗑️ TASK EXCLUÍDA PERMANENTEMENTE:', taskId);
+      console.log('🗑️ VERIFICAÇÃO LOCALSTORAGE:');
+      console.log('  - deliveryTasks:', localStorage.getItem('deliveryTasks'));
+      console.log('  - deletedDeliveryTasks:', localStorage.getItem('deletedDeliveryTasks'));
     } else {
       console.log('🗑️ EXCLUSÃO CANCELADA');
     }
@@ -493,7 +512,16 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   };
 
   const getTasksByStatus = (status: string) => {
-    return tasks.filter(task => task.status === status && !deletedTasks.has(task.id));
+    const allTasksForStatus = tasks.filter(task => task.status === status);
+    const filteredTasks = allTasksForStatus.filter(task => !deletedTasks.has(task.id));
+    
+    console.log(`📊 GET TASKS BY STATUS (${status}):`);
+    console.log(`  - Total tasks for status: ${allTasksForStatus.length}`);
+    console.log(`  - Deleted tasks: ${[...deletedTasks]}`);
+    console.log(`  - Filtered tasks: ${filteredTasks.length}`);
+    console.log(`  - Task IDs: ${filteredTasks.map(t => t.id)}`);
+    
+    return filteredTasks;
   };
 
   const getTotalValue = (status: string) => {
