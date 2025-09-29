@@ -245,6 +245,14 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
     }
   }, []);
 
+  // useEffect automático para salvar tarefas no localStorage (igual ao KanbanContext)
+  useEffect(() => {
+    if (tasks.length > 0) {
+      console.log('💾 SALVANDO TAREFAS DELIVERY AUTOMATICAMENTE:', tasks.length);
+      localStorage.setItem('deliveryTasks', JSON.stringify(tasks));
+    }
+  }, [tasks]);
+
   // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas
   useEffect(() => {
     const customColumnIds = Object.keys(customColumns);
@@ -377,54 +385,23 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
 
   const handleDeleteTask = (taskId: string) => {
     console.log('🗑️ HANDLE DELETE TASK CHAMADO:', taskId);
-    console.log('🗑️ TAREFAS ATUAIS:', tasks.length);
-    console.log('🗑️ TAREFAS EXCLUÍDAS ATUAIS:', [...deletedTasks]);
     
     if (confirm('Tem certeza que deseja excluir esta entrega?')) {
       console.log('🗑️ CONFIRMAÇÃO ACEITA - EXCLUINDO TASK:', taskId);
       
-      try {
-        // 1. Adicionar à lista de tarefas excluídas
-        const newDeletedTasks = new Set([...deletedTasks, taskId]);
-        setDeletedTasks(newDeletedTasks);
-        
-        // 2. Salvar tarefas excluídas no localStorage IMEDIATAMENTE
-        const deletedTasksArray = [...newDeletedTasks];
-        localStorage.setItem('deletedDeliveryTasks', JSON.stringify(deletedTasksArray));
-        console.log('🗑️ TAREFAS EXCLUÍDAS SALVAS NO LOCALSTORAGE:', deletedTasksArray);
-        
-        // 3. Atualizar estado das tarefas (remover da lista)
-        const updatedTasks = tasks.filter(task => task.id !== taskId);
-        setTasks(updatedTasks);
-        
-        // 4. Salvar tarefas atualizadas no localStorage IMEDIATAMENTE
-        localStorage.setItem('deliveryTasks', JSON.stringify(updatedTasks));
-        console.log('🗑️ TAREFAS ATUALIZADAS SALVAS NO LOCALSTORAGE:', updatedTasks.length);
-        
-        // 5. Verificar se foi salvo corretamente
-        const savedTasks = localStorage.getItem('deliveryTasks');
-        const savedDeleted = localStorage.getItem('deletedDeliveryTasks');
-        console.log('🗑️ VERIFICAÇÃO IMEDIATA:');
-        console.log('  - deliveryTasks salvas:', savedTasks ? JSON.parse(savedTasks).length : 'ERRO');
-        console.log('  - deletedDeliveryTasks salvas:', savedDeleted ? JSON.parse(savedDeleted).length : 'ERRO');
-        
-        if (onDeleteTask) {
-          console.log('🗑️ CHAMANDO ON DELETE TASK EXTERNA');
-          onDeleteTask(taskId);
-        }
-        
-        // 6. Forçar re-render
-        setTimeout(() => {
-          console.log('🗑️ FORÇANDO RE-RENDER APÓS EXCLUSÃO');
-          setTasks(prev => prev.filter(task => task.id !== taskId));
-        }, 100);
-        
-        console.log('🗑️ TASK EXCLUÍDA PERMANENTEMENTE:', taskId);
-        
-      } catch (error) {
-        console.error('🗑️ ERRO AO EXCLUIR TASK:', error);
-        alert('Erro ao excluir a entrega. Tente novamente.');
+      // Adicionar à lista de tarefas excluídas
+      const newDeletedTasks = new Set([...deletedTasks, taskId]);
+      setDeletedTasks(newDeletedTasks);
+      localStorage.setItem('deletedDeliveryTasks', JSON.stringify([...newDeletedTasks]));
+      
+      // Remover da lista de tarefas (useEffect automático salvará)
+      setTasks(prev => prev.filter(task => task.id !== taskId));
+      
+      if (onDeleteTask) {
+        onDeleteTask(taskId);
       }
+      
+      console.log('🗑️ TASK EXCLUÍDA - useEffect automático salvará');
     } else {
       console.log('🗑️ EXCLUSÃO CANCELADA');
     }

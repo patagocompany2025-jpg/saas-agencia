@@ -265,6 +265,14 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
     }
   }, []);
 
+  // useEffect automático para salvar tarefas no localStorage (igual ao KanbanContext)
+  useEffect(() => {
+    if (tasks.length > 0) {
+      console.log('💾 SALVANDO TAREFAS PÓS-VENDA AUTOMATICAMENTE:', tasks.length);
+      localStorage.setItem('postSaleTasks', JSON.stringify(tasks));
+    }
+  }, [tasks]);
+
   // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas
   useEffect(() => {
     const customColumnIds = Object.keys(customColumns);
@@ -345,49 +353,19 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
 
   const handleDeleteTask = (taskId: string) => {
     console.log('🗑️ HANDLE DELETE POST SALE TASK CHAMADO:', taskId);
-    console.log('🗑️ TAREFAS PÓS-VENDA ATUAIS:', tasks.length);
-    console.log('🗑️ TAREFAS PÓS-VENDA EXCLUÍDAS ATUAIS:', [...deletedTasks]);
     
     if (confirm('Tem certeza que deseja excluir esta atividade de pós-venda?')) {
       console.log('🗑️ CONFIRMAÇÃO ACEITA - EXCLUINDO POST SALE TASK:', taskId);
       
-      try {
-        // 1. Adicionar à lista de tarefas excluídas
-        const newDeletedTasks = new Set([...deletedTasks, taskId]);
-        setDeletedTasks(newDeletedTasks);
-        
-        // 2. Salvar tarefas excluídas no localStorage IMEDIATAMENTE
-        const deletedTasksArray = [...newDeletedTasks];
-        localStorage.setItem('deletedPostSaleTasks', JSON.stringify(deletedTasksArray));
-        console.log('🗑️ TAREFAS PÓS-VENDA EXCLUÍDAS SALVAS NO LOCALSTORAGE:', deletedTasksArray);
-        
-        // 3. Atualizar estado das tarefas (remover da lista)
-        const updatedTasks = tasks.filter(task => task.id !== taskId);
-        setTasks(updatedTasks);
-        
-        // 4. Salvar tarefas atualizadas no localStorage IMEDIATAMENTE
-        localStorage.setItem('postSaleTasks', JSON.stringify(updatedTasks));
-        console.log('🗑️ TAREFAS PÓS-VENDA ATUALIZADAS SALVAS NO LOCALSTORAGE:', updatedTasks.length);
-        
-        // 5. Verificar se foi salvo corretamente
-        const savedTasks = localStorage.getItem('postSaleTasks');
-        const savedDeleted = localStorage.getItem('deletedPostSaleTasks');
-        console.log('🗑️ VERIFICAÇÃO IMEDIATA PÓS-VENDA:');
-        console.log('  - postSaleTasks salvas:', savedTasks ? JSON.parse(savedTasks).length : 'ERRO');
-        console.log('  - deletedPostSaleTasks salvas:', savedDeleted ? JSON.parse(savedDeleted).length : 'ERRO');
-        
-        // 6. Forçar re-render
-        setTimeout(() => {
-          console.log('🗑️ FORÇANDO RE-RENDER APÓS EXCLUSÃO PÓS-VENDA');
-          setTasks(prev => prev.filter(task => task.id !== taskId));
-        }, 100);
-        
-        console.log('🗑️ POST SALE TASK EXCLUÍDA PERMANENTEMENTE:', taskId);
-        
-      } catch (error) {
-        console.error('🗑️ ERRO AO EXCLUIR POST SALE TASK:', error);
-        alert('Erro ao excluir a atividade de pós-venda. Tente novamente.');
-      }
+      // Adicionar à lista de tarefas excluídas
+      const newDeletedTasks = new Set([...deletedTasks, taskId]);
+      setDeletedTasks(newDeletedTasks);
+      localStorage.setItem('deletedPostSaleTasks', JSON.stringify([...newDeletedTasks]));
+      
+      // Remover da lista de tarefas (useEffect automático salvará)
+      setTasks(prev => prev.filter(task => task.id !== taskId));
+      
+      console.log('🗑️ POST SALE TASK EXCLUÍDA - useEffect automático salvará');
     } else {
       console.log('🗑️ EXCLUSÃO PÓS-VENDA CANCELADA');
     }
