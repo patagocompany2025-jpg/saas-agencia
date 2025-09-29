@@ -28,6 +28,7 @@ interface StackAuthContextType {
   signOut: () => Promise<void>;
   isSignedIn: boolean;
   pendingUsers: PendingUser[];
+  approvedUsers: User[];
   approveUser: (userId: string) => Promise<boolean>;
   rejectUser: (userId: string) => Promise<boolean>;
   createUser: (email: string, password: string, name: string, role: string) => Promise<boolean>;
@@ -372,6 +373,7 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
       signOut, 
       isSignedIn,
       pendingUsers,
+      approvedUsers,
       approveUser,
       rejectUser,
       createUser,

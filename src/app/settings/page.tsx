@@ -51,7 +51,7 @@ import {
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user, isLoading: authLoading, createUser } = useStackAuth();
+  const { user, isLoading: authLoading, createUser, approvedUsers } = useStackAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -125,7 +125,7 @@ export default function SettingsPage() {
     permissions: [] as string[]
   });
 
-  // Dados mockados de usuários
+  // Converter usuários aprovados do contexto para o formato da página
   const [users, setUsers] = useState<Array<{
     id: string;
     name: string;
@@ -136,38 +136,23 @@ export default function SettingsPage() {
     lastLogin: string | null;
     permissions: string[];
     updatedAt?: string;
-  }>>([
-    {
-      id: '1',
-      name: 'Alexandre Silva',
-      email: 'alexandre@agenciapatagonia.com',
-      role: 'socio',
-      status: 'active',
-      createdAt: '2024-01-01',
-      lastLogin: '2024-01-15',
-      permissions: []
-    },
-    {
-      id: '2',
-      name: 'Maria Santos',
-      email: 'maria@agenciapatagonia.com',
-      role: 'vendedor',
-      status: 'active',
-      createdAt: '2024-01-05',
-      lastLogin: '2024-01-14',
-      permissions: ['dashboard', 'crm', 'kanban']
-    },
-    {
-      id: '3',
-      name: 'João Oliveira',
-      email: 'joao@agenciapatagonia.com',
-      role: 'vendedor',
-      status: 'inactive',
-      createdAt: '2024-01-10',
-      lastLogin: '2024-01-12',
-      permissions: ['dashboard', 'crm']
-    }
-  ]);
+  }>>([]);
+
+  // Atualizar lista de usuários quando approvedUsers mudar
+  React.useEffect(() => {
+    const convertedUsers = approvedUsers.map(user => ({
+      id: user.id,
+      name: user.displayName || user.email,
+      email: user.email,
+      role: user.role,
+      status: user.status === 'approved' ? 'active' : 'inactive',
+      createdAt: user.createdAt.toISOString().split('T')[0],
+      lastLogin: null, // Não temos essa informação no contexto
+      permissions: [] // Permissões serão implementadas depois
+    }));
+    setUsers(convertedUsers);
+    console.log('Usuários aprovados convertidos:', convertedUsers);
+  }, [approvedUsers]);
 
   // Debug: Log quando users muda
   React.useEffect(() => {
@@ -677,19 +662,8 @@ export default function SettingsPage() {
         );
         
         if (success) {
-          // Atualizar lista local de usuários
-          const newUser = {
-            id: Date.now().toString(),
-            ...userFormData,
-            status: 'active',
-            createdAt: new Date().toISOString().split('T')[0],
-            lastLogin: null
-          };
-          setUsers(prev => {
-            const updated = [...prev, newUser];
-            console.log('Usuários após criação:', updated);
-            return updated;
-          });
+          // A lista de usuários será atualizada automaticamente pelo useEffect
+          // quando approvedUsers mudar no contexto
           alert('Usuário criado com sucesso!');
         } else {
           alert('Erro ao criar usuário. Email pode já existir.');
