@@ -51,7 +51,7 @@ import {
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user, isLoading: authLoading, createUser, approvedUsers } = useStackAuth();
+  const { user, isLoading: authLoading, createUser, approvedUsers, clearUserData } = useStackAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -897,13 +897,22 @@ export default function SettingsPage() {
                         <Users className="h-5 w-5 text-indigo-400" />
                         Gerenciamento de Usuários
                       </CardTitle>
-                      <Button
-                        onClick={handleNewUser}
-                        className="bg-indigo-600 hover:bg-indigo-700"
-                      >
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Adicionar Usuário
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={clearUserData}
+                          variant="outline"
+                          className="text-red-600 border-red-600 hover:bg-red-50"
+                        >
+                          🔄 Reset Dados
+                        </Button>
+                        <Button
+                          onClick={handleNewUser}
+                          className="bg-indigo-600 hover:bg-indigo-700"
+                        >
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Adicionar Usuário
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                 </Card>

@@ -32,6 +32,7 @@ interface StackAuthContextType {
   approveUser: (userId: string) => Promise<boolean>;
   rejectUser: (userId: string) => Promise<boolean>;
   createUser: (email: string, password: string, name: string, role: string) => Promise<boolean>;
+  clearUserData: () => void;
   isAdmin: boolean;
 }
 
@@ -113,10 +114,15 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
           createdAt: new Date(u.createdAt)
         }));
         setApprovedUsers(parsedUsers);
-        console.log('Usuários aprovados carregados:', parsedUsers.length);
+        console.log('Usuários aprovados carregados do localStorage:', parsedUsers.length);
       } catch (error) {
         console.error('Erro ao carregar usuários aprovados:', error);
+        // Se houver erro, limpar localStorage e usar usuários padrão
+        localStorage.removeItem('approvedUsers');
+        console.log('localStorage limpo, usando usuários padrão');
       }
+    } else {
+      console.log('Nenhum usuário aprovado no localStorage, usando usuários padrão');
     }
 
     // Verificar se há usuário logado
@@ -364,6 +370,15 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
   // Verificar se é admin (apenas para demonstração)
   const isAdmin = user?.role === 'socio';
 
+  // Função para limpar localStorage e resetar usuários
+  const clearUserData = () => {
+    localStorage.removeItem('approvedUsers');
+    localStorage.removeItem('pendingUsers');
+    localStorage.removeItem('simpleUser');
+    // Recarregar a página para aplicar as mudanças
+    window.location.reload();
+  };
+
   return (
     <StackAuthContext.Provider value={{ 
       user, 
@@ -377,6 +392,7 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
       approveUser,
       rejectUser,
       createUser,
+      clearUserData,
       isAdmin
     }}>
       {children}
