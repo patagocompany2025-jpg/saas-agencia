@@ -67,6 +67,40 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('=== INICIANDO CARREGAMENTO DO USUÁRIO ===');
     
+    // Verificar e limpar dados corrompidos
+    const checkCorruptedData = () => {
+      const savedApprovedUsers = localStorage.getItem('approvedUsers');
+      if (savedApprovedUsers) {
+        try {
+          const parsed = JSON.parse(savedApprovedUsers);
+          const hasFakeUsers = parsed.some((u: any) => 
+            u.email === 'alexandre@agenciapatagonia.com' || 
+            u.email === 'maria@agenciapatagonia.com' || 
+            u.email === 'joao@agenciapatagonia.com'
+          );
+          if (hasFakeUsers) {
+            console.log('🚨 DADOS CORROMPIDOS DETECTADOS - LIMPANDO LOCALSTORAGE');
+            localStorage.removeItem('approvedUsers');
+            localStorage.removeItem('pendingUsers');
+            localStorage.removeItem('simpleUser');
+            return true;
+          }
+        } catch (error) {
+          console.log('🚨 ERRO AO VERIFICAR DADOS - LIMPANDO LOCALSTORAGE');
+          localStorage.removeItem('approvedUsers');
+          localStorage.removeItem('pendingUsers');
+          localStorage.removeItem('simpleUser');
+          return true;
+        }
+      }
+      return false;
+    };
+    
+    const wasCorrupted = checkCorruptedData();
+    if (wasCorrupted) {
+      console.log('✅ Dados corrompidos removidos, usando usuários padrão');
+    }
+    
     // Carregar usuários pendentes do localStorage
     const savedPendingUsers = localStorage.getItem('pendingUsers');
     if (savedPendingUsers) {

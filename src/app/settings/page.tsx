@@ -140,19 +140,30 @@ export default function SettingsPage() {
 
   // Atualizar lista de usuários quando approvedUsers mudar
   React.useEffect(() => {
+    console.log('=== DEBUG USUÁRIOS ===');
     console.log('approvedUsers do contexto:', approvedUsers);
-    const convertedUsers = approvedUsers.map(user => ({
-      id: user.id,
-      name: user.displayName || user.email,
-      email: user.email,
-      role: user.role,
-      status: user.status === 'approved' ? 'active' : 'inactive',
-      createdAt: user.createdAt.toISOString().split('T')[0],
-      lastLogin: null, // Não temos essa informação no contexto
-      permissions: [] // Permissões serão implementadas depois
-    }));
-    setUsers(convertedUsers);
-    console.log('Usuários aprovados convertidos:', convertedUsers);
+    console.log('Tipo de approvedUsers:', typeof approvedUsers);
+    console.log('Array?', Array.isArray(approvedUsers));
+    console.log('Length:', approvedUsers?.length);
+    
+    if (approvedUsers && approvedUsers.length > 0) {
+      const convertedUsers = approvedUsers.map(user => ({
+        id: user.id,
+        name: user.displayName || user.email,
+        email: user.email,
+        role: user.role,
+        status: user.status === 'approved' ? 'active' : 'inactive',
+        createdAt: user.createdAt.toISOString().split('T')[0],
+        lastLogin: null, // Não temos essa informação no contexto
+        permissions: [] // Permissões serão implementadas depois
+      }));
+      setUsers(convertedUsers);
+      console.log('Usuários aprovados convertidos:', convertedUsers);
+    } else {
+      console.log('approvedUsers está vazio ou undefined');
+      // Se approvedUsers estiver vazio, manter a lista vazia
+      setUsers([]);
+    }
   }, [approvedUsers]);
 
   // Debug: Log quando users muda
