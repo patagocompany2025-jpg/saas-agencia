@@ -558,16 +558,33 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
     console.log('🧹 DADOS LIMPOS E RESETADOS');
   };
 
+  // Função para debug do localStorage
+  const debugLocalStorage = () => {
+    console.log('🔍 DEBUG LOCALSTORAGE DELIVERY:');
+    console.log('  - deliveryTasks:', localStorage.getItem('deliveryTasks'));
+    console.log('  - deletedDeliveryTasks:', localStorage.getItem('deletedDeliveryTasks'));
+    console.log('  - Tasks state:', tasks.length);
+    console.log('  - Deleted tasks state:', [...deletedTasks]);
+  };
+
   // Adicionar botão de debug (apenas para desenvolvimento)
   const addDebugButton = () => {
-    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    if (typeof window !== 'undefined') {
       return (
-        <button 
-          onClick={clearAllData}
-          className="fixed bottom-4 right-4 bg-red-600 text-white px-4 py-2 rounded-lg z-50"
-        >
-          🧹 Reset Dados
-        </button>
+        <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-50">
+          <button 
+            onClick={clearAllData}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg"
+          >
+            🧹 Reset Dados
+          </button>
+          <button 
+            onClick={debugLocalStorage}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+          >
+            🔍 Debug
+          </button>
+        </div>
       );
     }
     return null;
