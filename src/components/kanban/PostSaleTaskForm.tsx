@@ -22,7 +22,8 @@ import {
   AlertCircle,
   ThumbsUp,
   Gift,
-  Award
+  Award,
+  ArrowLeft
 } from 'lucide-react';
 
 interface PostSaleTask {
@@ -144,6 +145,27 @@ export function PostSaleTaskForm({ initialTask, onSave, onCancel }: PostSaleTask
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Header com botão de voltar */}
+      <div className="flex items-center gap-4 mb-6">
+        <Button
+          type="button"
+          onClick={onCancel}
+          variant="outline"
+          className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600 flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar
+        </Button>
+        <div>
+          <h2 className="text-xl font-semibold text-white">
+            {initialTask ? 'Editar Pós-Venda' : 'Nova Atividade de Pós-Venda'}
+          </h2>
+          <p className="text-white/70 text-sm">
+            {initialTask ? 'Edite os dados da atividade' : 'Preencha os dados da nova atividade'}
+          </p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Nome do Cliente */}
         <div className="space-y-2">

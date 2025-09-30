@@ -28,7 +28,8 @@ import {
   Heart,
   Plus,
   Search,
-  X
+  X,
+  ArrowLeft
 } from 'lucide-react';
 
 interface DeliveryTask {
@@ -286,6 +287,27 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Header com botão de voltar */}
+      <div className="flex items-center gap-4 mb-6">
+        <Button
+          type="button"
+          onClick={onCancel}
+          variant="outline"
+          className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600 flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar
+        </Button>
+        <div>
+          <h2 className="text-xl font-semibold text-white">
+            {task ? 'Editar Entrega' : 'Nova Entrega'}
+          </h2>
+          <p className="text-white/70 text-sm">
+            {task ? 'Edite os dados da entrega' : 'Preencha os dados da nova entrega'}
+          </p>
+        </div>
+      </div>
+
       {/* Informações do Cliente */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
