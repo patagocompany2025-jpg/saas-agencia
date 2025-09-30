@@ -5,6 +5,7 @@ import { StackAuthProvider } from "@/lib/contexts/StackAuthContext-approval";
 import { ClientProvider } from "@/lib/contexts/ClientContext";
 import { KanbanProvider } from "@/lib/contexts/KanbanContext";
 import { FinancialProvider } from "@/lib/contexts/FinancialContext";
+import { CacheManager } from "@/components/CacheManager";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,6 +20,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Agência Patagonian - Sistema de Gestão",
   description: "Sistema completo de gestão para agência de viagens",
+  other: {
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  }
 };
 
 export default function RootLayout({
@@ -31,6 +37,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <CacheManager />
         <StackAuthProvider>
           <ClientProvider>
             <KanbanProvider>
