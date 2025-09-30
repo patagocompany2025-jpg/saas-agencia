@@ -135,7 +135,23 @@ const mockPostSaleTasks = [
 
 export default function PostSalePage() {
   const { user, isLoading } = useStackAuth();
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState<{
+    id: string;
+    clientName: string;
+    service: string;
+    value: number;
+    status: 'aguardando' | 'contato' | 'satisfeito' | 'reclamacao' | 'fidelizado' | 'indicacao';
+    completionDate: string;
+    feedbackDate?: string;
+    satisfaction?: number;
+    feedback?: string;
+    nextContact: string;
+    assignedTo: string;
+    priority: 'baixa' | 'media' | 'alta';
+    notes?: string;
+    createdAt: string;
+    updatedAt: string;
+  }[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<{
