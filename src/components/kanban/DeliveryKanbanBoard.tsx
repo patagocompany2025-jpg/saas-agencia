@@ -254,6 +254,7 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
     setDraggedTask(task);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', task.id);
+    e.dataTransfer.setData('drag-type', 'card'); // Marcar como arrastar card
     
     // Adicionar classe visual ao card sendo arrastado
     const target = e.target as HTMLElement;
@@ -305,6 +306,10 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   const handleDrop = (e: React.DragEvent, newStatus: DeliveryTask['status']) => {
     e.preventDefault();
     
+    // Verificar se é arrastar card (não coluna)
+    const dragType = e.dataTransfer.getData('drag-type');
+    if (dragType !== 'card') return;
+    
     // Remover efeito visual
     const target = e.currentTarget as HTMLElement;
     const column = target.querySelector('.column-header') as HTMLElement;
@@ -338,6 +343,7 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
     setDraggedColumn(columnStatus);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', columnStatus);
+    e.dataTransfer.setData('drag-type', 'column'); // Marcar como arrastar coluna
   };
 
   const handleColumnDragOver = (e: React.DragEvent) => {
@@ -347,6 +353,10 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
 
   const handleColumnDrop = (e: React.DragEvent, targetColumn: DeliveryTask['status']) => {
     e.preventDefault();
+    
+    // Verificar se é arrastar coluna (não card)
+    const dragType = e.dataTransfer.getData('drag-type');
+    if (dragType !== 'column') return;
     
     if (draggedColumn && draggedColumn !== targetColumn) {
       const newOrder = [...columnOrder];

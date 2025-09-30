@@ -273,6 +273,7 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   const handleDragStart = (e: React.DragEvent, task: PostSaleTask) => {
     setDraggedTask(task);
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('drag-type', 'card'); // Marcar como arrastar card
   };
 
   const handleDragEnd = () => {
@@ -291,6 +292,10 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   const handleDrop = (e: React.DragEvent, newStatus: PostSaleTask['status']) => {
     e.preventDefault();
     
+    // Verificar se é arrastar card (não coluna)
+    const dragType = e.dataTransfer.getData('drag-type');
+    if (dragType !== 'card') return;
+    
     if (draggedTask && draggedTask.status !== newStatus) {
       setTasks(prev => prev.map(task => 
         task.id === draggedTask.id 
@@ -306,6 +311,7 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   const handleColumnDragStart = (e: React.DragEvent, columnStatus: PostSaleTask['status']) => {
     setDraggedColumn(columnStatus);
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('drag-type', 'column'); // Marcar como arrastar coluna
   };
 
   const handleColumnDragOver = (e: React.DragEvent) => {
@@ -315,6 +321,10 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
 
   const handleColumnDrop = (e: React.DragEvent, targetColumn: PostSaleTask['status']) => {
     e.preventDefault();
+    
+    // Verificar se é arrastar coluna (não card)
+    const dragType = e.dataTransfer.getData('drag-type');
+    if (dragType !== 'column') return;
     
     if (draggedColumn && draggedColumn !== targetColumn) {
       const newOrder = [...columnOrder];
