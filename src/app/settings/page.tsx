@@ -666,24 +666,30 @@ export default function SettingsPage() {
       } else {
         // Criar novo usuário usando o contexto de autenticação
         console.log('Criando novo usuário via contexto:', userFormData);
-        const success = await createUser(
-          userFormData.email,
-          userFormData.password,
-          userFormData.name,
-          userFormData.role
-        );
         
-        if (success) {
-          // A lista de usuários será atualizada automaticamente pelo useEffect
-          // quando approvedUsers mudar no contexto
-          alert('Usuário criado com sucesso!');
-        } else {
-          alert('Erro ao criar usuário. Email pode já existir.');
+        try {
+          const success = await createUser(
+            userFormData.email,
+            userFormData.password,
+            userFormData.name,
+            userFormData.role
+          );
+          
+          if (success) {
+            // A lista de usuários será atualizada automaticamente pelo useEffect
+            // quando approvedUsers mudar no contexto
+            alert('Usuário criado com sucesso!');
+            handleCancelEdit();
+          } else {
+            alert('Erro ao criar usuário. Email pode já existir.');
+            return;
+          }
+        } catch (error) {
+          console.error('Erro ao criar usuário:', error);
+          alert('Erro ao criar usuário. Tente novamente.');
           return;
         }
       }
-      
-      handleCancelEdit();
     } catch (error) {
       console.error('Erro ao salvar usuário:', error);
       alert('Erro ao salvar usuário. Tente novamente.');
@@ -909,13 +915,6 @@ export default function SettingsPage() {
                         Gerenciamento de Usuários
                       </CardTitle>
                       <div className="flex gap-2">
-                        <Button
-                          onClick={clearUserData}
-                          variant="outline"
-                          className="text-red-600 border-red-600 hover:bg-red-50"
-                        >
-                          🔄 Reset Dados
-                        </Button>
                         <Button
                           onClick={handleNewUser}
                           className="bg-indigo-600 hover:bg-indigo-700"
