@@ -135,7 +135,7 @@ const mockPostSaleTasks = [
 
 export default function PostSalePage() {
   const { user, isLoading } = useStackAuth();
-  const [tasks, setTasks] = useState(mockPostSaleTasks);
+  const [tasks, setTasks] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<{
