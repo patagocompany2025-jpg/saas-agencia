@@ -347,7 +347,7 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
       
       // Remover também do localStorage imediatamente
       const existingTasks = JSON.parse(localStorage.getItem('postSaleTasks') || '[]');
-      const updatedTasks = existingTasks.filter((task: any) => task.id !== taskId);
+      const updatedTasks = existingTasks.filter((task: { id: string }) => task.id !== taskId);
       localStorage.setItem('postSaleTasks', JSON.stringify(updatedTasks));
       
       console.log('🗑️ POST SALE TASK EXCLUÍDA PERMANENTEMENTE');

@@ -174,7 +174,7 @@ export default function DeliveryPage() {
       
       // Remover do localStorage
       const existingTasks = JSON.parse(localStorage.getItem('deliveryTasks') || '[]');
-      const updatedTasks = existingTasks.filter((task: any) => task.id !== taskId);
+      const updatedTasks = existingTasks.filter((task: { id: string }) => task.id !== taskId);
       localStorage.setItem('deliveryTasks', JSON.stringify(updatedTasks));
       
       console.log('🗑️ TASK EXCLUÍDA PERMANENTEMENTE DO LOCALSTORAGE');
