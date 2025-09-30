@@ -224,26 +224,25 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   // Estado para armazenar configurações personalizadas das colunas padrão
   const [customColumnConfigs, setCustomColumnConfigs] = useState<{[key: string]: {title: string, subtitle: string}}>({});
   
-  // Carregar tarefas e tarefas excluídas do localStorage
+  // Carregar tarefas do localStorage
   useEffect(() => {
     console.log('🔄 INICIALIZANDO POST SALE KANBAN BOARD');
 
-    // SOLUÇÃO DEFINITIVA - LIMPAR TUDO E FORÇAR VAZIO
-    console.log('🧹 SOLUÇÃO DEFINITIVA - LIMPANDO TUDO');
-    
-    // Limpar localStorage completamente
-    localStorage.removeItem('postSaleTasks');
-    localStorage.removeItem('postSaleUserInteracted');
-    localStorage.removeItem('postSaleDeletedTasks');
-    
-    // Forçar array vazio
-    setTasks([]);
-    
-    // Forçar re-render
-    setTimeout(() => {
+    // Carregar tarefas do localStorage
+    const savedTasks = localStorage.getItem('postSaleTasks');
+    if (savedTasks) {
+      try {
+        const parsedTasks = JSON.parse(savedTasks);
+        console.log('📋 TAREFAS DE PÓS-VENDA CARREGADAS:', parsedTasks.length);
+        setTasks(parsedTasks);
+      } catch (error) {
+        console.error('❌ ERRO AO CARREGAR TAREFAS DE PÓS-VENDA:', error);
+        setTasks([]);
+      }
+    } else {
+      console.log('📋 NENHUMA TAREFA DE PÓS-VENDA SALVA');
       setTasks([]);
-      console.log('✅ CARDS FORÇADAMENTE LIMPOS');
-    }, 100);
+    }
     
     // Marcar como inicializado
     setIsInitialized(true);
@@ -258,16 +257,6 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
     localStorage.setItem('postSaleTasks', JSON.stringify(tasks));
   }, [tasks, isInitialized]);
 
-  // Função para limpar todos os cards
-  const clearAllCards = () => {
-    console.log('🧹 LIMPANDO TODOS OS CARDS DE POST-SALE');
-    alert('🧹 LIMPANDO TODOS OS CARDS DE PÓS-VENDA!');
-    setTasks([]);
-    localStorage.removeItem('postSaleTasks');
-    localStorage.removeItem('postSaleUserInteracted');
-    console.log('🧹 CARDS DE POST-SALE LIMPOS');
-    alert('✅ CARDS LIMPOS COM SUCESSO!');
-  };
 
   // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas
   useEffect(() => {
@@ -353,10 +342,15 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
     if (confirm('Tem certeza que deseja excluir esta atividade de pós-venda?')) {
       console.log('🗑️ CONFIRMAÇÃO ACEITA - EXCLUINDO POST SALE TASK:', taskId);
       
-      // Remover da lista de tarefas (useEffect automático salvará)
+      // Remover da lista de tarefas
       setTasks(prev => prev.filter(task => task.id !== taskId));
       
-      console.log('🗑️ POST SALE TASK EXCLUÍDA - useEffect automático salvará');
+      // Remover também do localStorage imediatamente
+      const existingTasks = JSON.parse(localStorage.getItem('postSaleTasks') || '[]');
+      const updatedTasks = existingTasks.filter((task: any) => task.id !== taskId);
+      localStorage.setItem('postSaleTasks', JSON.stringify(updatedTasks));
+      
+      console.log('🗑️ POST SALE TASK EXCLUÍDA PERMANENTEMENTE');
     } else {
       console.log('🗑️ EXCLUSÃO PÓS-VENDA CANCELADA');
     }
@@ -497,32 +491,6 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
 
   // Debug: verificar se o componente está sendo renderizado
   console.log('🔍 POST-SALE KANBAN BOARD RENDERIZANDO - TASKS:', tasks.length);
-  
-  // SOLUÇÃO DEFINITIVA - FORÇAR LIMPEZA IMEDIATA
-  if (tasks.length > 0) {
-    console.log('🚨 CARDS DETECTADOS - FORÇANDO LIMPEZA IMEDIATA');
-    setTasks([]);
-    localStorage.clear();
-  }
-  
-  // Função global para limpar cards (disponível no console)
-  (window as any).clearPostSaleCards = () => {
-    console.log('🧹 LIMPANDO TODOS OS CARDS DE POST-SALE VIA CONSOLE');
-    setTasks([]);
-    localStorage.removeItem('postSaleTasks');
-    localStorage.removeItem('postSaleUserInteracted');
-    localStorage.removeItem('postSaleDeletedTasks');
-    console.log('✅ CARDS DE POST-SALE LIMPOS VIA CONSOLE');
-  };
-
-  // Função global para limpar TUDO (disponível no console)
-  (window as any).clearAllData = () => {
-    console.log('🧹 LIMPANDO TUDO - SOLUÇÃO DEFINITIVA');
-    localStorage.clear();
-    setTasks([]);
-    window.location.reload();
-    console.log('✅ TUDO LIMPO - PÁGINA RECARREGADA');
-  };
   
   return (
     <div className="space-y-6">

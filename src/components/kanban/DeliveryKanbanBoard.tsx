@@ -208,22 +208,21 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   useEffect(() => {
     console.log('🔄 INICIALIZANDO DELIVERY KANBAN BOARD');
 
-    // SOLUÇÃO DEFINITIVA - LIMPAR TUDO E FORÇAR VAZIO
-    console.log('🧹 SOLUÇÃO DEFINITIVA - LIMPANDO TUDO');
-    
-    // Limpar localStorage completamente
-    localStorage.removeItem('deliveryTasks');
-    localStorage.removeItem('deliveryUserInteracted');
-    localStorage.removeItem('deliveryDeletedTasks');
-    
-    // Forçar array vazio
-    setTasks([]);
-    
-    // Forçar re-render
-    setTimeout(() => {
+    // Carregar tarefas do localStorage
+    const savedTasks = localStorage.getItem('deliveryTasks');
+    if (savedTasks) {
+      try {
+        const parsedTasks = JSON.parse(savedTasks);
+        console.log('📋 TAREFAS DE DELIVERY CARREGADAS:', parsedTasks.length);
+        setTasks(parsedTasks);
+      } catch (error) {
+        console.error('❌ ERRO AO CARREGAR TAREFAS DE DELIVERY:', error);
+        setTasks([]);
+      }
+    } else {
+      console.log('📋 NENHUMA TAREFA DE DELIVERY SALVA');
       setTasks([]);
-      console.log('✅ CARDS FORÇADAMENTE LIMPOS');
-    }, 100);
+    }
     
     // Marcar como inicializado
     setIsInitialized(true);
@@ -238,16 +237,6 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
     localStorage.setItem('deliveryTasks', JSON.stringify(tasks));
   }, [tasks, isInitialized]);
 
-  // Função para limpar todos os cards
-  const clearAllCards = () => {
-    console.log('🧹 LIMPANDO TODOS OS CARDS DE DELIVERY');
-    alert('🧹 LIMPANDO TODOS OS CARDS DE DELIVERY!');
-    setTasks([]);
-    localStorage.removeItem('deliveryTasks');
-    localStorage.removeItem('deliveryUserInteracted');
-    console.log('🧹 CARDS DE DELIVERY LIMPOS');
-    alert('✅ CARDS LIMPOS COM SUCESSO!');
-  };
 
   // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas
   useEffect(() => {
@@ -386,14 +375,19 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
     if (confirm('Tem certeza que deseja excluir esta entrega?')) {
       console.log('🗑️ CONFIRMAÇÃO ACEITA - EXCLUINDO TASK:', taskId);
       
-      // Remover da lista de tarefas (useEffect automático salvará)
+      // Remover da lista de tarefas
       setTasks(prev => {
         const filtered = prev.filter(task => task.id !== taskId);
         console.log('🗑️ TASKS APÓS FILTRO:', filtered.length);
         return filtered;
       });
       
-      console.log('🗑️ TASK EXCLUÍDA - useEffect automático salvará');
+      // Remover também do localStorage imediatamente
+      const existingTasks = JSON.parse(localStorage.getItem('deliveryTasks') || '[]');
+      const updatedTasks = existingTasks.filter((task: any) => task.id !== taskId);
+      localStorage.setItem('deliveryTasks', JSON.stringify(updatedTasks));
+      
+      console.log('🗑️ TASK EXCLUÍDA PERMANENTEMENTE');
     } else {
       console.log('🗑️ EXCLUSÃO CANCELADA');
     }
@@ -517,32 +511,6 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
 
   // Debug: verificar se o componente está sendo renderizado
   console.log('🔍 DELIVERY KANBAN BOARD RENDERIZANDO - TASKS:', tasks.length);
-  
-  // SOLUÇÃO DEFINITIVA - FORÇAR LIMPEZA IMEDIATA
-  if (tasks.length > 0) {
-    console.log('🚨 CARDS DETECTADOS - FORÇANDO LIMPEZA IMEDIATA');
-    setTasks([]);
-    localStorage.clear();
-  }
-  
-  // Função global para limpar cards (disponível no console)
-  (window as any).clearDeliveryCards = () => {
-    console.log('🧹 LIMPANDO TODOS OS CARDS DE DELIVERY VIA CONSOLE');
-    setTasks([]);
-    localStorage.removeItem('deliveryTasks');
-    localStorage.removeItem('deliveryUserInteracted');
-    localStorage.removeItem('deliveryDeletedTasks');
-    console.log('✅ CARDS DE DELIVERY LIMPOS VIA CONSOLE');
-  };
-
-  // Função global para limpar TUDO (disponível no console)
-  (window as any).clearAllData = () => {
-    console.log('🧹 LIMPANDO TUDO - SOLUÇÃO DEFINITIVA');
-    localStorage.clear();
-    setTasks([]);
-    window.location.reload();
-    console.log('✅ TUDO LIMPO - PÁGINA RECARREGADA');
-  };
   
   return (
     <div className="space-y-6">

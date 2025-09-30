@@ -168,9 +168,23 @@ export default function DeliveryPage() {
 
   const handleDeleteTask = (taskId: string) => {
     console.log('🗑️ HANDLE DELETE TASK CHAMADO NA PÁGINA:', taskId);
-    // Implementar lógica de exclusão
-    console.log('Excluindo tarefa:', taskId);
-    alert(`Entrega ${taskId} excluída com sucesso!`);
+    
+    if (confirm('Tem certeza que deseja excluir esta entrega?')) {
+      console.log('🗑️ CONFIRMAÇÃO ACEITA - EXCLUINDO TASK:', taskId);
+      
+      // Remover do localStorage
+      const existingTasks = JSON.parse(localStorage.getItem('deliveryTasks') || '[]');
+      const updatedTasks = existingTasks.filter((task: any) => task.id !== taskId);
+      localStorage.setItem('deliveryTasks', JSON.stringify(updatedTasks));
+      
+      console.log('🗑️ TASK EXCLUÍDA PERMANENTEMENTE DO LOCALSTORAGE');
+      alert(`Entrega excluída com sucesso!`);
+      
+      // Recarregar a página para refletir a mudança
+      window.location.reload();
+    } else {
+      console.log('🗑️ EXCLUSÃO CANCELADA');
+    }
   };
 
   const handleExportTasks = () => {
