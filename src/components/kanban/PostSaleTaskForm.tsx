@@ -25,6 +25,7 @@ import {
   Award,
   ArrowLeft
 } from 'lucide-react';
+import { useClients } from '@/lib/contexts/ClientContext';
 
 interface PostSaleTask {
   id: string;
@@ -51,6 +52,7 @@ interface PostSaleTaskFormProps {
 }
 
 export function PostSaleTaskForm({ initialTask, onSave, onCancel }: PostSaleTaskFormProps) {
+  const { clients } = useClients();
   const [formData, setFormData] = useState({
     clientName: '',
     service: '',
@@ -65,7 +67,7 @@ export function PostSaleTaskForm({ initialTask, onSave, onCancel }: PostSaleTask
     priority: 'media' as PostSaleTask['priority'],
     notes: ''
   });
-
+  const [selectedClientId, setSelectedClientId] = useState('');
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   useEffect(() => {
@@ -143,6 +145,18 @@ export function PostSaleTaskForm({ initialTask, onSave, onCancel }: PostSaleTask
     }
   };
 
+  // Selecionar cliente do dropdown
+  const handleClientSelect = (clientId: string) => {
+    setSelectedClientId(clientId);
+    const selectedClient = clients.find(client => client.id === clientId);
+    if (selectedClient) {
+      setFormData(prev => ({
+        ...prev,
+        clientName: selectedClient.name
+      }));
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Header com botão de voltar */}
@@ -173,13 +187,18 @@ export function PostSaleTaskForm({ initialTask, onSave, onCancel }: PostSaleTask
             <User className="h-4 w-4" />
             Nome do Cliente *
           </Label>
-          <Input
-            id="clientName"
-            value={formData.clientName}
-            onChange={(e) => handleInputChange('clientName', e.target.value)}
-            className="bg-gray-700 border-gray-600 text-white"
-            placeholder="Ex: Família Silva"
-          />
+          <select
+            value={selectedClientId}
+            onChange={(e) => handleClientSelect(e.target.value)}
+            className="w-full bg-gray-700 border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+          >
+            <option value="" className="bg-gray-800 text-white">Selecione um cliente</option>
+            {clients.map((client) => (
+              <option key={client.id} value={client.id} className="bg-gray-800 text-white">
+                {client.name} - {client.email}
+              </option>
+            ))}
+          </select>
           {errors.clientName && (
             <p className="text-red-400 text-sm">{errors.clientName}</p>
           )}

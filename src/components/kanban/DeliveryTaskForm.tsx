@@ -85,6 +85,7 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
     assignedTo: '',
     notes: ''
   });
+  const [selectedClientId, setSelectedClientId] = useState('');
 
   useEffect(() => {
     if (task) {
@@ -117,8 +118,21 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
       ...prev,
       clientName: client.name
     }));
+    setSelectedClientId(client.id);
     setShowClientSelector(false);
     setClientSearchTerm('');
+  };
+
+  // Selecionar cliente do dropdown
+  const handleClientSelect = (clientId: string) => {
+    setSelectedClientId(clientId);
+    const selectedClient = clients.find(client => client.id === clientId);
+    if (selectedClient) {
+      setFormData(prev => ({
+        ...prev,
+        clientName: selectedClient.name
+      }));
+    }
   };
 
   // Criar novo cliente
@@ -316,14 +330,18 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
             Nome do Cliente *
           </Label>
           <div className="flex gap-2">
-            <Input
-              id="clientName"
-              value={formData.clientName || ''}
-              onChange={(e) => handleInputChange('clientName', e.target.value)}
-              className="bg-gray-700 border-gray-600 text-white"
-              placeholder="Ex: Família Silva"
-              required
-            />
+            <select
+              value={selectedClientId}
+              onChange={(e) => handleClientSelect(e.target.value)}
+              className="flex-1 bg-gray-700 border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="" className="bg-gray-800 text-white">Selecione um cliente</option>
+              {clients.map((client) => (
+                <option key={client.id} value={client.id} className="bg-gray-800 text-white">
+                  {client.name} - {client.email}
+                </option>
+              ))}
+            </select>
             <Button
               type="button"
               onClick={() => setShowClientSelector(true)}
