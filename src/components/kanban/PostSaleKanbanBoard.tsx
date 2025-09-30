@@ -271,6 +271,7 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   }, [customColumns]);
 
   const handleDragStart = (e: React.DragEvent, task: PostSaleTask) => {
+    e.stopPropagation(); // Impedir que o evento se propague para a coluna
     setDraggedTask(task);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('drag-type', 'card'); // Marcar como arrastar card
@@ -309,6 +310,15 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
 
   // Funções para drag and drop de colunas
   const handleColumnDragStart = (e: React.DragEvent, columnStatus: PostSaleTask['status']) => {
+    // Só permitir arrastar coluna se clicar especificamente no GripVertical
+    const target = e.target as HTMLElement;
+    const gripElement = target.closest('.grip-handle');
+    
+    if (!gripElement) {
+      e.preventDefault(); // Cancelar o drag se não for no grip
+      return;
+    }
+    
     setDraggedColumn(columnStatus);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('drag-type', 'column'); // Marcar como arrastar coluna
@@ -563,7 +573,7 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
                 <div className="mb-4 flex-shrink-0 column-header">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <GripVertical className="h-4 w-4 text-white/40 cursor-move" />
+                      <GripVertical className="h-4 w-4 text-white/40 cursor-move grip-handle" />
                       <div className={`p-2 rounded-lg ${config.color}`}>
                         {config.icon}
                       </div>
