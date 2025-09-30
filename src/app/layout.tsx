@@ -5,7 +5,9 @@ import { StackAuthProvider } from "@/lib/contexts/StackAuthContext-approval";
 import { ClientProvider } from "@/lib/contexts/ClientContext";
 import { KanbanProvider } from "@/lib/contexts/KanbanContext";
 import { FinancialProvider } from "@/lib/contexts/FinancialContext";
+import { SyncProvider } from "@/lib/contexts/SyncContext";
 import { CacheManager } from "@/components/CacheManager";
+import { SyncStatus } from "@/components/SyncStatus";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,15 +40,18 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <CacheManager />
-        <StackAuthProvider>
-          <ClientProvider>
-            <KanbanProvider>
-              <FinancialProvider>
-                {children}
-              </FinancialProvider>
-            </KanbanProvider>
-          </ClientProvider>
-        </StackAuthProvider>
+        <SyncProvider>
+          <StackAuthProvider>
+            <ClientProvider>
+              <KanbanProvider>
+                <FinancialProvider>
+                  {children}
+                  <SyncStatus />
+                </FinancialProvider>
+              </KanbanProvider>
+            </ClientProvider>
+          </StackAuthProvider>
+        </SyncProvider>
       </body>
     </html>
   );

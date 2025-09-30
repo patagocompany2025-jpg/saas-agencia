@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { dataSync } from '@/lib/sync';
 
 interface User {
   id: string;
@@ -386,7 +387,8 @@ export function StackAuthProvider({ children }: { children: React.ReactNode }) {
       // Adicionar à lista de aprovados
       setApprovedUsers(prev => {
         const updated = [...prev, newUser];
-        localStorage.setItem('approvedUsers', JSON.stringify(updated));
+        // Salvar com sincronização
+        dataSync.saveData('approvedUsers', updated, user?.id);
         console.log('Usuário criado e aprovado:', newUser);
         return updated;
       });
