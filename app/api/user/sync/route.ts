@@ -29,15 +29,15 @@ export async function POST(request: NextRequest) {
         name: true,
         email: true,
         role: true,
-        created_at: true,
-        updated_at: true
+        createdAt: true,
+        updatedAt: true
       }
     });
 
     if (!user) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         success: true,
-        user: null 
+        user: null
       });
     }
 
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       displayName: user.name,
       role: user.role || 'cliente',
       status: 'active', // Default status
-      createdAt: user.created_at
+      createdAt: user.createdAt
     };
 
     console.log('Usuário encontrado no Neon DB:', userData);

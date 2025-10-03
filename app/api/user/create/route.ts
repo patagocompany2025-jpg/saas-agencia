@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
         name: true,
         email: true,
         role: true,
-        created_at: true,
-        updated_at: true
+        createdAt: true,
+        updatedAt: true
       }
     });
     console.log('Usuário criado com sucesso:', user);
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       displayName: user.name,
       role: user.role || 'cliente',
       status: 'active', // Default status
-      createdAt: user.created_at
+      createdAt: user.createdAt
     };
 
     console.log('Usuário criado no Neon DB:', userData);
