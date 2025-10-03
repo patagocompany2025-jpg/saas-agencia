@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
+// API endpoint para criar novos usuários no sistema
 export async function POST(request: NextRequest) {
   try {
     console.log('=== INICIANDO CRIAÇÃO DE USUÁRIO ===');
