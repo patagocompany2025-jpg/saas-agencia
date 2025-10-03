@@ -239,6 +239,11 @@ const PATAGONIA_SERVICES = {
   }
 };
 
+interface ServiceOptionWithDelete {
+  deleted?: boolean;
+  [key: string]: unknown;
+}
+
 export default function CalculatorPage() {
   const { user, isLoading } = useHybridAuth();
   // Armazenar apenas os dados editáveis, mantendo PATAGONIA_SERVICES intacto
@@ -260,7 +265,7 @@ export default function CalculatorPage() {
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [addCategoryContext, setAddCategoryContext] = useState<{type: 'category' | 'priceRange', parentCategory?: string} | null>(null);
   const [newCategoryForm, setNewCategoryForm] = useState({ name: '' });
-  const [newCategories, setNewCategories] = useState<{[key: string]: {name: string, icon: any, categories: any}}>({});
+  const [newCategories, setNewCategories] = useState<{[key: string]: {name: string, icon: React.ReactNode, categories: Record<string, unknown>}}>({});
   const [newPriceRanges, setNewPriceRanges] = useState<{[key: string]: {name: string, color: string}}>({});
   
   const [formData, setFormData] = useState({
@@ -341,7 +346,7 @@ export default function CalculatorPage() {
     const key = `${serviceType}-${category}-${optionIndex}`;
     setServiceOverrides(prev => ({
       ...prev,
-      [key]: { ...prev[key], deleted: true } as any
+      [key]: { ...prev[key], deleted: true } as ServiceOptionWithDelete
     }));
     setEditingServiceKey(null);
   };
@@ -428,7 +433,7 @@ export default function CalculatorPage() {
         Object.entries(service.categories).forEach(([catType, categoryData]) => {
           categoryData.options.forEach((_, optionIndex) => {
             const option = getServiceOption(category, catType, optionIndex);
-            if ((option as any).deleted) return; // Pular deletados
+            if ((option as ServiceOptionWithDelete).deleted) return; // Pular deletados
 
             if (formData.services.includes(`${category}-${catType}-${option.name}`)) {
               const price = Number(option.basePrice);
@@ -544,7 +549,7 @@ export default function CalculatorPage() {
       Object.entries(service.categories).forEach(([catType, categoryData]) => {
         categoryData.options.forEach((_, optionIndex) => {
           const option = getServiceOption(category, catType, optionIndex);
-          if ((option as any).deleted) return;
+          if ((option as ServiceOptionWithDelete).deleted) return;
 
           if (formData.services.includes(`${category}-${catType}-${option.name}`)) {
             selectedServices.push(`<li>${option.name} - ${formatPrice(option.basePrice, formData.currency)}/dia</li>`);
@@ -874,7 +879,7 @@ export default function CalculatorPage() {
       Object.entries(service.categories).forEach(([catType, categoryData]) => {
         categoryData.options.forEach((_, optionIndex) => {
           const option = getServiceOption(category, catType, optionIndex);
-          if ((option as any).deleted) return;
+          if ((option as ServiceOptionWithDelete).deleted) return;
 
           if (formData.services.includes(`${category}-${catType}-${option.name}`)) {
             selectedServices.push(`<li>${option.name} - ${formatPrice(option.basePrice, formData.currency)}/dia</li>`);
@@ -1618,7 +1623,7 @@ export default function CalculatorPage() {
         Object.entries(service.categories).forEach(([catType, categoryData]) => {
           categoryData.options.forEach((_, optionIndex) => {
             const option = getServiceOption(category, catType, optionIndex);
-            if ((option as any).deleted) return;
+            if ((option as ServiceOptionWithDelete).deleted) return;
 
             if (formData.services.includes(`${category}-${catType}-${option.name}`)) {
               selectedServices.push(`${option.name} - ${formatPrice(option.basePrice, formData.currency)}/dia`);
@@ -1762,7 +1767,7 @@ export default function CalculatorPage() {
       Object.entries(service.categories).forEach(([catType, categoryData]) => {
         categoryData.options.forEach((_, optionIndex) => {
           const option = getServiceOption(category, catType, optionIndex);
-          if ((option as any).deleted) return;
+          if ((option as ServiceOptionWithDelete).deleted) return;
 
           if (formData.services.includes(`${category}-${catType}-${option.name}`)) {
             selectedServices.push(`${option.name} - ${formatPrice(option.basePrice, formData.currency)}/dia`);
@@ -2094,7 +2099,7 @@ Patagonia Company - Sistema de Gestão
                           <div className="space-y-2 ml-4">
                             {categoryData.options.map((_, optionIndex) => {
                               const option = getServiceOption(category, catType, optionIndex);
-                              if ((option as any).deleted) return null; // Pular deletados
+                              if ((option as ServiceOptionWithDelete).deleted) return null; // Pular deletados
 
                               const serviceKey = `${category}-${catType}-${option.name}`;
                               const isSelected = formData.services.includes(serviceKey);
@@ -2460,7 +2465,7 @@ Patagonia Company - Sistema de Gestão
                                              !option.companyInfo?.address &&
                                              !option.companyInfo?.website && (
                                               <p className="text-white/40 text-xs italic">
-                                                Nenhuma informação adicional disponível. Clique em "Editar" para adicionar.
+                                                Nenhuma informação adicional disponível. Clique em &quot;Editar&quot; para adicionar.
                                               </p>
                                             )}
                                           </div>
