@@ -251,6 +251,7 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   }, [customColumns]);
 
   const handleDragStart = (e: React.DragEvent, task: DeliveryTask) => {
+    e.stopPropagation(); // Impedir que o evento se propague para a coluna
     setDraggedTask(task);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', task.id);
@@ -340,6 +341,15 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
 
   // Funções para drag and drop de colunas
   const handleColumnDragStart = (e: React.DragEvent, columnStatus: DeliveryTask['status']) => {
+    // Só permitir arrastar coluna se clicar especificamente no GripVertical
+    const target = e.target as HTMLElement;
+    const gripElement = target.closest('.grip-handle');
+    
+    if (!gripElement) {
+      e.preventDefault(); // Cancelar o drag se não for no grip
+      return;
+    }
+    
     setDraggedColumn(columnStatus);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', columnStatus);
@@ -585,7 +595,7 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
               <div className="mb-4 flex-shrink-0 column-header">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <GripVertical className="h-4 w-4 text-white/40 cursor-move" />
+                    <GripVertical className="h-4 w-4 text-white/40 cursor-move grip-handle" />
                     <span className="text-sm">{config.icon}</span>
                     <div>
                       <h3 className="font-semibold text-white text-sm">{config.title}</h3>

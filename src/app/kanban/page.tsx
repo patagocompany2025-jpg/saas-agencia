@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
 import { ModernLayout } from '@/components/layout/ModernLayout';
-import { KanbanBoard } from '@/components/kanban/KanbanBoard';
+import { SharedKanbanBoard } from '@/components/kanban/SharedKanbanBoard';
 import { TaskForm } from '@/components/kanban/TaskForm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -346,12 +346,9 @@ export default function KanbanPage() {
           </div>
         )}
 
-        <KanbanBoard
-          onNewTask={handleNewTask}
+        <SharedKanbanBoard
+          onAddTask={handleNewTask}
           onEditTask={handleEditTask}
-          customColumns={customColumns}
-          onUpdateCustomColumn={handleUpdateCustomColumn}
-          onDeleteCustomColumn={handleDeleteCustomColumn}
         />
 
         {/* Modal para Adicionar Nova Coluna */}

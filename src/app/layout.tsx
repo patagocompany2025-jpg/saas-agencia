@@ -5,6 +5,9 @@ import { StackAuthProvider } from "@/lib/contexts/StackAuthContext-approval";
 import { ClientProvider } from "@/lib/contexts/ClientContext";
 import { KanbanProvider } from "@/lib/contexts/KanbanContext";
 import { FinancialProvider } from "@/lib/contexts/FinancialContext";
+import { SyncProvider } from "@/lib/contexts/SyncContext";
+import { CacheManager } from "@/components/CacheManager";
+import { SyncStatus } from "@/components/SyncStatus";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,6 +22,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Agência Patagonian - Sistema de Gestão",
   description: "Sistema completo de gestão para agência de viagens",
+  other: {
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  }
 };
 
 export default function RootLayout({
@@ -31,15 +39,19 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <StackAuthProvider>
-          <ClientProvider>
-            <KanbanProvider>
-              <FinancialProvider>
-                {children}
-              </FinancialProvider>
-            </KanbanProvider>
-          </ClientProvider>
-        </StackAuthProvider>
+        <CacheManager />
+        <SyncProvider>
+          <StackAuthProvider>
+            <ClientProvider>
+              <KanbanProvider>
+                <FinancialProvider>
+                  {children}
+                  <SyncStatus />
+                </FinancialProvider>
+              </KanbanProvider>
+            </ClientProvider>
+          </StackAuthProvider>
+        </SyncProvider>
       </body>
     </html>
   );

@@ -1,168 +1,124 @@
-// Prisma Schema para SaaS Agência
-// Sistema de gestão empresarial com autenticação e CRM
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
-// Modelo de Usuários
+// Usuários do sistema
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  password  String
-  role      UserRole @default(USER)
-  avatar    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String?
+  role        String   // 'socio' ou 'vendedor'
+  status      String   // 'active' ou 'inactive'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relacionamentos
-  clients   Client[]
-  tasks     Task[]
-  transactions Transaction[]
-  expenses  Expense[]
+  salesTasks      SalesTask[]
+  deliveryTasks   DeliveryTask[]
+  postSaleTasks   PostSaleTask[]
+  clients         Client[]
 
   @@map("users")
 }
 
-// Modelo de Clientes
+// Clientes
 model Client {
-  id          String      @id @default(cuid())
-  name        String
-  email       String      @unique
-  phone       String?
-  company     String?
-  source      ClientSource @default(WEBSITE)
-  status      ClientStatus @default(LEAD)
-  notes       String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  userId      String
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  company   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String?  // Usuário que criou o cliente
+  user      User?    @relation(fields: [userId], references: [id])
 
   // Relacionamentos
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tasks       Task[]
+  salesTasks    SalesTask[]
+  deliveryTasks DeliveryTask[]
+  postSaleTasks PostSaleTask[]
 
   @@map("clients")
 }
 
-// Modelo de Tarefas (Kanban)
-model Task {
-  id          String     @id @default(cuid())
+// Pipeline de Vendas (compartilhado entre todos)
+model SalesTask {
+  id          String   @id @default(cuid())
   title       String
   description String?
-  status      TaskStatus @default(PROSPECCAO)
-  priority    Priority   @default(MEDIUM)
+  status      String   // 'prospecting', 'qualification', 'proposal', 'negotiation', 'closed-won', 'closed-lost'
+  value       Float?
+  priority    String   // 'low', 'medium', 'high'
   dueDate     DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  userId      String
-  clientId    String?
-
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
   // Relacionamentos
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  client      Client?    @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+  userId      String   // Usuário que criou/atualizou
+  user        User     @relation(fields: [userId], references: [id])
 
-  @@map("tasks")
+  @@map("sales_tasks")
 }
 
-// Modelo de Transações Financeiras
-model Transaction {
-  id          String            @id @default(cuid())
-  description String
-  amount      Decimal           @db.Decimal(10, 2)
-  type        TransactionType
-  category    String?
-  date        DateTime          @default(now())
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  userId      String
-
+// Entrega de Serviço (compartilhado entre todos)
+model DeliveryTask {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  status      String   // 'pending', 'in-progress', 'completed', 'cancelled'
+  priority    String   // 'low', 'medium', 'high'
+  dueDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
   // Relacionamentos
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+  userId      String   // Usuário que criou/atualizou
+  user        User     @relation(fields: [userId], references: [id])
 
-  @@map("transactions")
+  @@map("delivery_tasks")
 }
 
-// Modelo de Despesas Fixas
-model Expense {
-  id          String     @id @default(cuid())
-  name        String
-  amount      Decimal    @db.Decimal(10, 2)
-  category    String
-  isRecurring Boolean    @default(false)
-  frequency   String?    // monthly, yearly, etc.
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  userId      String
-
+// Pós-Venda (compartilhado entre todos)
+model PostSaleTask {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  status      String   // 'pending', 'in-progress', 'completed', 'cancelled'
+  priority    String   // 'low', 'medium', 'high'
+  dueDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
   // Relacionamentos
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+  userId      String   // Usuário que criou/atualizou
+  user        User     @relation(fields: [userId], references: [id])
 
-  @@map("expenses")
+  @@map("post_sale_tasks")
 }
 
-// Modelo de Funcionários
-model Employee {
+// Log de atividades para sincronização
+model ActivityLog {
   id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  phone     String?
-  position  String
-  salary    Decimal  @db.Decimal(10, 2)
-  hireDate  DateTime @default(now())
-  isActive  Boolean  @default(true)
+  action    String   // 'create', 'update', 'delete'
+  table     String   // 'sales', 'delivery', 'post_sale'
+  recordId  String   // ID do registro modificado
+  data      String   // JSON com os dados modificados
+  userId    String   // Usuário que fez a modificação
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  @@map("employees")
-}
-
-// Enums
-enum UserRole {
-  ADMIN
-  SOCIO
-  USER
-}
-
-enum ClientSource {
-  WEBSITE
-  FACEBOOK
-  INSTAGRAM
-  INDICACAO
-  GOOGLE
-  WHATSAPP
-}
-
-enum ClientStatus {
-  LEAD
-  PROSPECT
-  CLIENTE
-  INATIVO
-}
-
-enum TaskStatus {
-  PROSPECCAO
-  QUALIFICACAO
-  CONSULTORIA
-  PROPOSTA
-  NEGOCIACAO
-  FECHADO
-}
-
-enum Priority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
-
-enum TransactionType {
-  RECEITA
-  DESPESA
+  @@map("activity_logs")
 }
