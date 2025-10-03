@@ -3,7 +3,7 @@
 // Sistema de sincronização de dados entre dispositivos
 export class DataSync {
   private static instance: DataSync;
-  private syncQueue: Array<{key: string, data: any, timestamp: number}> = [];
+  private syncQueue: Array<{key: string, data: unknown, timestamp: number}> = [];
   private isOnline: boolean = navigator.onLine;
   private syncInterval: NodeJS.Timeout | null = null;
 
@@ -46,7 +46,7 @@ export class DataSync {
   }
 
   // Salvar dados com sincronização
-  async saveData(key: string, data: any, userId?: string): Promise<boolean> {
+  async saveData(key: string, data: unknown, userId?: string): Promise<boolean> {
     try {
       const timestamp = Date.now();
       
@@ -70,7 +70,7 @@ export class DataSync {
   }
 
   // Carregar dados (local primeiro, depois servidor)
-  async loadData(key: string, userId?: string): Promise<any> {
+  async loadData(key: string, userId?: string): Promise<unknown> {
     try {
       // Tentar carregar do servidor primeiro se online
       if (this.isOnline && userId) {
@@ -115,7 +115,7 @@ export class DataSync {
   }
 
   // Sincronizar com servidor (simulado com Stack Auth)
-  private async syncToServer(key: string, data: any, userId?: string): Promise<boolean> {
+  private async syncToServer(key: string, data: unknown, userId?: string): Promise<boolean> {
     try {
       // Simular API call para Stack Auth
       const response = await fetch('/api/sync', {
@@ -139,7 +139,7 @@ export class DataSync {
   }
 
   // Carregar do servidor
-  private async loadFromServer(key: string, userId?: string): Promise<any> {
+  private async loadFromServer(key: string, userId?: string): Promise<unknown> {
     try {
       const response = await fetch(`/api/sync?key=${key}&userId=${userId}`);
       if (response.ok) {

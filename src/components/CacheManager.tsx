@@ -2,6 +2,11 @@
 
 import { useEffect } from 'react';
 
+interface UserData {
+  email?: string;
+  displayName?: string;
+}
+
 export function CacheManager() {
   useEffect(() => {
     // Verificar se há dados corrompidos no localStorage
@@ -9,12 +14,12 @@ export function CacheManager() {
       try {
         const approvedUsers = localStorage.getItem('approvedUsers');
         const pendingUsers = localStorage.getItem('pendingUsers');
-        
+
         if (approvedUsers) {
-          const parsed = JSON.parse(approvedUsers);
+          const parsed = JSON.parse(approvedUsers) as UserData[];
           // Verificar se há dados de teste antigos
-          const hasOldTestData = parsed.some((user: any) => 
-            user.email?.includes('teste') || 
+          const hasOldTestData = parsed.some((user: UserData) =>
+            user.email?.includes('teste') ||
             user.email?.includes('fake') ||
             user.displayName?.includes('Teste')
           );

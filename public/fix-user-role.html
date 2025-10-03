@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corrigir Permissão de Usuário</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #fff;
+            text-align: center;
+        }
+        .container {
+            background: #1a1a1a;
+            padding: 40px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+        h1 {
+            color: #5E6AD2;
+            margin-bottom: 20px;
+        }
+        .loading {
+            font-size: 48px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .success {
+            background: #166534;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="loading">⚙️</div>
+        <h1>Atualizando Permissões...</h1>
+        <p id="status">Aguarde, estamos corrigindo sua role de usuário...</p>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Executar automaticamente ao carregar
+        setTimeout(() => {
+            try {
+                // Buscar usuário atual
+                const user = JSON.parse(localStorage.getItem('demo_user'));
+
+                if (!user) {
+                    document.getElementById('status').innerHTML = '❌ Nenhum usuário encontrado!<br>Por favor, faça login primeiro.';
+                    return;
+                }
+
+                // Atualizar para sócio
+                user.role = 'socio';
+                user.displayName = 'Alex - Sócio';
+                localStorage.setItem('demo_user', JSON.stringify(user));
+
+                // Mostrar sucesso
+                document.getElementById('status').style.display = 'none';
+                document.querySelector('.loading').style.display = 'none';
+                document.getElementById('result').innerHTML = `
+                    <div class="success">
+                        ✅ <strong>Permissões atualizadas com sucesso!</strong><br><br>
+                        Sua role foi alterada de <strong>"${user.role === 'socio' ? 'cliente' : user.role}"</strong> para <strong>"Sócio"</strong><br><br>
+                        Redirecionando para o dashboard em 2 segundos...
+                    </div>
+                `;
+
+                // Redirecionar após 2 segundos
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 2000);
+
+            } catch (error) {
+                document.getElementById('status').innerHTML = '❌ Erro: ' + error.message;
+                console.error(error);
+            }
+        }, 500);
+    </script>
+</body>
+</html>

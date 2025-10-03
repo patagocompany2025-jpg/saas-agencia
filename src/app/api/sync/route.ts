@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Simulação de banco de dados em memória
 // Em produção, isso seria um banco de dados real
-const serverData: Record<string, any> = {};
+interface ServerDataItem {
+  data: unknown;
+  timestamp?: string;
+  lastModified: string;
+}
+const serverData: Record<string, ServerDataItem> = {};
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,7 +74,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Retornar todos os dados do usuário
-    const userData: Record<string, any> = {};
+    const userData: Record<string, ServerDataItem> = {};
     Object.keys(serverData).forEach(key => {
       if (key.startsWith(`${userId}_`)) {
         const originalKey = key.replace(`${userId}_`, '');

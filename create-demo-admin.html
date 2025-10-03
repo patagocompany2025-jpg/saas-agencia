@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Admin Local</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #fff;
+        }
+        .container {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+        h1 { color: #5E6AD2; margin-top: 0; }
+        .info {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .info strong { color: #5E6AD2; }
+        button {
+            background: #5E6AD2;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            width: 100%;
+        }
+        button:hover { opacity: 0.9; }
+        .success {
+            background: #166534;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+        .warning {
+            background: #854d0e;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Criar Admin Local</h1>
+
+        <div class="warning">
+            ⚠️ <strong>Importante:</strong> Esta página deve ser aberta no mesmo domínio onde seu app Next.js está rodando (localhost:3000)
+        </div>
+
+        <p>Este script irá criar um usuário administrador local usando localStorage.</p>
+
+        <div class="info">
+            <strong>Email:</strong> admin@local.com<br>
+            <strong>Senha:</strong> Qualquer senha (o sistema demo não valida)<br>
+            <strong>Role:</strong> admin
+        </div>
+
+        <button onclick="createAdmin()">Criar Usuário Admin</button>
+
+        <div class="success" id="success">
+            ✅ <strong>Usuário criado com sucesso!</strong><br><br>
+            Agora você pode fazer login em:<br>
+            <a href="http://localhost:3000/auth/sign-in" style="color: #5E6AD2;">http://localhost:3000/auth/sign-in</a><br><br>
+            Use: <strong>admin@local.com</strong> (qualquer senha funciona)
+        </div>
+    </div>
+
+    <script>
+        function createAdmin() {
+            const adminUser = {
+                id: Date.now().toString(),
+                email: 'admin@local.com',
+                displayName: 'Admin Local',
+                role: 'admin',
+                status: 'active',
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                localStorage.setItem('demo_user', JSON.stringify(adminUser));
+                document.getElementById('success').style.display = 'block';
+                console.log('✅ Usuário admin criado:', adminUser);
+            } catch (error) {
+                alert('❌ Erro ao criar usuário: ' + error.message);
+                console.error(error);
+            }
+        }
+
+        // Verificar se já existe usuário
+        window.onload = function() {
+            const existingUser = localStorage.getItem('demo_user');
+            if (existingUser) {
+                const user = JSON.parse(existingUser);
+                console.log('Usuário existente encontrado:', user);
+            }
+        }
+    </script>
+</body>
+</html>

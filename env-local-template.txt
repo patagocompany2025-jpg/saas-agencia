@@ -1,0 +1,17 @@
+# CONFIGURAÇÃO LOCAL - NEON DATABASE + STACK AUTH
+# Copie este conteúdo para o arquivo .env.local na raiz do projeto
+
+# Database Configuration - Neon Database
+DATABASE_URL=postgresql://neondb_owner:npg_3KLYslPa1VZE@ep-square-cloud-acj5cbxo-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+
+# Stack Auth Configuration (configure com suas chaves reais)
+STACK_SECRET_SERVER_KEY=sk_SUA_CHAVE_AQUI
+NEXT_PUBLIC_STACK_PROJECT_ID=prj_SEU_PROJECT_ID_AQUI
+NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=pk_SUA_CHAVE_PUBLICA_AQUI
+
+# NextAuth Configuration
+NEXTAUTH_SECRET=seu_secret_aqui
+NEXTAUTH_URL=http://localhost:3000
+
+# Environment
+NODE_ENV=development

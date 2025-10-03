@@ -1,0 +1,14 @@
+# Database Configuration - Neon Database
+DATABASE_URL=postgresql://neondb_owner:npg_3KLYslPa1VZE@ep-square-cloud-acj5cbxo-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+
+# Stack Auth Configuration
+STACK_SECRET_SERVER_KEY=ssk_v3ec8jdzh483qj5296p71dbq85w8545s8qktezfavgqx0
+NEXT_PUBLIC_STACK_PROJECT_ID=18c007e3-f3d4-4ef6-84ab-d826d357c3be
+NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=pck_c6h2qdcg9cgpx225g9ppwctqx8fq5w70cjcvgtqdagy10
+
+# NextAuth Configuration
+NEXTAUTH_SECRET=a8f5f167f44f4964e6c998dee827110c
+NEXTAUTH_URL=http://localhost:3000
+
+# Environment
+NODE_ENV=development

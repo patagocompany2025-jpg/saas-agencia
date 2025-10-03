@@ -120,8 +120,8 @@ export default function TestSyncPage() {
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
               <h4 className="text-blue-300 font-semibold mb-2">📝 Como testar:</h4>
               <ol className="text-blue-200/80 text-sm space-y-1 list-decimal list-inside">
-                <li>Digite uma mensagem única (ex: "Teste do notebook - 15:30")</li>
-                <li>Clique em "Salvar e Sincronizar"</li>
+                <li>Digite uma mensagem única (ex: &quot;Teste do notebook - 15:30&quot;)</li>
+                <li>Clique em &quot;Salvar e Sincronizar&quot;</li>
                 <li>Aguarde o status verde no canto inferior direito</li>
                 <li>Abra o mesmo link em outro computador</li>
                 <li>Vá para /test-sync e veja se a mensagem aparece</li>

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Alex/Desktop/print/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,5 +1,7 @@
 'use client';
 
+type ListenerCallback = (data: unknown) => void;
+
 // Sistema de WebSockets para sincronização em tempo real
 export class WebSocketManager {
   private static instance: WebSocketManager;
@@ -7,7 +9,7 @@ export class WebSocketManager {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectInterval = 3000;
-  private listeners: Map<string, Function[]> = new Map();
+  private listeners: Map<string, ListenerCallback[]> = new Map();
 
   static getInstance(): WebSocketManager {
     if (!WebSocketManager.instance) {
@@ -70,7 +72,7 @@ export class WebSocketManager {
   }
 
   // Adicionar listener para eventos
-  on(event: string, callback: Function) {
+  on(event: string, callback: ListenerCallback) {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, []);
     }
@@ -78,7 +80,7 @@ export class WebSocketManager {
   }
 
   // Remover listener
-  off(event: string, callback: Function) {
+  off(event: string, callback: ListenerCallback) {
     const eventListeners = this.listeners.get(event);
     if (eventListeners) {
       const index = eventListeners.indexOf(callback);
@@ -89,7 +91,7 @@ export class WebSocketManager {
   }
 
   // Notificar listeners
-  private notifyListeners(event: string, data: any) {
+  private notifyListeners(event: string, data: unknown) {
     const eventListeners = this.listeners.get(event);
     if (eventListeners) {
       eventListeners.forEach(callback => {
@@ -103,7 +105,7 @@ export class WebSocketManager {
   }
 
   // Enviar mensagem (simulado)
-  send(type: string, data: any) {
+  send(type: string, data: unknown) {
     console.log(`Enviando ${type}:`, data);
     // Em produção, enviar via WebSocket real
     this.notifyListeners(type, data);

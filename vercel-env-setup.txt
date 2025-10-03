@@ -1,0 +1,52 @@
+# CONFIGURAÇÃO MANUAL DO VERCEL COM NEON
+
+## 📋 **PASSO A PASSO MANUAL:**
+
+### **1. CANCELAR COMANDO ATUAL:**
+- Pressione Ctrl + C no terminal para cancelar
+
+### **2. EXECUTAR COMANDOS MANUALMENTE:**
+
+```bash
+# Navegar para o diretório do projeto
+cd "C:\Users\Alex\Desktop\Projetos em desenvolvimento\Projeto Patagonian\saas"
+
+# Adicionar DATABASE_URL para Production
+vercel env add DATABASE_URL production
+
+# Quando perguntar o valor, cole esta URL:
+postgresql://neondb_owner:npg_3KLYslPa1VZE@ep-square-cloud-acj5cbxo-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+
+# Adicionar para Preview
+vercel env add DATABASE_URL preview
+# Cole a mesma URL
+
+# Adicionar para Development  
+vercel env add DATABASE_URL development
+# Cole a mesma URL
+```
+
+### **3. VERIFICAR CONFIGURAÇÃO:**
+```bash
+vercel env ls
+```
+
+### **4. CRIAR ARQUIVO .env.local:**
+Crie o arquivo `.env.local` na raiz do projeto com:
+
+```
+DATABASE_URL=postgresql://neondb_owner:npg_3KLYslPa1VZE@ep-square-cloud-acj5cbxo-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+STACK_SECRET_SERVER_KEY=sk_SUA_CHAVE_AQUI
+NEXT_PUBLIC_STACK_PROJECT_ID=prj_SEU_PROJECT_ID_AQUI
+NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=pk_SUA_CHAVE_PUBLICA_AQUI
+NEXTAUTH_SECRET=seu_secret_aqui
+NEXTAUTH_URL=http://localhost:3000
+NODE_ENV=development
+```
+
+## 🎯 **RESUMO:**
+1. **Ctrl + C** para cancelar comando travado
+2. Execute os comandos `vercel env add` manualmente
+3. Cole a URL do Neon quando solicitado
+4. Crie o arquivo `.env.local`
+5. Teste com `npm run dev`
