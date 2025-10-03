@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         email,
         name: name.trim(),
         role,
-        password: 'N/A' // Password is managed by Stack Auth
+        status: 'active' // Status padrão
       },
       select: {
         id: true,

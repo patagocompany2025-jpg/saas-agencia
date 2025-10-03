@@ -283,7 +283,7 @@ export default function CalculatorPage() {
 
   // Helper para obter serviço com overrides aplicados
   const getServiceOption = (serviceType: string, category: string, optionIndex: number): ServiceOption => {
-    const original = PATAGONIA_SERVICES[serviceType].categories[category].options[optionIndex];
+    const original = (PATAGONIA_SERVICES as Record<string, { categories: Record<string, { options: ServiceOption[] }> }>)[serviceType].categories[category].options[optionIndex];
     const key = `${serviceType}-${category}-${optionIndex}`;
     const override = serviceOverrides[key];
     return override ? { ...original, ...override } : original;
@@ -293,14 +293,14 @@ export default function CalculatorPage() {
   const getCategoryName = (categoryKey: string): string => {
     const override = categoryOverrides[categoryKey];
     if (override === '__DELETED__') return '';
-    return override || PATAGONIA_SERVICES[categoryKey]?.name || categoryKey;
+    return override || (PATAGONIA_SERVICES as Record<string, { name: string }>)[categoryKey]?.name || categoryKey;
   };
 
   const getPriceRangeName = (categoryKey: string, priceRangeKey: string): string => {
     const key = `${categoryKey}-${priceRangeKey}`;
     const override = priceRangeOverrides[key];
     if (override === '__DELETED__') return '';
-    return override || PATAGONIA_SERVICES[categoryKey]?.categories[priceRangeKey]?.name || priceRangeKey;
+    return override || (PATAGONIA_SERVICES as Record<string, any>)[categoryKey]?.categories[priceRangeKey]?.name || priceRangeKey;
   };
 
   const isCategoryDeleted = (categoryKey: string): boolean => {
@@ -2937,11 +2937,11 @@ Patagonia Company - Sistema de Gestão
           <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full border border-white/10 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-white text-lg font-semibold mb-4">
               Adicionar Serviço em {
-                PATAGONIA_SERVICES[addServiceContext.category]?.name ||
+                (PATAGONIA_SERVICES as Record<string, any>)[addServiceContext.category]?.name ||
                 newCategories[addServiceContext.category]?.name ||
                 addServiceContext.category
               } - {
-                PATAGONIA_SERVICES[addServiceContext.category]?.categories[addServiceContext.priceRange]?.name ||
+                (PATAGONIA_SERVICES as Record<string, any>)[addServiceContext.category]?.categories[addServiceContext.priceRange]?.name ||
                 newPriceRanges[addServiceContext.priceRange]?.name ||
                 addServiceContext.priceRange
               }
