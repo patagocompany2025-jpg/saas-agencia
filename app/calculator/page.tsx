@@ -239,15 +239,20 @@ const PATAGONIA_SERVICES = {
   }
 };
 
-interface ServiceOptionWithDelete {
+interface ServiceOptionWithDelete extends Partial<ServiceOption> {
   deleted?: boolean;
-  [key: string]: unknown;
+}
+
+interface PatagoniaServiceStructure {
+  name: string;
+  icon?: unknown;
+  categories: Record<string, { name?: string; options?: ServiceOption[] }>;
 }
 
 export default function CalculatorPage() {
   const { user, isLoading } = useHybridAuth();
   // Armazenar apenas os dados editáveis, mantendo PATAGONIA_SERVICES intacto
-  const [serviceOverrides, setServiceOverrides] = useState<{[key: string]: Partial<ServiceOption>}>({});
+  const [serviceOverrides, setServiceOverrides] = useState<{[key: string]: ServiceOptionWithDelete}>({});
   const [editingPrices, setEditingPrices] = useState<{[key: string]: string}>({});
   const [editingServiceKey, setEditingServiceKey] = useState<string | null>(null);
   const [expandedServices, setExpandedServices] = useState<{[key: string]: boolean}>({});
@@ -300,7 +305,7 @@ export default function CalculatorPage() {
     const key = `${categoryKey}-${priceRangeKey}`;
     const override = priceRangeOverrides[key];
     if (override === '__DELETED__') return '';
-    return override || (PATAGONIA_SERVICES as Record<string, any>)[categoryKey]?.categories[priceRangeKey]?.name || priceRangeKey;
+    return override || (PATAGONIA_SERVICES as Record<string, PatagoniaServiceStructure>)[categoryKey]?.categories[priceRangeKey]?.name || priceRangeKey;
   };
 
   const isCategoryDeleted = (categoryKey: string): boolean => {
@@ -759,7 +764,7 @@ export default function CalculatorPage() {
                 <div class="info-grid">
                     <div class="info-item">
                         <div class="info-label">Cliente</div>
-                        <div class="info-value">${user?.displayName || user?.name || 'Cliente'}</div>
+                        <div class="info-value">${user?.displayName || 'Cliente'}</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Data</div>
@@ -873,7 +878,7 @@ export default function CalculatorPage() {
 
   const generateHTML = () => {
     // Coletar serviços selecionados com detalhes completos
-    const selectedServices: {name: string, price: number, category: string}[] = [];
+    const selectedServices: string[] = [];
 
     Object.entries(PATAGONIA_SERVICES).forEach(([category, service]) => {
       Object.entries(service.categories).forEach(([catType, categoryData]) => {
@@ -1432,7 +1437,7 @@ export default function CalculatorPage() {
                 <div class="info-grid">
                     <div class="info-card">
                         <div class="info-label">Cliente</div>
-                        <div class="info-value">${user?.displayName || user?.name || 'Cliente'}</div>
+                        <div class="info-value">${user?.displayName || 'Cliente'}</div>
                     </div>
                     <div class="info-card">
                         <div class="info-label">Data da Proposta</div>
@@ -1645,7 +1650,7 @@ export default function CalculatorPage() {
 
           <div style="margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
             <h2 style="color: #667eea; font-size: 18px; margin: 0 0 15px 0;">Cliente</h2>
-            <p style="margin: 5px 0;"><strong>Nome:</strong> ${user?.displayName || user?.name || 'Cliente'}</p>
+            <p style="margin: 5px 0;"><strong>Nome:</strong> ${user?.displayName || 'Cliente'}</p>
             <p style="margin: 5px 0;"><strong>Data:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
           </div>
 
@@ -1786,7 +1791,7 @@ export default function CalculatorPage() {
     PROPOSTA COMERCIAL - PATAGÔNIA
 ═══════════════════════════════════════════
 
-Cliente: ${user?.displayName || user?.name || 'Cliente'}
+Cliente: ${user?.displayName || 'Cliente'}
 Data: ${new Date().toLocaleDateString('pt-BR')}
 
 DETALHES DA VIAGEM:
@@ -2937,11 +2942,11 @@ Patagonia Company - Sistema de Gestão
           <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full border border-white/10 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-white text-lg font-semibold mb-4">
               Adicionar Serviço em {
-                (PATAGONIA_SERVICES as Record<string, any>)[addServiceContext.category]?.name ||
+                (PATAGONIA_SERVICES as Record<string, PatagoniaServiceStructure>)[addServiceContext.category]?.name ||
                 newCategories[addServiceContext.category]?.name ||
                 addServiceContext.category
               } - {
-                (PATAGONIA_SERVICES as Record<string, any>)[addServiceContext.category]?.categories[addServiceContext.priceRange]?.name ||
+                (PATAGONIA_SERVICES as Record<string, PatagoniaServiceStructure>)[addServiceContext.category]?.categories[addServiceContext.priceRange]?.name ||
                 newPriceRanges[addServiceContext.priceRange]?.name ||
                 addServiceContext.priceRange
               }
