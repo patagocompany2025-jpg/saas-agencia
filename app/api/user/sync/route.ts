@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     // Buscar usuário no Neon DB pelo email
     const user = await sql`
-      SELECT id, name, email, role, created_at, updated_at
+      SELECT id, name, email, role, "createdAt", "updatedAt"
       FROM users
       WHERE email = ${stack_user_id}
       LIMIT 1
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       displayName: user[0].name,
       role: user[0].role || 'cliente',
       status: 'active',
-      createdAt: user[0].created_at
+      createdAt: user[0].createdAt
     };
 
     console.log('Usuário encontrado no Neon DB:', userData);
