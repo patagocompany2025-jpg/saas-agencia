@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
           'email', c.email,
           'phone', c.phone,
           'company', c.company,
-          'createdAt', c."createdAt",
-          'updatedAt', c."updatedAt"
+          'createdAt', c.created_at,
+          'updatedAt', c.updated_at
         ) as client,
         json_build_object(
           'id', u.id,
@@ -24,23 +24,23 @@ export async function GET(request: NextRequest) {
           'email', u.email
         ) as user
       FROM post_sale_tasks pst
-      LEFT JOIN clients c ON pst."clientId" = c.id
-      LEFT JOIN users u ON pst."userId" = u.id
-      ORDER BY pst."createdAt" DESC
+      LEFT JOIN clients c ON pst.client_id = c.id
+      LEFT JOIN users u ON pst.user_id = u.id
+      ORDER BY pst.created_at DESC
     `;
 
-    // Banco já retorna em camelCase, não precisa transformar
+    // Mapear snake_case para camelCase para o frontend
     const formattedTasks = postSaleTasks.map((task: any) => ({
       id: task.id,
       title: task.title,
       description: task.description,
       status: task.status,
       priority: task.priority,
-      dueDate: task.dueDate,
-      clientId: task.clientId,
-      userId: task.userId,
-      createdAt: task.createdAt,
-      updatedAt: task.updatedAt,
+      dueDate: task.due_date,
+      clientId: task.client_id,
+      userId: task.user_id,
+      createdAt: task.created_at,
+      updatedAt: task.updated_at,
       client: task.client,
       user: task.user
     }));
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     const sql = neon(process.env.DATABASE_URL!);
 
     const postSaleTaskResult = await sql`
-      INSERT INTO post_sale_tasks (title, description, status, priority, "dueDate", "clientId", "userId")
+      INSERT INTO post_sale_tasks (title, description, status, priority, due_date, client_id, user_id)
       VALUES (
         ${title},
         ${description || null},
@@ -89,8 +89,8 @@ export async function POST(request: NextRequest) {
           'email', c.email,
           'phone', c.phone,
           'company', c.company,
-          'createdAt', c."createdAt",
-          'updatedAt', c."updatedAt"
+          'createdAt', c.created_at,
+          'updatedAt', c.updated_at
         ) as client,
         json_build_object(
           'id', u.id,
@@ -98,8 +98,8 @@ export async function POST(request: NextRequest) {
           'email', u.email
         ) as user
       FROM post_sale_tasks pst
-      LEFT JOIN clients c ON pst."clientId" = c.id
-      LEFT JOIN users u ON pst."userId" = u.id
+      LEFT JOIN clients c ON pst.client_id = c.id
+      LEFT JOIN users u ON pst.user_id = u.id
       WHERE pst.id = ${createdTask.id}
     `;
 
@@ -111,18 +111,18 @@ export async function POST(request: NextRequest) {
       description: task.description,
       status: task.status,
       priority: task.priority,
-      dueDate: task.dueDate,
-      clientId: task.clientId,
-      userId: task.userId,
-      createdAt: task.createdAt,
-      updatedAt: task.updatedAt,
+      dueDate: task.due_date,
+      clientId: task.client_id,
+      userId: task.user_id,
+      createdAt: task.created_at,
+      updatedAt: task.updated_at,
       client: task.client,
       user: task.user
     };
 
     // Log da atividade
     await sql`
-      INSERT INTO activity_logs (action, "table", "recordId", data, "userId")
+      INSERT INTO activity_logs (action, "table", record_id, data, user_id)
       VALUES (
         'create',
         'post_sale',
@@ -157,8 +157,8 @@ export async function PUT(request: NextRequest) {
         description = ${description},
         status = ${status},
         priority = ${priority},
-        "dueDate" = ${dueDate ? new Date(dueDate) : null},
-        "updatedAt" = CURRENT_TIMESTAMP
+        due_date = ${dueDate ? new Date(dueDate) : null},
+        updated_at = CURRENT_TIMESTAMP
       WHERE id = ${id}
     `;
 
@@ -172,8 +172,8 @@ export async function PUT(request: NextRequest) {
           'email', c.email,
           'phone', c.phone,
           'company', c.company,
-          'createdAt', c."createdAt",
-          'updatedAt', c."updatedAt"
+          'createdAt', c.created_at,
+          'updatedAt', c.updated_at
         ) as client,
         json_build_object(
           'id', u.id,
@@ -181,8 +181,8 @@ export async function PUT(request: NextRequest) {
           'email', u.email
         ) as user
       FROM post_sale_tasks pst
-      LEFT JOIN clients c ON pst."clientId" = c.id
-      LEFT JOIN users u ON pst."userId" = u.id
+      LEFT JOIN clients c ON pst.client_id = c.id
+      LEFT JOIN users u ON pst.user_id = u.id
       WHERE pst.id = ${id}
     `;
 
@@ -194,18 +194,18 @@ export async function PUT(request: NextRequest) {
       description: task.description,
       status: task.status,
       priority: task.priority,
-      dueDate: task.dueDate,
-      clientId: task.clientId,
-      userId: task.userId,
-      createdAt: task.createdAt,
-      updatedAt: task.updatedAt,
+      dueDate: task.due_date,
+      clientId: task.client_id,
+      userId: task.user_id,
+      createdAt: task.created_at,
+      updatedAt: task.updated_at,
       client: task.client,
       user: task.user
     };
 
     // Log da atividade
     await sql`
-      INSERT INTO activity_logs (action, "table", "recordId", data, "userId")
+      INSERT INTO activity_logs (action, "table", record_id, data, user_id)
       VALUES (
         'update',
         'post_sale',
@@ -242,7 +242,7 @@ export async function DELETE(request: NextRequest) {
 
     // Log da atividade
     await sql`
-      INSERT INTO activity_logs (action, "table", "recordId", data, "userId")
+      INSERT INTO activity_logs (action, "table", record_id, data, user_id)
       VALUES (
         'delete',
         'post_sale',

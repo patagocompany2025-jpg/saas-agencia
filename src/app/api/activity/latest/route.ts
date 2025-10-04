@@ -12,13 +12,13 @@ export async function GET(request: NextRequest) {
     const activities = since
       ? await sql`
           SELECT * FROM activity_logs
-          WHERE "createdAt" > ${new Date(since)}
-          ORDER BY "createdAt" DESC
+          WHERE created_at > ${new Date(since)}
+          ORDER BY created_at DESC
           LIMIT 10
         `
       : await sql`
           SELECT * FROM activity_logs
-          ORDER BY "createdAt" DESC
+          ORDER BY created_at DESC
           LIMIT 10
         `;
 

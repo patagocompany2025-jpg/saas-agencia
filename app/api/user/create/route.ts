@@ -53,9 +53,9 @@ export async function POST(request: NextRequest) {
     // Criar usuário no Neon DB
     console.log('Criando usuário no banco...');
     const user = await sql`
-      INSERT INTO users (email, name, role, status, "createdAt", "updatedAt")
+      INSERT INTO users (email, name, role, status, created_at, updated_at)
       VALUES (${email}, ${name.trim()}, ${role}, 'active', NOW(), NOW())
-      RETURNING id, name, email, role, "createdAt", "updatedAt"
+      RETURNING id, name, email, role, created_at, updated_at
     `;
     console.log('Usuário criado com sucesso:', user[0]);
 
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       displayName: user[0].name,
       role: user[0].role || 'cliente',
       status: 'active',
-      createdAt: user[0].createdAt
+      createdAt: user[0].created_at
     };
 
     console.log('Usuário criado no Neon DB:', userData);
