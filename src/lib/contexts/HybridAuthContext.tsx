@@ -223,7 +223,7 @@ export function HybridAuthProvider({ children }: { children: React.ReactNode }) 
         email: email,
         displayName: name,
         role: 'cliente',
-        status: 'active',
+        status: 'active' as const,
         createdAt: new Date()
       };
 

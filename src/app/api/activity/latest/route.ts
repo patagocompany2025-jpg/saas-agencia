@@ -16,16 +16,7 @@ export async function GET(request: NextRequest) {
       orderBy: {
         createdAt: 'desc'
       },
-      take: 10,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
+      take: 10
     });
 
     return NextResponse.json({ 

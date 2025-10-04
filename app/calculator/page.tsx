@@ -245,7 +245,7 @@ interface ServiceOptionWithDelete extends Partial<ServiceOption> {
 
 interface PatagoniaServiceStructure {
   name: string;
-  icon?: unknown;
+  icon?: React.ComponentType<{className?: string}>;
   categories: Record<string, { name?: string; options?: ServiceOption[] }>;
 }
 
@@ -270,7 +270,7 @@ export default function CalculatorPage() {
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [addCategoryContext, setAddCategoryContext] = useState<{type: 'category' | 'priceRange', parentCategory?: string} | null>(null);
   const [newCategoryForm, setNewCategoryForm] = useState({ name: '' });
-  const [newCategories, setNewCategories] = useState<{[key: string]: {name: string, icon: React.ReactNode, categories: Record<string, unknown>}}>({});
+  const [newCategories, setNewCategories] = useState<{[key: string]: {name: string, icon: React.ComponentType<{className?: string}>, categories: Record<string, unknown>}}>({});
   const [newPriceRanges, setNewPriceRanges] = useState<{[key: string]: {name: string, color: string}}>({});
   
   const [formData, setFormData] = useState({

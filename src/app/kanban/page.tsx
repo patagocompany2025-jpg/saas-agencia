@@ -348,7 +348,10 @@ export default function KanbanPage() {
 
         <SharedKanbanBoard
           onAddTask={handleNewTask}
-          onEditTask={handleEditTask}
+          onEditTask={(task) => {
+            setEditingTask(task as unknown as KanbanTask);
+            setShowForm(true);
+          }}
         />
 
         {/* Modal para Adicionar Nova Coluna */}

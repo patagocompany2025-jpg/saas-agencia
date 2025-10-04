@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function TestSyncPage() {
   const [testData, setTestData] = useState('');
-  const [savedData, setSavedData] = useState('');
+  const [savedData, setSavedData] = useState<{ message: string; timestamp: number; device?: string } | null>(null);
   const [lastSync, setLastSync] = useState('');
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function TestSyncPage() {
   }, []);
 
   const loadTestData = async () => {
-    const data = await dataSync.loadData('testSync');
+    const data = await dataSync.loadData('testSync') as { message: string; timestamp: number; device?: string } | null;
     if (data) {
       setSavedData(data);
       setLastSync(new Date(data.timestamp).toLocaleString());
@@ -42,7 +42,7 @@ export default function TestSyncPage() {
 
   const clearData = async () => {
     await dataSync.clearLocalData();
-    setSavedData('');
+    setSavedData(null);
     setLastSync('');
     alert('🧹 Dados locais limpos!');
   };
@@ -86,7 +86,7 @@ export default function TestSyncPage() {
                 <h3 className="text-white font-semibold">📋 Dados Sincronizados:</h3>
                 <div className="bg-gray-800/50 p-4 rounded-lg">
                   <p className="text-white">
-                    <strong>Mensagem:</strong> {savedData.message}
+                    <strong>Mensagem:</strong> {savedData?.message || 'Nenhum dado salvo'}
                   </p>
                   <p className="text-white/70 text-sm">
                     <strong>Salvo em:</strong> {lastSync}

@@ -4,7 +4,7 @@
 export class DataSync {
   private static instance: DataSync;
   private syncQueue: Array<{key: string, data: unknown, timestamp: number}> = [];
-  private isOnline: boolean = navigator.onLine;
+  private isOnline: boolean = typeof navigator !== 'undefined' ? navigator.onLine : true;
   private syncInterval: NodeJS.Timeout | null = null;
 
   constructor() {
@@ -20,6 +20,8 @@ export class DataSync {
   }
 
   private setupEventListeners() {
+    if (typeof window === 'undefined') return;
+
     // Detectar mudanças de conectividade
     window.addEventListener('online', () => {
       this.isOnline = true;
@@ -74,7 +76,7 @@ export class DataSync {
     try {
       // Tentar carregar do servidor primeiro se online
       if (this.isOnline && userId) {
-        const serverData = await this.loadFromServer(key, userId);
+        const serverData = await this.loadFromServer(key, userId) as { data: unknown; timestamp: number } | null;
         if (serverData) {
           // Atualizar localStorage com dados do servidor
           localStorage.setItem(key, JSON.stringify(serverData.data));
@@ -188,5 +190,5 @@ export class DataSync {
   }
 }
 
-// Instância global
-export const dataSync = DataSync.getInstance();
+// Instância global (apenas no cliente)
+export const dataSync = typeof window !== 'undefined' ? DataSync.getInstance() : null as unknown as DataSync;
