@@ -9,6 +9,8 @@ import { SyncProvider } from "@/lib/contexts/SyncContext";
 import { CacheManager } from "@/components/CacheManager";
 import { SyncStatus } from "@/components/SyncStatus";
 
+export const dynamic = 'force-dynamic';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
