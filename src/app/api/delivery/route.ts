@@ -1,26 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { neon } from '@neondatabase/serverless';
 
 // GET - Listar todas as tarefas de entrega (compartilhadas)
 export async function GET(request: NextRequest) {
   try {
-    const deliveryTasks = await prisma.deliveryTask.findMany({
-      include: {
-        client: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
+    const sql = neon(process.env.DATABASE_URL!);
 
-    return NextResponse.json({ success: true, data: deliveryTasks });
+    const deliveryTasks = await sql`
+      SELECT
+        dt.*,
+        json_build_object(
+          'id', c.id,
+          'name', c.name,
+          'email', c.email,
+          'phone', c.phone,
+          'company', c.company,
+          'created_at', c.created_at,
+          'updated_at', c.updated_at
+        ) as client,
+        json_build_object(
+          'id', u.id,
+          'name', u.name,
+          'email', u.email
+        ) as user
+      FROM delivery_tasks dt
+      LEFT JOIN clients c ON dt.client_id = c.id
+      LEFT JOIN users u ON dt.user_id = u.id
+      ORDER BY dt.created_at DESC
+    `;
+
+    // Transformar snake_case para camelCase
+    const formattedTasks = deliveryTasks.map((task: any) => ({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      dueDate: task.due_date,
+      clientId: task.client_id,
+      userId: task.user_id,
+      createdAt: task.created_at,
+      updatedAt: task.updated_at,
+      client: task.client,
+      user: task.user
+    }));
+
+    return NextResponse.json({ success: true, data: formattedTasks });
   } catch (error) {
     console.error('Erro ao buscar tarefas de entrega:', error);
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
@@ -36,38 +61,76 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Título e userId são obrigatórios' }, { status: 400 });
     }
 
-    const deliveryTask = await prisma.deliveryTask.create({
-      data: {
-        title,
-        description,
-        status: status || 'pending',
-        priority: priority || 'medium',
-        dueDate: dueDate ? new Date(dueDate) : null,
-        clientId,
-        userId
-      },
-      include: {
-        client: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    });
+    const sql = neon(process.env.DATABASE_URL!);
+
+    const deliveryTaskResult = await sql`
+      INSERT INTO delivery_tasks (title, description, status, priority, due_date, client_id, user_id)
+      VALUES (
+        ${title},
+        ${description || null},
+        ${status || 'pending'},
+        ${priority || 'medium'},
+        ${dueDate ? new Date(dueDate) : null},
+        ${clientId || null},
+        ${userId}
+      )
+      RETURNING *
+    `;
+
+    const createdTask = deliveryTaskResult[0];
+
+    // Buscar client e user relacionados
+    const taskWithRelations = await sql`
+      SELECT
+        dt.*,
+        json_build_object(
+          'id', c.id,
+          'name', c.name,
+          'email', c.email,
+          'phone', c.phone,
+          'company', c.company,
+          'created_at', c.created_at,
+          'updated_at', c.updated_at
+        ) as client,
+        json_build_object(
+          'id', u.id,
+          'name', u.name,
+          'email', u.email
+        ) as user
+      FROM delivery_tasks dt
+      LEFT JOIN clients c ON dt.client_id = c.id
+      LEFT JOIN users u ON dt.user_id = u.id
+      WHERE dt.id = ${createdTask.id}
+    `;
+
+    const task = taskWithRelations[0];
+
+    const deliveryTask = {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      dueDate: task.due_date,
+      clientId: task.client_id,
+      userId: task.user_id,
+      createdAt: task.created_at,
+      updatedAt: task.updated_at,
+      client: task.client,
+      user: task.user
+    };
 
     // Log da atividade
-    await prisma.activityLog.create({
-      data: {
-        action: 'create',
-        table: 'delivery',
-        recordId: deliveryTask.id,
-        data: JSON.stringify(deliveryTask),
-        userId
-      }
-    });
+    await sql`
+      INSERT INTO activity_logs (action, "table", record_id, data, user_id)
+      VALUES (
+        'create',
+        'delivery',
+        ${deliveryTask.id},
+        ${JSON.stringify(deliveryTask)},
+        ${userId}
+      )
+    `;
 
     return NextResponse.json({ success: true, data: deliveryTask });
   } catch (error) {
@@ -85,37 +148,72 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'ID e userId são obrigatórios' }, { status: 400 });
     }
 
-    const deliveryTask = await prisma.deliveryTask.update({
-      where: { id },
-      data: {
-        title,
-        description,
-        status,
-        priority,
-        dueDate: dueDate ? new Date(dueDate) : null
-      },
-      include: {
-        client: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    });
+    const sql = neon(process.env.DATABASE_URL!);
+
+    await sql`
+      UPDATE delivery_tasks
+      SET
+        title = ${title},
+        description = ${description},
+        status = ${status},
+        priority = ${priority},
+        due_date = ${dueDate ? new Date(dueDate) : null},
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id}
+    `;
+
+    // Buscar task atualizada com relações
+    const taskWithRelations = await sql`
+      SELECT
+        dt.*,
+        json_build_object(
+          'id', c.id,
+          'name', c.name,
+          'email', c.email,
+          'phone', c.phone,
+          'company', c.company,
+          'created_at', c.created_at,
+          'updated_at', c.updated_at
+        ) as client,
+        json_build_object(
+          'id', u.id,
+          'name', u.name,
+          'email', u.email
+        ) as user
+      FROM delivery_tasks dt
+      LEFT JOIN clients c ON dt.client_id = c.id
+      LEFT JOIN users u ON dt.user_id = u.id
+      WHERE dt.id = ${id}
+    `;
+
+    const task = taskWithRelations[0];
+
+    const deliveryTask = {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      dueDate: task.due_date,
+      clientId: task.client_id,
+      userId: task.user_id,
+      createdAt: task.created_at,
+      updatedAt: task.updated_at,
+      client: task.client,
+      user: task.user
+    };
 
     // Log da atividade
-    await prisma.activityLog.create({
-      data: {
-        action: 'update',
-        table: 'delivery',
-        recordId: deliveryTask.id,
-        data: JSON.stringify(deliveryTask),
-        userId
-      }
-    });
+    await sql`
+      INSERT INTO activity_logs (action, "table", record_id, data, user_id)
+      VALUES (
+        'update',
+        'delivery',
+        ${deliveryTask.id},
+        ${JSON.stringify(deliveryTask)},
+        ${userId}
+      )
+    `;
 
     return NextResponse.json({ success: true, data: deliveryTask });
   } catch (error) {
@@ -135,20 +233,24 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'ID e userId são obrigatórios' }, { status: 400 });
     }
 
-    await prisma.deliveryTask.delete({
-      where: { id }
-    });
+    const sql = neon(process.env.DATABASE_URL!);
+
+    await sql`
+      DELETE FROM delivery_tasks
+      WHERE id = ${id}
+    `;
 
     // Log da atividade
-    await prisma.activityLog.create({
-      data: {
-        action: 'delete',
-        table: 'delivery',
-        recordId: id,
-        data: JSON.stringify({ id }),
-        userId
-      }
-    });
+    await sql`
+      INSERT INTO activity_logs (action, "table", record_id, data, user_id)
+      VALUES (
+        'delete',
+        'delivery',
+        ${id},
+        ${JSON.stringify({ id })},
+        ${userId}
+      )
+    `;
 
     return NextResponse.json({ success: true, message: 'Tarefa excluída com sucesso' });
   } catch (error) {

@@ -1,26 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { neon } from '@neondatabase/serverless';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const since = searchParams.get('since');
 
-    // Buscar atividades recentes
-    const activities = await prisma.activityLog.findMany({
-      where: since ? {
-        createdAt: {
-          gt: new Date(since)
-        }
-      } : {},
-      orderBy: {
-        createdAt: 'desc'
-      },
-      take: 10
-    });
+    const sql = neon(process.env.DATABASE_URL!);
 
-    return NextResponse.json({ 
-      success: true, 
+    // Buscar atividades recentes
+    const activities = since
+      ? await sql`
+          SELECT * FROM activity_logs
+          WHERE created_at > ${new Date(since)}
+          ORDER BY created_at DESC
+          LIMIT 10
+        `
+      : await sql`
+          SELECT * FROM activity_logs
+          ORDER BY created_at DESC
+          LIMIT 10
+        `;
+
+    return NextResponse.json({
+      success: true,
       data: activities,
       timestamp: new Date().toISOString()
     });
