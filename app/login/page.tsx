@@ -7,7 +7,7 @@ export default function LoginPage() {
   const router = useRouter();
   
   useEffect(() => {
-    router.push('/auth/sign-in');
+    router.push('/simple-login');
   }, [router]);
 
   return (
