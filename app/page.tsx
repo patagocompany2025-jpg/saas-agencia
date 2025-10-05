@@ -7,15 +7,18 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [debugInfo, setDebugInfo] = useState('');
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setDebugInfo('Conectando...');
 
     try {
       console.log('[LOGIN] Tentando login com email:', email);
+      setDebugInfo(`Enviando requisição para API...`);
 
       const response = await fetch('/api/user/sync', {
         method: 'POST',
@@ -24,26 +27,38 @@ export default function Home() {
       });
 
       console.log('[LOGIN] Response status:', response.status);
+      setDebugInfo(`Resposta da API: ${response.status} ${response.statusText}`);
+
       const data = await response.json();
       console.log('[LOGIN] Response data:', data);
+      setDebugInfo(`Dados recebidos: ${JSON.stringify(data).substring(0, 100)}...`);
 
       if (data.success && data.user) {
         console.log('[LOGIN] Login bem-sucedido!');
+        setDebugInfo('Login bem-sucedido! Salvando dados...');
+
         localStorage.setItem('demo_user', JSON.stringify(data.user));
+        setDebugInfo('Redirecionando para dashboard...');
+
+        // Aguardar um pouco antes de redirecionar
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         router.push('/dashboard');
-        window.location.reload();
       } else if (!data.success && data.error) {
         // Erro específico da API
         console.error('[LOGIN] Erro da API:', data.error);
         setError(data.error);
+        setDebugInfo('');
       } else {
         // Usuário não encontrado
         console.log('[LOGIN] Usuário não encontrado');
         setError('Usuário não encontrado. Use: patagocompany2025@gmail.com');
+        setDebugInfo('');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('[LOGIN] Erro de rede ou servidor:', err);
-      setError('Erro ao conectar com servidor. Verifique sua conexão.');
+      setError(`Erro: ${err.message}`);
+      setDebugInfo(`Erro detalhado: ${err.toString()}`);
     } finally {
       setLoading(false);
     }
@@ -78,6 +93,12 @@ export default function Home() {
           {error && (
             <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm">
               {error}
+            </div>
+          )}
+
+          {debugInfo && (
+            <div className="p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-lg text-yellow-200 text-sm">
+              {debugInfo}
             </div>
           )}
 
