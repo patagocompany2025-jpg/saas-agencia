@@ -3,18 +3,29 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+// Cache buster - força recompilação
+const BUILD_VERSION = '2024-01-' + Date.now();
+
 export default function Home() {
   const [email, setEmail] = useState('patagocompany2025@gmail.com');
-  const [status, setStatus] = useState('');
+  const [logs, setLogs] = useState<string[]>([]);
   const router = useRouter();
+
+  const addLog = (msg: string) => {
+    const time = new Date().toLocaleTimeString('pt-BR');
+    setLogs(prev => [...prev, `[${time}] ${msg}`]);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLogs([]); // Limpar logs
 
-    setStatus('🔵 PASSO 1: Botão clicado, iniciando...');
+    addLog('🚀 INICIANDO LOGIN...');
+    addLog(`📧 Email: ${email}`);
+    addLog(`🔧 Build: ${BUILD_VERSION}`);
 
     try {
-      setStatus('🔵 PASSO 2: Enviando requisição...');
+      addLog('🌐 Enviando para /api/user/sync...');
 
       const response = await fetch('/api/user/sync', {
         method: 'POST',
@@ -22,29 +33,34 @@ export default function Home() {
         body: JSON.stringify({ stack_user_id: email })
       });
 
-      setStatus(`🔵 PASSO 3: Status HTTP = ${response.status}`);
+      addLog(`📊 Status HTTP: ${response.status}`);
 
       const data = await response.json();
-      setStatus(`🔵 PASSO 4: data.success = ${data.success}, data.user = ${data.user ? 'SIM' : 'NÃO'}`);
+      addLog(`📦 Resposta: ${JSON.stringify(data).substring(0, 80)}...`);
 
       if (data.success && data.user) {
-        setStatus(`✅ PASSO 5: Usuário encontrado! Email: ${data.user.email}`);
+        addLog('✅ LOGIN SUCESSO!');
+        addLog(`👤 Usuário: ${data.user.displayName || data.user.email}`);
+        addLog(`🔑 Role: ${data.user.role}`);
 
         localStorage.setItem('demo_user', JSON.stringify(data.user));
-        setStatus('✅ PASSO 6: Dados salvos no localStorage');
+        addLog('💾 Salvo no localStorage');
 
-        setStatus('✅ PASSO 7: Iniciando redirecionamento em 2s...');
+        addLog('🎯 Redirecionando em 2s...');
         setTimeout(() => {
-          setStatus('✅ PASSO 8: REDIRECIONANDO AGORA!');
+          addLog('🚀 REDIRECIONANDO AGORA!');
           window.location.href = '/dashboard';
         }, 2000);
       } else if (data.error) {
-        setStatus(`❌ ERRO API: ${data.error}`);
+        addLog(`❌ ERRO: ${data.error}`);
+        if (data.details) {
+          addLog(`📋 Detalhes: ${JSON.stringify(data.details)}`);
+        }
       } else {
-        setStatus(`❌ Resposta inesperada: ${JSON.stringify(data)}`);
+        addLog(`❌ Resposta inesperada: ${JSON.stringify(data)}`);
       }
     } catch (err: any) {
-      setStatus(`❌ ERRO CATCH: ${err.message}`);
+      addLog(`❌ ERRO CATCH: ${err.message}`);
     }
   };
 
@@ -87,7 +103,7 @@ export default function Home() {
             Login Patagonian
           </h1>
           <p style={{ color: 'rgba(255,255,255,0.6)', margin: 0 }}>
-            Sistema de Gestão - v2.0
+            Sistema de Gestão - v4.0 LOGS
           </p>
         </div>
 
@@ -121,29 +137,27 @@ export default function Home() {
             />
           </div>
 
-          {/* Status */}
-          {status && (
+          {/* LOGS EM TEMPO REAL */}
+          {logs.length > 0 && (
             <div style={{
               padding: '15px',
               borderRadius: '10px',
               marginBottom: '20px',
-              background: status.includes('❌')
-                ? 'rgba(239, 68, 68, 0.1)'
-                : status.includes('✅')
-                ? 'rgba(34, 197, 94, 0.1)'
-                : 'rgba(59, 130, 246, 0.1)',
-              border: `1px solid ${
-                status.includes('❌')
-                  ? 'rgba(239, 68, 68, 0.3)'
-                  : status.includes('✅')
-                  ? 'rgba(34, 197, 94, 0.3)'
-                  : 'rgba(59, 130, 246, 0.3)'
-              }`,
-              color: 'white',
-              fontSize: '14px',
-              textAlign: 'center'
+              background: '#000',
+              border: '1px solid #00ff00',
+              maxHeight: '200px',
+              overflowY: 'auto'
             }}>
-              {status}
+              {logs.map((log, i) => (
+                <div key={i} style={{
+                  color: '#00ff00',
+                  fontSize: '11px',
+                  fontFamily: 'monospace',
+                  marginBottom: '3px'
+                }}>
+                  {log}
+                </div>
+              ))}
             </div>
           )}
 
