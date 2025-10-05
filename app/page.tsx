@@ -11,10 +11,10 @@ export default function Home() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setStatus('🔵 Conectando...');
+    setStatus('🔵 PASSO 1: Botão clicado, iniciando...');
 
     try {
-      setStatus('🔵 Buscando usuário...');
+      setStatus('🔵 PASSO 2: Enviando requisição...');
 
       const response = await fetch('/api/user/sync', {
         method: 'POST',
@@ -22,25 +22,29 @@ export default function Home() {
         body: JSON.stringify({ stack_user_id: email })
       });
 
-      setStatus(`🔵 Resposta: ${response.status}`);
+      setStatus(`🔵 PASSO 3: Status HTTP = ${response.status}`);
 
       const data = await response.json();
+      setStatus(`🔵 PASSO 4: data.success = ${data.success}, data.user = ${data.user ? 'SIM' : 'NÃO'}`);
 
       if (data.success && data.user) {
-        setStatus('✅ Login OK! Salvando...');
-        localStorage.setItem('demo_user', JSON.stringify(data.user));
+        setStatus(`✅ PASSO 5: Usuário encontrado! Email: ${data.user.email}`);
 
-        setStatus('✅ Redirecionando...');
+        localStorage.setItem('demo_user', JSON.stringify(data.user));
+        setStatus('✅ PASSO 6: Dados salvos no localStorage');
+
+        setStatus('✅ PASSO 7: Iniciando redirecionamento em 2s...');
         setTimeout(() => {
+          setStatus('✅ PASSO 8: REDIRECIONANDO AGORA!');
           window.location.href = '/dashboard';
-        }, 1000);
+        }, 2000);
       } else if (data.error) {
-        setStatus(`❌ Erro: ${data.error}`);
+        setStatus(`❌ ERRO API: ${data.error}`);
       } else {
-        setStatus('❌ Usuário não encontrado');
+        setStatus(`❌ Resposta inesperada: ${JSON.stringify(data)}`);
       }
     } catch (err: any) {
-      setStatus(`❌ Erro: ${err.message}`);
+      setStatus(`❌ ERRO CATCH: ${err.message}`);
     }
   };
 
