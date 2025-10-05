@@ -18,8 +18,12 @@ const KanbanContext = createContext<KanbanContextType | undefined>(undefined);
 
 export function KanbanProvider({ children }: { children: React.ReactNode }) {
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    // Verificar se está no navegador (não no servidor)
+    if (typeof window === 'undefined') return;
+
     console.log('Carregando tarefas do localStorage...');
     const savedTasks = localStorage.getItem('kanbanTasks');
     if (savedTasks) {
@@ -212,15 +216,21 @@ export function KanbanProvider({ children }: { children: React.ReactNode }) {
       ];
       console.log('Criando tarefas iniciais:', initialTasks.length);
       setTasks(initialTasks);
-      localStorage.setItem('kanbanTasks', JSON.stringify(initialTasks));
-      console.log('Tarefas iniciais salvas no localStorage');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('kanbanTasks', JSON.stringify(initialTasks));
+        console.log('Tarefas iniciais salvas no localStorage');
+      }
     }
+    setIsLoaded(true);
   }, []);
 
   useEffect(() => {
+    // Verificar se está no navegador e se já carregou
+    if (typeof window === 'undefined' || !isLoaded) return;
+
     console.log('Salvando tarefas no localStorage:', tasks.length);
     localStorage.setItem('kanbanTasks', JSON.stringify(tasks));
-  }, [tasks]);
+  }, [tasks, isLoaded]);
 
   const addTask = useCallback((taskData: Omit<KanbanTask, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newTask: KanbanTask = {
