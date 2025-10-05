@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Clock, User, Mail, Calendar } from 'lucide-react';
 
 export default function AdminPage() {
-  const { user, isLoading, isAdmin } = useHybridAuth();
+  const { user, isLoading, isAdmin } = useAuth();
   const [pendingUsers] = useState<{ id: string; name: string; email: string; role: string; createdAt: Date }[]>([]); // Mock data for now
   const [processingUser, setProcessingUser] = useState<string | null>(null);
 
