@@ -75,11 +75,23 @@ export async function POST(request: NextRequest) {
       success: true,
       user: userData
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao sincronizar usuário:', error);
+
+    // Retornar detalhes do erro para diagnóstico
+    const errorMessage = error?.message || 'Erro interno do servidor';
+    const errorDetails = {
+      message: errorMessage,
+      type: error?.constructor?.name || 'Unknown',
+      stack: error?.stack?.split('\n')[0] || 'No stack trace'
+    };
+
+    console.error('[API /user/sync] Detalhes completos do erro:', errorDetails);
+
     return NextResponse.json({
       success: false,
-      error: 'Erro interno do servidor'
+      error: `Erro: ${errorMessage}`,
+      details: errorDetails
     }, { status: 500 });
   }
 }
