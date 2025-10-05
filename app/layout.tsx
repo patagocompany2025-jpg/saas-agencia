@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { StackProvider } from "@stackframe/stack";
-import { stackServerApp } from "@/lib/stack";
-import { HybridAuthProvider } from "@/lib/contexts/HybridAuthContext";
+// import { StackProvider } from "@stackframe/stack";
+// import { stackServerApp } from "@/lib/stack";
+// import { HybridAuthProvider } from "@/lib/contexts/HybridAuthContext";
 import { ClientProvider } from "@/lib/contexts/ClientContext";
 import { KanbanProvider } from "@/lib/contexts/KanbanContext";
 import { FinancialProvider } from "@/lib/contexts/FinancialContext";
@@ -35,17 +35,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <StackProvider app={stackServerApp}>
-          <HybridAuthProvider>
-            <ClientProvider>
-              <KanbanProvider>
-                <FinancialProvider>
-                  {children}
-                </FinancialProvider>
-              </KanbanProvider>
-            </ClientProvider>
-          </HybridAuthProvider>
-        </StackProvider>
+        <ClientProvider>
+          <KanbanProvider>
+            <FinancialProvider>
+              {children}
+            </FinancialProvider>
+          </KanbanProvider>
+        </ClientProvider>
       </body>
     </html>
   );

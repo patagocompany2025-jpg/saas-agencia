@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
 
     const { email, name, role = 'cliente' } = await request.json();
     console.log('Dados recebidos:', { email, name, role });
+    console.log('[API /user/create] DATABASE_URL está definido:', !!process.env.DATABASE_URL);
 
     if (!email || !name) {
       console.log('Erro: email ou name não fornecidos');
@@ -34,7 +35,15 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const sql = neon(process.env.DATABASE_URL!);
+    if (!process.env.DATABASE_URL) {
+      console.error('[API /user/create] ERRO CRÍTICO: DATABASE_URL não está definido!');
+      return NextResponse.json({
+        success: false,
+        error: 'Configuração do banco de dados não encontrada'
+      }, { status: 500 });
+    }
+
+    const sql = neon(process.env.DATABASE_URL);
 
     // Verificar se usuário já existe pelo email
     console.log('Verificando se usuário já existe...');

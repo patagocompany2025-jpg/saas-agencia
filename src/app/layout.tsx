@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { StackAuthProvider } from "@/lib/contexts/StackAuthContext-approval";
+// import { StackAuthProvider } from "@/lib/contexts/StackAuthContext-approval";
 import { ClientProvider } from "@/lib/contexts/ClientContext";
 import { KanbanProvider } from "@/lib/contexts/KanbanContext";
 import { FinancialProvider } from "@/lib/contexts/FinancialContext";
@@ -43,16 +43,14 @@ export default function RootLayout({
       >
         <CacheManager />
         <SyncProvider>
-          <StackAuthProvider>
-            <ClientProvider>
-              <KanbanProvider>
-                <FinancialProvider>
-                  {children}
-                  <SyncStatus />
-                </FinancialProvider>
-              </KanbanProvider>
-            </ClientProvider>
-          </StackAuthProvider>
+          <ClientProvider>
+            <KanbanProvider>
+              <FinancialProvider>
+                {children}
+                <SyncStatus />
+              </FinancialProvider>
+            </KanbanProvider>
+          </ClientProvider>
         </SyncProvider>
       </body>
     </html>
