@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -30,7 +30,7 @@ interface ModernLayoutProps {
 }
 
 export function ModernLayout({ children }: ModernLayoutProps) {
-  const { user, signOut, isLoading } = useStackAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({});
 
@@ -83,8 +83,10 @@ export function ModernLayout({ children }: ModernLayoutProps) {
   const navigation = getNavigationItems();
 
   const handleLogout = () => {
-    signOut();
-    router.push('/login');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('demo_user');
+    }
+    router.push('/');
   };
 
   return (
