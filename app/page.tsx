@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
@@ -10,7 +10,13 @@ export default function Home() {
   const [debugInfo, setDebugInfo] = useState('');
   const router = useRouter();
 
+  useEffect(() => {
+    console.log('🎯 PÁGINA DE LOGIN CARREGADA - Versão 1.0.5-debug');
+    console.log('📍 Se você vê esta mensagem, o JavaScript está funcionando!');
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
+    console.log('🚀 handleLogin CHAMADO!');
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -66,6 +72,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {/* Indicador de versão - remover depois */}
+      <div className="fixed top-4 right-4 bg-green-500 text-white px-3 py-1 rounded text-xs font-mono">
+        v1.0.5-debug
+      </div>
+
       <div className="w-full max-w-md p-8 bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20">
         <div className="text-center mb-8">
           <img

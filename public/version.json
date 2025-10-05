@@ -1,0 +1,12 @@
+{
+  "version": "1.0.5",
+  "commit": "081d91c",
+  "date": "2025-10-05T12:00:00Z",
+  "description": "Login com feedback visual detalhado",
+  "features": [
+    "debugInfo em amarelo",
+    "Mensagens de progresso",
+    "Removido window.location.reload()",
+    "useAuth hook criado"
+  ]
+}
