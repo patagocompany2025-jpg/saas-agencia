@@ -2,9 +2,9 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-// import { useHybridAuth } from '@/lib/contexts/HybridAuthContext';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import {
   Users,
@@ -42,29 +42,15 @@ const mockMetrics = {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isLoading } = useAuth();
   const { clients } = useClients();
   const { tasks, getTotalValue } = useKanban();
 
   useEffect(() => {
-    // Verificar se está no navegador
-    if (typeof window === 'undefined') return;
-
-    // Carregar usuário do localStorage
-    const demoUser = localStorage.getItem('demo_user');
-    if (demoUser) {
-      try {
-        setUser(JSON.parse(demoUser));
-      } catch (error) {
-        console.error('Erro ao carregar usuário:', error);
-        router.push('/');
-      }
-    } else {
+    if (!isLoading && !user) {
       router.push('/');
     }
-    setIsLoading(false);
-  }, [router]);
+  }, [user, isLoading, router]);
 
   if (isLoading) {
     return (
