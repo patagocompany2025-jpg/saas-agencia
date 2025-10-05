@@ -39,7 +39,7 @@ export default function Home() {
       } else {
         // Usuário não encontrado
         console.log('[LOGIN] Usuário não encontrado');
-        setError('Usuário não encontrado. Use: negreirosalex@gmail.com');
+        setError('Usuário não encontrado. Use: patagocompany2025@gmail.com');
       }
     } catch (err) {
       console.error('[LOGIN] Erro de rede ou servidor:', err);
@@ -69,7 +69,7 @@ export default function Home() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="negreirosalex@gmail.com"
+              placeholder="patagocompany2025@gmail.com"
               className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-500"
               required
             />
@@ -83,7 +83,7 @@ export default function Home() {
 
           <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-3 text-sm text-blue-200">
             <p className="font-semibold mb-1">💡 Credenciais de Acesso:</p>
-            <p>Email: <strong>negreirosalex@gmail.com</strong></p>
+            <p>Email: <strong>patagocompany2025@gmail.com</strong></p>
             <p className="text-xs mt-2 text-blue-300/70">Role: Sócio (acesso total)</p>
           </div>
 
