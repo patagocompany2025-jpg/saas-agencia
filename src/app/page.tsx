@@ -15,24 +15,35 @@ export default function Home() {
     setError('');
 
     try {
+      console.log('[LOGIN] Tentando login com email:', email);
+
       const response = await fetch('/api/user/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stack_user_id: email })
       });
 
+      console.log('[LOGIN] Response status:', response.status);
       const data = await response.json();
+      console.log('[LOGIN] Response data:', data);
 
       if (data.success && data.user) {
+        console.log('[LOGIN] Login bem-sucedido!');
         localStorage.setItem('demo_user', JSON.stringify(data.user));
         router.push('/dashboard');
         window.location.reload();
+      } else if (!data.success && data.error) {
+        // Erro específico da API
+        console.error('[LOGIN] Erro da API:', data.error);
+        setError(data.error);
       } else {
+        // Usuário não encontrado
+        console.log('[LOGIN] Usuário não encontrado');
         setError('Usuário não encontrado. Use: admin@patagonian.com');
       }
     } catch (err) {
-      setError('Erro ao fazer login. Tente novamente.');
-      console.error(err);
+      console.error('[LOGIN] Erro de rede ou servidor:', err);
+      setError('Erro ao conectar com servidor. Verifique sua conexão.');
     } finally {
       setLoading(false);
     }
