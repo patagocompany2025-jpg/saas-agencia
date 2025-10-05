@@ -57,9 +57,13 @@ const initialClients: Client[] = [
 
 export function ClientProvider({ children }: { children: React.ReactNode }) {
   const [clients, setClients] = useState<Client[]>(initialClients);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Carregar clientes do localStorage na inicialização
   useEffect(() => {
+    // Verificar se está no navegador (não no servidor)
+    if (typeof window === 'undefined') return;
+
     console.log('Carregando clientes do localStorage...');
     const savedClients = localStorage.getItem('clients');
     if (savedClients) {
@@ -90,13 +94,17 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
     } else {
       console.log('Nenhum cliente salvo encontrado, usando dados iniciais...');
     }
+    setIsLoaded(true);
   }, []);
 
-  // Salvar clientes no localStorage sempre que a lista mudar
+  // Salvar clientes no localStorage sempre que a lista mudar (após carregar)
   useEffect(() => {
+    // Verificar se está no navegador e se já carregou
+    if (typeof window === 'undefined' || !isLoaded) return;
+
     console.log('Salvando clientes no localStorage:', clients.length);
     localStorage.setItem('clients', JSON.stringify(clients));
-  }, [clients]);
+  }, [clients, isLoaded]);
 
   const addClient = (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newClient: Client = {
