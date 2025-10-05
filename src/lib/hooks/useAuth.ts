@@ -36,9 +36,17 @@ export function useAuth() {
 
   const isAdmin = user?.role === 'socio' || user?.role === 'admin';
 
+  const signOut = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('demo_user');
+      setUser(null);
+    }
+  };
+
   return {
     user,
     isLoading,
     isAdmin,
+    signOut,
   };
 }

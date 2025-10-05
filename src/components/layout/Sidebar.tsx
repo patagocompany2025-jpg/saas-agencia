@@ -16,7 +16,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 
 const navigation = [
@@ -32,7 +32,7 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, signOut } = useStackAuth();
+  const { user, signOut } = useAuth();
 
   const handleLogout = () => {
     signOut();

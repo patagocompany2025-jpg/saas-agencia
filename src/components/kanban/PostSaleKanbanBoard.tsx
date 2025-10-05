@@ -49,7 +49,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 // Interface para tarefas de pós-venda
 interface PostSaleTask {
@@ -207,7 +207,7 @@ const mockPostSaleTasks: PostSaleTask[] = [
 ];
 
 export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {}, onUpdateCustomColumn, onDeleteCustomColumn }: PostSaleKanbanBoardProps) {
-  const { user } = useStackAuth();
+  const { user } = useAuth();
   const [tasks, setTasks] = useState<PostSaleTask[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [draggedTask, setDraggedTask] = useState<PostSaleTask | null>(null);

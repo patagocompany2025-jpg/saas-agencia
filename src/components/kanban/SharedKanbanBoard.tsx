@@ -41,7 +41,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { useClients } from '@/lib/contexts/ClientContext';
 
 const statusConfig = {
@@ -106,7 +106,7 @@ interface SharedKanbanBoardProps {
 }
 
 export function SharedKanbanBoard({ onAddTask, onEditTask }: SharedKanbanBoardProps) {
-  const { user } = useStackAuth();
+  const { user } = useAuth();
   const { clients } = useClients();
   const [tasks, setTasks] = useState<SharedTask[]>([]);
   const [loading, setLoading] = useState(true);

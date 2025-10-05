@@ -44,7 +44,7 @@ import { Label } from '@/components/ui/label';
 import { KanbanTask } from '@/lib/types';
 import { useKanban } from '@/lib/contexts/KanbanContext';
 import { useClients } from '@/lib/contexts/ClientContext';
-import { useStackAuth } from '@/lib/contexts/StackAuthContext-approval';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 const statusConfig = {
   prospeccao: {
@@ -120,7 +120,7 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ onNewTask, onEditTask, customColumns = {}, onUpdateCustomColumn, onDeleteCustomColumn }: KanbanBoardProps) {
-  const { user } = useStackAuth();
+  const { user } = useAuth();
   const { tasks, moveTask, deleteTask, getTasksByStatus, getTotalValue } = useKanban();
   const { getClient } = useClients();
   const [draggedTask, setDraggedTask] = useState<KanbanTask | null>(null);
