@@ -2,9 +2,9 @@
 
 export const dynamic = 'force-dynamic';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useHybridAuth } from '@/lib/contexts/HybridAuthContext';
+// import { useHybridAuth } from '@/lib/contexts/HybridAuthContext';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import {
   Users,
@@ -42,9 +42,29 @@ const mockMetrics = {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isLoading } = useHybridAuth();
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { clients } = useClients();
   const { tasks, getTotalValue } = useKanban();
+
+  useEffect(() => {
+    // Verificar se está no navegador
+    if (typeof window === 'undefined') return;
+
+    // Carregar usuário do localStorage
+    const demoUser = localStorage.getItem('demo_user');
+    if (demoUser) {
+      try {
+        setUser(JSON.parse(demoUser));
+      } catch (error) {
+        console.error('Erro ao carregar usuário:', error);
+        router.push('/');
+      }
+    } else {
+      router.push('/');
+    }
+    setIsLoading(false);
+  }, [router]);
 
   if (isLoading) {
     return (
@@ -58,14 +78,7 @@ export default function DashboardPage() {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Acesso Negado</h1>
-          <p className="text-gray-300">Você precisa fazer login para acessar esta página.</p>
-        </div>
-      </div>
-    );
+    return null; // Redirecionando...
   }
 
   const totalValue = tasks.reduce((sum, task) => sum + (task.value || 0), 0);
