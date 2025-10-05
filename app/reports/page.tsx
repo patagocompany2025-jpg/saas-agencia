@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useHybridAuth } from '@/lib/contexts/HybridAuthContext';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { useFinancial } from '@/lib/contexts/FinancialContext';
 import { useKanban } from '@/lib/contexts/KanbanContext';
 import { useClients } from '@/lib/contexts/ClientContext';
@@ -49,7 +49,7 @@ type ReportType = 'executive' | 'sales' | 'financial' | 'performance' | 'die' | 
 
 
 export default function ReportsPage() {
-  const { user, isLoading } = useHybridAuth();
+  const { user, isLoading } = useAuth();
   const { getTotalRevenue, getTotalExpenses } = useFinancial();
   const { tasks } = useKanban();
   const { clients } = useClients();

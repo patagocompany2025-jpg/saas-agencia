@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import React, { useState, useCallback } from 'react';
-import { useHybridAuth } from '@/lib/contexts/HybridAuthContext';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { PostSaleKanbanBoard } from '@/components/kanban/PostSaleKanbanBoard';
 import { PostSaleTaskForm } from '@/components/kanban/PostSaleTaskForm';
@@ -136,7 +136,7 @@ const mockPostSaleTasks = [
 ];
 
 export default function PostSalePage() {
-  const { user, isLoading } = useHybridAuth();
+  const { user, isLoading } = useAuth();
   const [tasks, setTasks] = useState<{
     id: string;
     clientName: string;

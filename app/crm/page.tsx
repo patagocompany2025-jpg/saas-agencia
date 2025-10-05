@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import React, { useState } from 'react';
-import { useHybridAuth } from '@/lib/contexts/HybridAuthContext';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { ClientList } from '@/components/crm/ClientList';
 import { ClientForm } from '@/components/crm/ClientForm';
@@ -13,7 +13,7 @@ import { Client } from '@/lib/types';
 import { useClients } from '@/lib/contexts/ClientContext';
 
 export default function CRMPage() {
-  const { user, isLoading } = useHybridAuth();
+  const { user, isLoading } = useAuth();
   const { clients, addClient, updateClient } = useClients();
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | undefined>();

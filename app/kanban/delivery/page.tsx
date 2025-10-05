@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useHybridAuth } from '@/lib/contexts/HybridAuthContext';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { DeliveryKanbanBoard } from '@/components/kanban/DeliveryKanbanBoard';
 import { DeliveryTaskForm } from '@/components/kanban/DeliveryTaskForm';
@@ -22,7 +22,7 @@ import {
 import Link from 'next/link';
 
 export default function DeliveryPage() {
-  const { user, isLoading } = useHybridAuth();
+  const { user, isLoading } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<{
     id: string;

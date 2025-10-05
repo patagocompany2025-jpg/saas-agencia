@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import React, { useState } from 'react';
-import { useHybridAuth } from '@/lib/contexts/HybridAuthContext';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { TaskForm } from '@/components/kanban/TaskForm';
@@ -15,7 +15,7 @@ import { KanbanTask } from '@/lib/types';
 import { useKanban } from '@/lib/contexts/KanbanContext';
 
 export default function KanbanPage() {
-  const { user, isLoading } = useHybridAuth();
+  const { user, isLoading } = useAuth();
   const { addTask, updateTask, deleteTask, tasks } = useKanban();
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<KanbanTask | undefined>();

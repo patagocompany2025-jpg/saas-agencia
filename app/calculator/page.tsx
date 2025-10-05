@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useHybridAuth } from '@/lib/contexts/HybridAuthContext';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -250,7 +250,7 @@ interface PatagoniaServiceStructure {
 }
 
 export default function CalculatorPage() {
-  const { user, isLoading } = useHybridAuth();
+  const { user, isLoading } = useAuth();
   // Armazenar apenas os dados editáveis, mantendo PATAGONIA_SERVICES intacto
   const [serviceOverrides, setServiceOverrides] = useState<{[key: string]: ServiceOptionWithDelete}>({});
   const [editingPrices, setEditingPrices] = useState<{[key: string]: string}>({});
