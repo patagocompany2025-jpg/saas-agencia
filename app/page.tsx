@@ -1,30 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [debugInfo, setDebugInfo] = useState('');
+  const [email, setEmail] = useState('patagocompany2025@gmail.com');
+  const [status, setStatus] = useState('');
   const router = useRouter();
 
-  useEffect(() => {
-    console.log('🎯 PÁGINA DE LOGIN CARREGADA - Versão 1.0.5-debug');
-    console.log('📍 Se você vê esta mensagem, o JavaScript está funcionando!');
-  }, []);
-
   const handleLogin = async (e: React.FormEvent) => {
-    console.log('🚀 handleLogin CHAMADO!');
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    setDebugInfo('Conectando...');
+
+    setStatus('🔵 Conectando...');
 
     try {
-      console.log('[LOGIN] Tentando login com email:', email);
-      setDebugInfo(`Enviando requisição para API...`);
+      setStatus('🔵 Buscando usuário...');
 
       const response = await fetch('/api/user/sync', {
         method: 'POST',
@@ -32,101 +22,161 @@ export default function Home() {
         body: JSON.stringify({ stack_user_id: email })
       });
 
-      console.log('[LOGIN] Response status:', response.status);
-      setDebugInfo(`Resposta da API: ${response.status} ${response.statusText}`);
+      setStatus(`🔵 Resposta: ${response.status}`);
 
       const data = await response.json();
-      console.log('[LOGIN] Response data:', data);
-      setDebugInfo(`Dados recebidos: ${JSON.stringify(data).substring(0, 100)}...`);
 
       if (data.success && data.user) {
-        console.log('[LOGIN] Login bem-sucedido!');
-        setDebugInfo('Login bem-sucedido! Salvando dados...');
-
+        setStatus('✅ Login OK! Salvando...');
         localStorage.setItem('demo_user', JSON.stringify(data.user));
-        setDebugInfo('Redirecionando para dashboard...');
 
-        // Aguardar um pouco antes de redirecionar
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        router.push('/dashboard');
-      } else if (!data.success && data.error) {
-        // Erro específico da API
-        console.error('[LOGIN] Erro da API:', data.error);
-        setError(data.error);
-        setDebugInfo('');
+        setStatus('✅ Redirecionando...');
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1000);
+      } else if (data.error) {
+        setStatus(`❌ Erro: ${data.error}`);
       } else {
-        // Usuário não encontrado
-        console.log('[LOGIN] Usuário não encontrado');
-        setError('Usuário não encontrado. Use: patagocompany2025@gmail.com');
-        setDebugInfo('');
+        setStatus('❌ Usuário não encontrado');
       }
     } catch (err: any) {
-      console.error('[LOGIN] Erro de rede ou servidor:', err);
-      setError(`Erro: ${err.message}`);
-      setDebugInfo(`Erro detalhado: ${err.toString()}`);
-    } finally {
-      setLoading(false);
+      setStatus(`❌ Erro: ${err.message}`);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      {/* Indicador de versão - remover depois */}
-      <div className="fixed top-4 right-4 bg-green-500 text-white px-3 py-1 rounded text-xs font-mono">
-        v1.0.5-debug
-      </div>
-
-      <div className="w-full max-w-md p-8 bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20">
-        <div className="text-center mb-8">
-          <img
-            src="/LOGO_HORI_WHITE.png"
-            alt="Patagonia"
-            className="h-20 mx-auto mb-4"
-          />
-          <h1 className="text-3xl font-bold text-white mb-2">Bem-vindo</h1>
-          <p className="text-white/60">Sistema de Gestão Patagonian</p>
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(to bottom right, #1a1a2e, #16213e)',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      padding: '20px'
+    }}>
+      <div style={{
+        width: '100%',
+        maxWidth: '450px',
+        background: 'rgba(255,255,255,0.05)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '20px',
+        padding: '40px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+        border: '1px solid rgba(255,255,255,0.1)'
+      }}>
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: '50%',
+            margin: '0 auto 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '36px'
+          }}>
+            🚀
+          </div>
+          <h1 style={{ color: 'white', fontSize: '28px', margin: '0 0 10px' }}>
+            Login Patagonian
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+            Sistema de Gestão - v2.0
+          </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="block text-white mb-2 font-medium">Email</label>
+        {/* Form */}
+        <form onSubmit={handleLogin}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              color: 'white',
+              marginBottom: '8px',
+              fontWeight: '500'
+            }}>
+              Email
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="patagocompany2025@gmail.com"
-              className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-500"
               required
+              style={{
+                width: '100%',
+                padding: '15px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255,255,255,0.2)',
+                background: 'rgba(255,255,255,0.05)',
+                color: 'white',
+                fontSize: '16px',
+                outline: 'none',
+                boxSizing: 'border-box'
+              }}
             />
           </div>
 
-          {error && (
-            <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm">
-              {error}
+          {/* Status */}
+          {status && (
+            <div style={{
+              padding: '15px',
+              borderRadius: '10px',
+              marginBottom: '20px',
+              background: status.includes('❌')
+                ? 'rgba(239, 68, 68, 0.1)'
+                : status.includes('✅')
+                ? 'rgba(34, 197, 94, 0.1)'
+                : 'rgba(59, 130, 246, 0.1)',
+              border: `1px solid ${
+                status.includes('❌')
+                  ? 'rgba(239, 68, 68, 0.3)'
+                  : status.includes('✅')
+                  ? 'rgba(34, 197, 94, 0.3)'
+                  : 'rgba(59, 130, 246, 0.3)'
+              }`,
+              color: 'white',
+              fontSize: '14px',
+              textAlign: 'center'
+            }}>
+              {status}
             </div>
           )}
-
-          {debugInfo && (
-            <div className="p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-lg text-yellow-200 text-sm">
-              {debugInfo}
-            </div>
-          )}
-
-          <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-3 text-sm text-blue-200">
-            <p className="font-semibold mb-1">💡 Credenciais de Acesso:</p>
-            <p>Email: <strong>patagocompany2025@gmail.com</strong></p>
-            <p className="text-xs mt-2 text-blue-300/70">Role: Sócio (acesso total)</p>
-          </div>
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              width: '100%',
+              padding: '15px',
+              borderRadius: '10px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              fontSize: '18px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              transition: 'transform 0.2s',
+              boxSizing: 'border-box'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
           >
-            {loading ? 'Entrando...' : 'Entrar no Sistema'}
+            Entrar no Sistema
           </button>
         </form>
+
+        {/* Info */}
+        <div style={{
+          marginTop: '25px',
+          padding: '15px',
+          borderRadius: '10px',
+          background: 'rgba(59, 130, 246, 0.1)',
+          border: '1px solid rgba(59, 130, 246, 0.3)'
+        }}>
+          <div style={{ color: 'rgba(147, 197, 253, 1)', fontSize: '13px', textAlign: 'center' }}>
+            <strong>Email:</strong> patagocompany2025@gmail.com
+          </div>
+        </div>
       </div>
     </div>
   );
