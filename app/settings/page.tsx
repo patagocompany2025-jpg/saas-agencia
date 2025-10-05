@@ -53,7 +53,7 @@ import {
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user, isLoading: authLoading } = useHybridAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
