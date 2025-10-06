@@ -140,44 +140,80 @@ export default function SettingsPage() {
     updatedAt?: string;
   }>>([]);
 
-  // Atualizar lista de usuários quando approvedUsers mudar
+  // Carregar usuários do localStorage
   React.useEffect(() => {
-    console.log('=== DEBUG USUÁRIOS ===');
-    console.log('approvedUsers do contexto:', []);
-    console.log('Tipo de approvedUsers:', typeof []);
-    console.log('Array?', Array.isArray([]));
-    console.log('Length:', [].length);
-    
-    // Mock de usuários para demonstração
-    const mockUsers = [
-      {
-        id: '1',
-        name: 'João Silva',
-        email: 'joao@example.com',
-        role: 'cliente',
-        status: 'active',
-        createdAt: '2024-01-15',
-        lastLogin: '2024-10-01',
-        permissions: []
-      },
-      {
-        id: '2',
-        name: 'Maria Santos',
-        email: 'maria@example.com',
-        role: 'socio',
-        status: 'active',
-        createdAt: '2024-02-20',
-        lastLogin: '2024-10-01',
-        permissions: []
+    if (typeof window === 'undefined') return;
+
+    const savedUsers = localStorage.getItem('settings_users');
+    if (savedUsers) {
+      try {
+        const parsedUsers = JSON.parse(savedUsers);
+        console.log('Usuários carregados do localStorage:', parsedUsers);
+        setUsers(parsedUsers);
+      } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+        // Carregar mock se falhar
+        const mockUsers = [
+          {
+            id: '1',
+            name: 'João Silva',
+            email: 'joao@example.com',
+            role: 'cliente',
+            status: 'active',
+            createdAt: '2024-01-15',
+            lastLogin: '2024-10-01',
+            permissions: []
+          },
+          {
+            id: '2',
+            name: 'Maria Santos',
+            email: 'maria@example.com',
+            role: 'socio',
+            status: 'active',
+            createdAt: '2024-02-20',
+            lastLogin: '2024-10-01',
+            permissions: []
+          }
+        ];
+        setUsers(mockUsers);
+        localStorage.setItem('settings_users', JSON.stringify(mockUsers));
       }
-    ];
-    setUsers(mockUsers);
-    console.log('Usuários mock carregados:', mockUsers);
+    } else {
+      // Primeira vez - carregar mock
+      const mockUsers = [
+        {
+          id: '1',
+          name: 'João Silva',
+          email: 'joao@example.com',
+          role: 'cliente',
+          status: 'active',
+          createdAt: '2024-01-15',
+          lastLogin: '2024-10-01',
+          permissions: []
+        },
+        {
+          id: '2',
+          name: 'Maria Santos',
+          email: 'maria@example.com',
+          role: 'socio',
+          status: 'active',
+          createdAt: '2024-02-20',
+          lastLogin: '2024-10-01',
+          permissions: []
+        }
+      ];
+      setUsers(mockUsers);
+      localStorage.setItem('settings_users', JSON.stringify(mockUsers));
+      console.log('Usuários mock salvos no localStorage:', mockUsers);
+    }
   }, []);
 
-  // Debug: Log quando users muda
+  // Salvar usuários no localStorage sempre que mudar
   React.useEffect(() => {
-    console.log('Estado users atualizado:', users);
+    if (typeof window === 'undefined' || users.length === 0) return;
+
+    localStorage.setItem('settings_users', JSON.stringify(users));
+    console.log('Usuários salvos no localStorage:', users);
   }, [users]);
 
   // Permissões disponíveis - Todas as funcionalidades do sistema
@@ -770,6 +806,43 @@ export default function SettingsPage() {
     setShowUserForm(true);
   };
 
+  const handleResetData = () => {
+    if (confirm('⚠️ ATENÇÃO: Isso irá remover TODOS os usuários criados e restaurar os dados padrão. Deseja continuar?')) {
+      if (typeof window === 'undefined') return;
+
+      // Remover do localStorage
+      localStorage.removeItem('settings_users');
+
+      // Recarregar mock padrão
+      const mockUsers = [
+        {
+          id: '1',
+          name: 'João Silva',
+          email: 'joao@example.com',
+          role: 'cliente',
+          status: 'active',
+          createdAt: '2024-01-15',
+          lastLogin: '2024-10-01',
+          permissions: []
+        },
+        {
+          id: '2',
+          name: 'Maria Santos',
+          email: 'maria@example.com',
+          role: 'socio',
+          status: 'active',
+          createdAt: '2024-02-20',
+          lastLogin: '2024-10-01',
+          permissions: []
+        }
+      ];
+
+      setUsers(mockUsers);
+      localStorage.setItem('settings_users', JSON.stringify(mockUsers));
+      alert('✅ Dados resetados com sucesso! Usuários padrão restaurados.');
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -921,10 +994,7 @@ export default function SettingsPage() {
                       </CardTitle>
                       <div className="flex gap-2">
                         <Button
-                          onClick={() => {
-                            console.log('Reset de dados (mock)');
-                            alert('Dados resetados (Mock)');
-                          }}
+                          onClick={handleResetData}
                           variant="outline"
                           className="text-red-600 border-red-600 hover:bg-red-50"
                         >
