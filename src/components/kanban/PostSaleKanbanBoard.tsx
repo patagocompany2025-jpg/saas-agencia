@@ -57,6 +57,9 @@ interface PostSaleTask {
   clientName: string;
   service: string;
   value: number;
+  valueCurrency?: string; // Moeda do valor
+  closedValue?: number; // Valor fechado do serviço
+  closedValueCurrency?: string; // Moeda do valor fechado
   status: 'aguardando' | 'contato' | 'satisfeito' | 'reclamacao' | 'fidelizado' | 'indicacao';
   completionDate: string;
   feedbackDate?: string;
@@ -66,6 +69,9 @@ interface PostSaleTask {
   assignedTo: string;
   priority: 'baixa' | 'media' | 'alta';
   notes?: string;
+  originalDeliveryId?: string; // Referência ao card de entrega
+  hidden?: boolean; // Card oculto após 3 minutos
+  completedAt?: string; // Timestamp de quando chegou em status final
   createdAt: string;
   updatedAt: string;
 }
@@ -224,7 +230,7 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   // Estado para armazenar configurações personalizadas das colunas padrão
   const [customColumnConfigs, setCustomColumnConfigs] = useState<{[key: string]: {title: string, subtitle: string}}>({});
   
-  // Carregar tarefas do localStorage
+  // Carregar tarefas e ordem das colunas do localStorage
   useEffect(() => {
     console.log('🔄 INICIALIZANDO POST SALE KANBAN BOARD');
 
@@ -243,7 +249,19 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
       console.log('📋 NENHUMA TAREFA DE PÓS-VENDA SALVA');
       setTasks([]);
     }
-    
+
+    // Carregar ordem das colunas do localStorage
+    const savedColumnOrder = localStorage.getItem('postSaleColumnOrder');
+    if (savedColumnOrder) {
+      try {
+        const parsedColumnOrder = JSON.parse(savedColumnOrder);
+        console.log('📋 ORDEM DAS COLUNAS DE PÓS-VENDA CARREGADA:', parsedColumnOrder);
+        setColumnOrder(parsedColumnOrder);
+      } catch (error) {
+        console.error('❌ ERRO AO CARREGAR ORDEM DAS COLUNAS:', error);
+      }
+    }
+
     // Marcar como inicializado
     setIsInitialized(true);
   }, []);
@@ -252,11 +270,19 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   useEffect(() => {
     // Só salva depois da inicialização
     if (!isInitialized) return;
-    
+
     console.log('💾 SALVANDO TAREFAS PÓS-VENDA AUTOMATICAMENTE:', tasks.length);
     localStorage.setItem('postSaleTasks', JSON.stringify(tasks));
   }, [tasks, isInitialized]);
 
+  // useEffect automático para salvar ordem das colunas no localStorage
+  useEffect(() => {
+    // Só salva depois da inicialização
+    if (!isInitialized) return;
+
+    console.log('💾 SALVANDO ORDEM DAS COLUNAS DE PÓS-VENDA:', columnOrder);
+    localStorage.setItem('postSaleColumnOrder', JSON.stringify(columnOrder));
+  }, [columnOrder, isInitialized]);
 
   // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas
   useEffect(() => {
@@ -269,6 +295,40 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
       });
     }
   }, [customColumns]);
+
+  // ⏱️ AUTO-HIDE: Verificar a cada segundo se algum card precisa ser ocultado
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      let hasUpdates = false;
+      const finalStatuses = ['satisfeito', 'fidelizado', 'indicacao'];
+
+      setTasks(prev => {
+        const updated = prev.map(task => {
+          // Verificar se o card está em status final e tem completedAt
+          if (finalStatuses.includes(task.status) && task.completedAt && !task.hidden) {
+            const completedTime = new Date(task.completedAt).getTime();
+            const elapsedMinutes = (now - completedTime) / (1000 * 60);
+
+            // Se passou 3 minutos, ocultar o card
+            if (elapsedMinutes >= 3) {
+              console.log(`⏰ AUTO-HIDE: Card "${task.clientName}" (${task.status}) completado há ${elapsedMinutes.toFixed(1)} minutos - OCULTANDO`);
+              hasUpdates = true;
+              return { ...task, hidden: true };
+            }
+          }
+          return task;
+        });
+
+        // Só retorna novo array se houve mudanças (evita re-renders desnecessários)
+        return hasUpdates ? updated : prev;
+      });
+    }, 1000); // Verificar a cada 1 segundo
+
+    return () => clearInterval(interval);
+  }, [isInitialized]);
 
   const handleDragStart = (e: React.DragEvent, task: PostSaleTask) => {
     e.stopPropagation(); // Impedir que o evento se propague para a coluna
@@ -292,19 +352,33 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
 
   const handleDrop = (e: React.DragEvent, newStatus: PostSaleTask['status']) => {
     e.preventDefault();
-    
+
     // Verificar se é arrastar card (não coluna)
     const dragType = e.dataTransfer.getData('drag-type');
     if (dragType !== 'card') return;
-    
+
     if (draggedTask && draggedTask.status !== newStatus) {
-      setTasks(prev => prev.map(task => 
-        task.id === draggedTask.id 
-          ? { ...task, status: newStatus, updatedAt: new Date().toISOString().split('T')[0] }
-          : task
-      ));
+      setTasks(prev => prev.map(task => {
+        if (task.id === draggedTask.id) {
+          const updatedTask: PostSaleTask = {
+            ...task,
+            status: newStatus,
+            updatedAt: new Date().toISOString().split('T')[0]
+          };
+
+          // ⏱️ Registrar timestamp quando chegar em status final (satisfeito, fidelizado, indicacao)
+          const finalStatuses = ['satisfeito', 'fidelizado', 'indicacao'];
+          if (finalStatuses.includes(newStatus)) {
+            updatedTask.completedAt = new Date().toISOString();
+            console.log(`⏱️ Card movido para ${newStatus.toUpperCase()} - Timestamp registrado:`, updatedTask.completedAt);
+          }
+
+          return updatedTask;
+        }
+        return task;
+      }));
     }
-    
+
     setDraggedTask(null);
   };
 
@@ -477,13 +551,37 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
   };
 
   const getTasksByStatus = (status: string) => {
-    const filteredTasks = tasks.filter(task => task.status === status);
-    
+    // 🔗 SINCRONIZAÇÃO: Carregar tasks de Entrega para verificar status do card pai
+    const deliveryTasks = JSON.parse(localStorage.getItem('deliveryTasks') || '[]');
+
+    // Filtrar por status, cards ocultos E status do card pai de Entrega
+    const filteredTasks = tasks.filter(task => {
+      // Filtro básico: status e visibilidade
+      if (task.status !== status || task.hidden) return false;
+
+      // 🔗 Se tem originalDeliveryId, verificar se o card de Entrega está em "concluido"
+      if (task.originalDeliveryId) {
+        const parentDelivery = deliveryTasks.find((t: any) => t.id === task.originalDeliveryId);
+
+        // Só mostrar se o card de Entrega pai estiver em "concluido"
+        const isParentCompleted = parentDelivery && parentDelivery.status === 'concluido';
+
+        if (!isParentCompleted) {
+          console.log(`🔒 CARD PÓS-VENDA OCULTO: "${task.clientName}" - Card de Entrega pai não está em "concluido" (status: ${parentDelivery?.status || 'não encontrado'})`);
+        }
+
+        return isParentCompleted;
+      }
+
+      // Se não tem originalDeliveryId, mostrar normalmente
+      return true;
+    });
+
     console.log(`📊 GET POST SALE TASKS BY STATUS (${status}):`);
     console.log(`  - Total tasks: ${tasks.length}`);
-    console.log(`  - Tasks for status: ${filteredTasks.length}`);
+    console.log(`  - Tasks for status (visible): ${filteredTasks.length}`);
     console.log(`  - Task IDs: ${filteredTasks.map(t => t.id)}`);
-    
+
     return filteredTasks;
   };
 
@@ -661,16 +759,40 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
                               Concluído em: {task.completionDate}
                             </p>
                           </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onEditTask(task);
-                            }}
-                            className="p-1.5 hover:bg-white/20 rounded-lg transition-all duration-200 flex-shrink-0 hover:scale-110"
-                            title="Editar pós-venda"
-                          >
-                            <Edit className="h-3.5 w-3.5 text-white/70 hover:text-white" />
-                          </button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 hover:scale-110"
+                                title="Opções de pós-venda"
+                              >
+                                <Edit className="h-3.5 w-3.5" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onEditTask(task);
+                                }}
+                                className="text-white hover:bg-gray-700"
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteTask(task.id);
+                                }}
+                                className="text-red-400 hover:bg-red-500/10"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
 
                         {/* Informações Compactas */}
@@ -718,44 +840,13 @@ export function PostSaleKanbanBoard({ onNewTask, onEditTask, customColumns = {},
                           </div>
 
                           {/* Prioridade */}
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-center">
                             <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                               task.priority === 'alta' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
                               task.priority === 'media' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
                               'bg-green-500/20 text-green-300 border border-green-500/30'
                             }`}>
                               {task.priority.toUpperCase()}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/60 hover:text-white">
-                                    <MoreHorizontal className="h-3 w-3" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
-                                  <DropdownMenuItem 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onEditTask(task);
-                                    }}
-                                    className="text-white hover:bg-gray-700"
-                                  >
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Editar
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteTask(task.id);
-                                    }}
-                                    className="text-red-400 hover:bg-red-500/10"
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Excluir
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
                             </div>
                           </div>
                         </div>

@@ -6,16 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  DollarSign, 
-  Users, 
-  Calendar, 
-  MapPin, 
-  User, 
-  Heart, 
-  Star, 
-  MessageCircle, 
-  Phone, 
+import { CURRENCIES, CurrencyCode, formatCurrency } from '@/lib/utils/currency';
+import {
+  DollarSign,
+  Users,
+  Calendar,
+  MapPin,
+  User,
+  Heart,
+  Star,
+  MessageCircle,
+  Phone,
   Mail,
   CheckCircle,
   Clock,
@@ -32,6 +33,9 @@ interface PostSaleTask {
   clientName: string;
   service: string;
   value: number;
+  valueCurrency?: string;
+  closedValue?: number;
+  closedValueCurrency?: string;
   status: 'aguardando' | 'contato' | 'satisfeito' | 'reclamacao' | 'fidelizado' | 'indicacao';
   completionDate: string;
   feedbackDate?: string;
@@ -57,6 +61,9 @@ export function PostSaleTaskForm({ initialTask, onSave, onCancel }: PostSaleTask
     clientName: '',
     service: '',
     value: 0,
+    valueCurrency: 'BRL' as CurrencyCode,
+    closedValue: 0,
+    closedValueCurrency: 'BRL' as CurrencyCode,
     status: 'aguardando' as PostSaleTask['status'],
     completionDate: '',
     feedbackDate: '',
@@ -76,6 +83,9 @@ export function PostSaleTaskForm({ initialTask, onSave, onCancel }: PostSaleTask
         clientName: initialTask.clientName || '',
         service: initialTask.service || '',
         value: initialTask.value || 0,
+        valueCurrency: (initialTask.valueCurrency as CurrencyCode) || 'BRL',
+        closedValue: initialTask.closedValue || 0,
+        closedValueCurrency: (initialTask.closedValueCurrency as CurrencyCode) || 'BRL',
         status: initialTask.status || 'aguardando',
         completionDate: initialTask.completionDate || '',
         feedbackDate: initialTask.feedbackDate || '',
@@ -157,6 +167,27 @@ export function PostSaleTaskForm({ initialTask, onSave, onCancel }: PostSaleTask
     }
   };
 
+  // Handler para valores monetários com formatação
+  const handleCurrencyInputChange = (field: string, value: string, currencyCode: CurrencyCode) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '');
+
+    if (!numbers) {
+      handleInputChange(field, 0);
+      return;
+    }
+
+    // Converte para número (centavos)
+    const numericValue = parseInt(numbers, 10) / 100;
+    handleInputChange(field, numericValue);
+  };
+
+  // Formata o valor para exibição
+  const getFormattedValue = (value: number, currencyCode: CurrencyCode): string => {
+    if (!value || value === 0) return '';
+    return formatCurrency(value, currencyCode).replace(/[^\d,.]/g, '');
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Header com botão de voltar */}
@@ -228,19 +259,59 @@ export function PostSaleTaskForm({ initialTask, onSave, onCancel }: PostSaleTask
             <DollarSign className="h-4 w-4" />
             Valor do Serviço *
           </Label>
-          <Input
-            id="value"
-            type="number"
-            value={formData.value}
-            onChange={(e) => handleInputChange('value', Number(e.target.value))}
-            className="bg-gray-700 border-gray-600 text-white"
-            placeholder="0"
-            min="0"
-            step="0.01"
-          />
+          <div className="flex gap-2">
+            <select
+              value={formData.valueCurrency}
+              onChange={(e) => handleInputChange('valueCurrency', e.target.value)}
+              className="w-32 bg-gray-700 border-gray-600 text-white rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+            >
+              {Object.entries(CURRENCIES).map(([code, currency]) => (
+                <option key={code} value={code}>
+                  {currency.symbol} {code}
+                </option>
+              ))}
+            </select>
+            <Input
+              id="value"
+              type="text"
+              value={getFormattedValue(formData.value, formData.valueCurrency)}
+              onChange={(e) => handleCurrencyInputChange('value', e.target.value, formData.valueCurrency)}
+              className="flex-1 bg-gray-700 border-gray-600 text-white"
+              placeholder="0,00"
+            />
+          </div>
           {errors.value && (
             <p className="text-red-400 text-sm">{errors.value}</p>
           )}
+        </div>
+
+        {/* Valor Fechado */}
+        <div className="space-y-2">
+          <Label htmlFor="closedValue" className="text-white/70 flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            Valor Fechado
+          </Label>
+          <div className="flex gap-2">
+            <select
+              value={formData.closedValueCurrency}
+              onChange={(e) => handleInputChange('closedValueCurrency', e.target.value)}
+              className="w-32 bg-gray-700 border-gray-600 text-white rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+            >
+              {Object.entries(CURRENCIES).map(([code, currency]) => (
+                <option key={code} value={code}>
+                  {currency.symbol} {code}
+                </option>
+              ))}
+            </select>
+            <Input
+              id="closedValue"
+              type="text"
+              value={getFormattedValue(formData.closedValue, formData.closedValueCurrency)}
+              onChange={(e) => handleCurrencyInputChange('closedValue', e.target.value, formData.closedValueCurrency)}
+              className="flex-1 bg-gray-700 border-gray-600 text-white"
+              placeholder="0,00"
+            />
+          </div>
         </div>
 
         {/* Status */}

@@ -13,12 +13,13 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useClients } from '@/lib/contexts/ClientContext';
-import { 
-  User, 
-  MapPin, 
-  Calendar, 
-  Users, 
-  DollarSign, 
+import { CURRENCIES, CurrencyCode, formatCurrency } from '@/lib/utils/currency';
+import {
+  User,
+  MapPin,
+  Calendar,
+  Users,
+  DollarSign,
   AlertCircle,
   CheckCircle,
   Clock,
@@ -297,6 +298,27 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
       case 'baixa': return <CheckCircle className="h-4 w-4 text-green-400" />;
       default: return <Clock className="h-4 w-4 text-gray-400" />;
     }
+  };
+
+  // Handler para valores monetários com formatação
+  const handleCurrencyInputChange = (field: keyof DeliveryTask, value: string, currencyCode: CurrencyCode) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '');
+
+    if (!numbers) {
+      handleInputChange(field, 0);
+      return;
+    }
+
+    // Converte para número (centavos)
+    const numericValue = parseInt(numbers, 10) / 100;
+    handleInputChange(field, numericValue);
+  };
+
+  // Formata o valor para exibição
+  const getFormattedValue = (value: number, currencyCode: CurrencyCode): string => {
+    if (!value || value === 0) return '';
+    return formatCurrency(value, currencyCode).replace(/[^\d,.]/g, '');
   };
 
   return (
@@ -602,25 +624,67 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
         </div>
       </div>
 
-      {/* Valor e Viajantes */}
+      {/* Valor, Valor Fechado e Viajantes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Valor */}
         <div className="space-y-2">
           <Label htmlFor="value" className="text-white/70 flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
-            Valor (R$)
+            Valor
           </Label>
-          <Input
-            id="value"
-            type="number"
-            min="0"
-            step="0.01"
-            value={formData.value || ''}
-            onChange={(e) => handleInputChange('value', parseFloat(e.target.value) || 0)}
-            className="bg-gray-700 border-gray-600 text-white"
-            placeholder="0.00"
-          />
+          <div className="flex gap-2">
+            <select
+              value={(formData as { valueCurrency?: string }).valueCurrency || 'BRL'}
+              onChange={(e) => handleInputChange('valueCurrency' as keyof DeliveryTask, e.target.value)}
+              className="w-32 bg-gray-700 border-gray-600 text-white rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              {Object.entries(CURRENCIES).map(([code, currency]) => (
+                <option key={code} value={code}>
+                  {currency.symbol} {code}
+                </option>
+              ))}
+            </select>
+            <Input
+              id="value"
+              type="text"
+              value={getFormattedValue(formData.value || 0, ((formData as { valueCurrency?: string }).valueCurrency || 'BRL') as CurrencyCode)}
+              onChange={(e) => handleCurrencyInputChange('value', e.target.value, ((formData as { valueCurrency?: string }).valueCurrency || 'BRL') as CurrencyCode)}
+              className="flex-1 bg-gray-700 border-gray-600 text-white"
+              placeholder="0,00"
+            />
+          </div>
         </div>
 
+        {/* Valor Fechado */}
+        <div className="space-y-2">
+          <Label htmlFor="closedValue" className="text-white/70 flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            Valor Fechado
+          </Label>
+          <div className="flex gap-2">
+            <select
+              value={(formData as { closedValueCurrency?: string }).closedValueCurrency || 'BRL'}
+              onChange={(e) => handleInputChange('closedValueCurrency' as keyof DeliveryTask, e.target.value)}
+              className="w-32 bg-gray-700 border-gray-600 text-white rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              {Object.entries(CURRENCIES).map(([code, currency]) => (
+                <option key={code} value={code}>
+                  {currency.symbol} {code}
+                </option>
+              ))}
+            </select>
+            <Input
+              id="closedValue"
+              type="text"
+              value={getFormattedValue((formData as { closedValue?: number }).closedValue || 0, ((formData as { closedValueCurrency?: string }).closedValueCurrency || 'BRL') as CurrencyCode)}
+              onChange={(e) => handleCurrencyInputChange('closedValue' as keyof DeliveryTask, e.target.value, ((formData as { closedValueCurrency?: string }).closedValueCurrency || 'BRL') as CurrencyCode)}
+              className="flex-1 bg-gray-700 border-gray-600 text-white"
+              placeholder="0,00"
+            />
+          </div>
+        </div>
+
+        {/* Viajantes */}
         <div className="space-y-2">
           <Label htmlFor="travelers" className="text-white/70 flex items-center gap-2">
             <Users className="h-4 w-4" />

@@ -53,6 +53,9 @@ interface DeliveryTask {
   clientName: string;
   service: string;
   value: number;
+  valueCurrency?: string; // Moeda do valor
+  closedValue?: number; // Valor fechado do serviço
+  closedValueCurrency?: string; // Moeda do valor fechado
   status: 'confirmado' | 'planejamento' | 'preparacao' | 'execucao' | 'concluido' | 'pos-venda';
   priority: 'baixa' | 'media' | 'alta';
   paymentDate: string;
@@ -62,6 +65,9 @@ interface DeliveryTask {
   destination: string;
   assignedTo: string;
   notes?: string;
+  originalSaleId?: string; // Referência ao card de vendas
+  hidden?: boolean; // Card oculto após 3 minutos
+  completedAt?: string; // Timestamp de quando chegou em "concluído"
   createdAt: string;
   updatedAt: string;
 }
@@ -204,7 +210,7 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   // Estado para armazenar configurações personalizadas das colunas padrão
   const [customColumnConfigs, setCustomColumnConfigs] = useState<{[key: string]: {title: string, subtitle: string}}>({});
   
-  // Carregar tarefas do localStorage
+  // Carregar tarefas e ordem das colunas do localStorage
   useEffect(() => {
     console.log('🔄 INICIALIZANDO DELIVERY KANBAN BOARD');
 
@@ -223,7 +229,19 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
       console.log('📋 NENHUMA TAREFA DE DELIVERY SALVA');
       setTasks([]);
     }
-    
+
+    // Carregar ordem das colunas do localStorage
+    const savedColumnOrder = localStorage.getItem('deliveryColumnOrder');
+    if (savedColumnOrder) {
+      try {
+        const parsedColumnOrder = JSON.parse(savedColumnOrder);
+        console.log('📋 ORDEM DAS COLUNAS DE DELIVERY CARREGADA:', parsedColumnOrder);
+        setColumnOrder(parsedColumnOrder);
+      } catch (error) {
+        console.error('❌ ERRO AO CARREGAR ORDEM DAS COLUNAS:', error);
+      }
+    }
+
     // Marcar como inicializado
     setIsInitialized(true);
   }, []);
@@ -232,11 +250,19 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   useEffect(() => {
     // Só salva depois da inicialização
     if (!isInitialized) return;
-    
+
     console.log('💾 SALVANDO TAREFAS DELIVERY AUTOMATICAMENTE:', tasks.length);
     localStorage.setItem('deliveryTasks', JSON.stringify(tasks));
   }, [tasks, isInitialized]);
 
+  // useEffect automático para salvar ordem das colunas no localStorage
+  useEffect(() => {
+    // Só salva depois da inicialização
+    if (!isInitialized) return;
+
+    console.log('💾 SALVANDO ORDEM DAS COLUNAS DE DELIVERY:', columnOrder);
+    localStorage.setItem('deliveryColumnOrder', JSON.stringify(columnOrder));
+  }, [columnOrder, isInitialized]);
 
   // Atualizar a ordem das colunas quando novas colunas customizadas são adicionadas
   useEffect(() => {
@@ -249,6 +275,39 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
       });
     }
   }, [customColumns]);
+
+  // ⏱️ AUTO-HIDE: Verificar a cada segundo se algum card precisa ser ocultado
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      let hasUpdates = false;
+
+      setTasks(prev => {
+        const updated = prev.map(task => {
+          // Verificar se o card está em "concluído" e tem completedAt
+          if (task.status === 'concluido' && task.completedAt && !task.hidden) {
+            const completedTime = new Date(task.completedAt).getTime();
+            const elapsedMinutes = (now - completedTime) / (1000 * 60);
+
+            // Se passou 3 minutos, ocultar o card
+            if (elapsedMinutes >= 3) {
+              console.log(`⏰ AUTO-HIDE: Card "${task.clientName}" completado há ${elapsedMinutes.toFixed(1)} minutos - OCULTANDO`);
+              hasUpdates = true;
+              return { ...task, hidden: true };
+            }
+          }
+          return task;
+        });
+
+        // Só retorna novo array se houve mudanças (evita re-renders desnecessários)
+        return hasUpdates ? updated : prev;
+      });
+    }, 1000); // Verificar a cada 1 segundo
+
+    return () => clearInterval(interval);
+  }, [isInitialized]);
 
   const handleDragStart = (e: React.DragEvent, task: DeliveryTask) => {
     e.stopPropagation(); // Impedir que o evento se propague para a coluna
@@ -306,11 +365,11 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
 
   const handleDrop = (e: React.DragEvent, newStatus: DeliveryTask['status']) => {
     e.preventDefault();
-    
+
     // Verificar se é arrastar card (não coluna)
     const dragType = e.dataTransfer.getData('drag-type');
     if (dragType !== 'card') return;
-    
+
     // Remover efeito visual
     const target = e.currentTarget as HTMLElement;
     const column = target.querySelector('.column-header') as HTMLElement;
@@ -318,14 +377,27 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
       column.style.backgroundColor = '';
       column.style.borderRadius = '';
     }
-    
+
     if (draggedTask && draggedTask.status !== newStatus) {
-      setTasks(prev => prev.map(task => 
-        task.id === draggedTask.id 
-          ? { ...task, status: newStatus, updatedAt: new Date().toISOString().split('T')[0] }
-          : task
-      ));
-      
+      setTasks(prev => prev.map(task => {
+        if (task.id === draggedTask.id) {
+          const updatedTask: DeliveryTask = {
+            ...task,
+            status: newStatus,
+            updatedAt: new Date().toISOString().split('T')[0]
+          };
+
+          // ⏱️ Registrar timestamp quando chegar em "concluído"
+          if (newStatus === 'concluido') {
+            updatedTask.completedAt = new Date().toISOString();
+            console.log('⏱️ Card movido para CONCLUÍDO - Timestamp registrado:', updatedTask.completedAt);
+          }
+
+          return updatedTask;
+        }
+        return task;
+      }));
+
       // Feedback visual de sucesso
       if (column) {
         column.style.color = '#10b981';
@@ -334,6 +406,38 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
           column.style.color = '';
           column.style.backgroundColor = '';
         }, 1000);
+      }
+
+      // ✨ FLUXO AUTOMÁTICO: Entrega → Pós-Venda
+      if (newStatus === 'concluido' && draggedTask) {
+        console.log('🎯 Card movido para CONCLUÍDO! Criando automaticamente em Pós-Venda...');
+
+        // Criar card de pós-venda automaticamente
+        const postSaleTask = {
+          id: `postsale_${Date.now()}_${draggedTask.id}`,
+          clientName: draggedTask.clientName,
+          service: draggedTask.service,
+          value: draggedTask.value,
+          status: 'aguardando' as const,
+          priority: draggedTask.priority,
+          completionDate: new Date().toISOString().split('T')[0],
+          feedbackDate: '',
+          satisfaction: undefined,
+          feedback: '',
+          nextContact: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // +7 dias
+          assignedTo: draggedTask.assignedTo,
+          notes: draggedTask.notes || '',
+          originalDeliveryId: draggedTask.id, // Referência ao card de entrega
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        // Adicionar ao localStorage de pós-venda
+        const existingPostSale = JSON.parse(localStorage.getItem('postSaleTasks') || '[]');
+        localStorage.setItem('postSaleTasks', JSON.stringify([...existingPostSale, postSaleTask]));
+
+        console.log('✅ Card criado automaticamente em Pós-Venda!', postSaleTask);
+        alert(`✅ Serviço concluído! Um card foi criado automaticamente em "Pós-Venda" na coluna "Aguardando Feedback".`);
       }
     }
     setDraggedTask(null);
@@ -514,13 +618,37 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
   };
 
   const getTasksByStatus = (status: string) => {
-    const filteredTasks = tasks.filter(task => task.status === status);
-    
+    // 🔗 SINCRONIZAÇÃO: Carregar tasks de Vendas para verificar status do card pai
+    const salesTasks = JSON.parse(localStorage.getItem('kanbanTasks') || '[]');
+
+    // Filtrar por status, cards ocultos E status do card pai de Vendas
+    const filteredTasks = tasks.filter(task => {
+      // Filtro básico: status e visibilidade
+      if (task.status !== status || task.hidden) return false;
+
+      // 🔗 Se tem originalSaleId, verificar se o card de Vendas está em "fechado"
+      if (task.originalSaleId) {
+        const parentSale = salesTasks.find((t: any) => t.id === task.originalSaleId);
+
+        // Só mostrar se o card de Vendas pai estiver em "fechado"
+        const isParentClosed = parentSale && parentSale.status === 'fechado';
+
+        if (!isParentClosed) {
+          console.log(`🔒 CARD OCULTO: "${task.clientName}" - Card de Vendas pai não está em "fechado" (status: ${parentSale?.status || 'não encontrado'})`);
+        }
+
+        return isParentClosed;
+      }
+
+      // Se não tem originalSaleId, mostrar normalmente
+      return true;
+    });
+
     console.log(`📊 GET TASKS BY STATUS (${status}):`);
     console.log(`  - Total tasks: ${tasks.length}`);
-    console.log(`  - Tasks for status: ${filteredTasks.length}`);
+    console.log(`  - Tasks for status (visible): ${filteredTasks.length}`);
     console.log(`  - Task IDs: ${filteredTasks.map(t => t.id)}`);
-    
+
     return filteredTasks;
   };
 
@@ -690,15 +818,14 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-8 px-2 text-white bg-orange-500 hover:bg-orange-600 border border-orange-400 rounded-lg transition-all duration-200 hover:scale-110 shadow-lg flex items-center gap-1"
+                              className="h-8 w-8 p-0 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 hover:scale-110"
                               title="Opções da entrega"
                             >
                               <Edit className="h-3.5 w-3.5" />
-                              <span className="text-xs font-medium">Ações</span>
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={(e) => {
                                 e.stopPropagation();
                                 console.log('🔧 MENU EDITAR CLICADO:', task.id, task.clientName);
@@ -708,17 +835,6 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
                             >
                               <Edit className="h-4 w-4 mr-2" />
                               Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                console.log('🗑️ MENU EXCLUIR CLICADO:', task.id, task.clientName);
-                                handleDeleteTask(task.id);
-                              }}
-                              className="text-red-400 hover:bg-red-500/10"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Excluir
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

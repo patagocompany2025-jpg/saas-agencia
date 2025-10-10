@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Save, X, Plus, User, Globe, Calendar, DollarSign, Target, Star, Trash2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Save, X, Plus, User, Globe, Calendar, DollarSign, Target, Star, Trash2, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import { KanbanTask } from '@/lib/types';
 import { useClients } from '@/lib/contexts/ClientContext';
+import { CURRENCIES, CurrencyCode, parseCurrency, formatCurrency } from '@/lib/utils/currency';
 
 interface TaskFormProps {
   task?: KanbanTask;
@@ -16,6 +17,12 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
   const { clients, addClient } = useClients();
   const [showNewClientForm, setShowNewClientForm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAdultsSection, setShowAdultsSection] = useState(false);
+  const [showChildrenSection, setShowChildrenSection] = useState(false);
+  const [showInfantsSection, setShowInfantsSection] = useState(false);
+  const [editingAdultIndex, setEditingAdultIndex] = useState<number | null>(null);
+  const [editingChildIndex, setEditingChildIndex] = useState<number | null>(null);
+  const [editingInfantIndex, setEditingInfantIndex] = useState<number | null>(null);
   const [newClientData, setNewClientData] = useState({
     name: '',
     email: '',
@@ -30,6 +37,9 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
     priority: task?.priority || 'media' as KanbanTask['priority'],
     value: task?.value || 0,
     expectedValue: task?.expectedValue || 0,
+    expectedValueCurrency: task?.expectedValueCurrency || 'BRL' as CurrencyCode,
+    closedValue: task?.closedValue || 0,
+    closedValueCurrency: task?.closedValueCurrency || 'BRL' as CurrencyCode,
     destination: task?.destination || '',
     travelDates: {
       departure: task?.travelDates?.departure || undefined,
@@ -40,10 +50,15 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
       adults: task?.travelers?.adults || 1,
       children: task?.travelers?.children || 0,
       infants: task?.travelers?.infants || 0,
+      adultsDetails: task?.travelers?.adultsDetails || [],
+      childrenDetails: task?.travelers?.childrenDetails || [],
+      infantsDetails: task?.travelers?.infantsDetails || [],
     },
     budget: {
       min: task?.budget?.min || 0,
+      minCurrency: task?.budget?.minCurrency || 'BRL' as CurrencyCode,
       max: task?.budget?.max || 0,
+      maxCurrency: task?.budget?.maxCurrency || 'BRL' as CurrencyCode,
       disclosed: task?.budget?.disclosed || false,
     },
     interests: task?.interests || [],
@@ -148,6 +163,114 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
     }
   };
 
+  const calculateAge = (birthDate: string): number => {
+    if (!birthDate) return 0;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const handleAddAdult = () => {
+    const newIndex = formData.travelers.adultsDetails.length;
+    setFormData(prev => ({
+      ...prev,
+      travelers: {
+        ...prev.travelers,
+        adults: prev.travelers.adults + 1,
+        adultsDetails: [...prev.travelers.adultsDetails, { name: '', birthDate: '', email: '', phone: '' }]
+      }
+    }));
+    setEditingAdultIndex(newIndex);
+  };
+
+  const handleAddChild = () => {
+    const newIndex = formData.travelers.childrenDetails.length;
+    setFormData(prev => ({
+      ...prev,
+      travelers: {
+        ...prev.travelers,
+        children: prev.travelers.children + 1,
+        childrenDetails: [...prev.travelers.childrenDetails, { name: '', birthDate: '' }]
+      }
+    }));
+    setEditingChildIndex(newIndex);
+  };
+
+  const handleAddInfant = () => {
+    const newIndex = formData.travelers.infantsDetails.length;
+    setFormData(prev => ({
+      ...prev,
+      travelers: {
+        ...prev.travelers,
+        infants: prev.travelers.infants + 1,
+        infantsDetails: [...prev.travelers.infantsDetails, { name: '', birthDate: '' }]
+      }
+    }));
+    setEditingInfantIndex(newIndex);
+  };
+
+  const handleRemoveAdult = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      travelers: {
+        ...prev.travelers,
+        adults: Math.max(1, prev.travelers.adults - 1),
+        adultsDetails: prev.travelers.adultsDetails.filter((_, i) => i !== index)
+      }
+    }));
+    setEditingAdultIndex(null);
+  };
+
+  const handleRemoveChild = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      travelers: {
+        ...prev.travelers,
+        children: Math.max(0, prev.travelers.children - 1),
+        childrenDetails: prev.travelers.childrenDetails.filter((_, i) => i !== index)
+      }
+    }));
+    setEditingChildIndex(null);
+  };
+
+  const handleRemoveInfant = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      travelers: {
+        ...prev.travelers,
+        infants: Math.max(0, prev.travelers.infants - 1),
+        infantsDetails: prev.travelers.infantsDetails.filter((_, i) => i !== index)
+      }
+    }));
+    setEditingInfantIndex(null);
+  };
+
+  // Handler para valores monetários com formatação
+  const handleCurrencyInputChange = (field: string, value: string, currencyCode: CurrencyCode) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '');
+
+    if (!numbers) {
+      handleInputChange(field, 0);
+      return;
+    }
+
+    // Converte para número (centavos)
+    const numericValue = parseInt(numbers, 10) / 100;
+    handleInputChange(field, numericValue);
+  };
+
+  // Formata o valor para exibição
+  const getFormattedValue = (value: number, currencyCode: CurrencyCode): string => {
+    if (!value || value === 0) return '';
+    return formatCurrency(value, currencyCode).replace(/[^\d,.]/g, '');
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="max-w-4xl w-full max-h-[90vh] overflow-y-auto bg-white/5 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl">
@@ -199,11 +322,29 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
                   onChange={(e) => handleInputChange('clientId', e.target.value)}
                 >
                   <option value="" className="bg-gray-800 text-white">Selecione um cliente</option>
-                  {clients.map((client) => (
-                    <option key={client.id} value={client.id} className="bg-gray-800 text-white">
-                      {client.name} - {client.email}
-                    </option>
-                  ))}
+                  {clients.map((client) => {
+                    // Buscar task do cliente para pegar idade do primeiro adulto
+                    const clientTask = task?.clientId === client.id ? task : null;
+                    const firstAdult = clientTask?.travelers?.adultsDetails?.[0];
+                    let ageText = '';
+
+                    if (firstAdult?.birthDate) {
+                      const today = new Date();
+                      const birth = new Date(firstAdult.birthDate);
+                      let age = today.getFullYear() - birth.getFullYear();
+                      const monthDiff = today.getMonth() - birth.getMonth();
+                      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                        age--;
+                      }
+                      ageText = ` - ${age} anos`;
+                    }
+
+                    return (
+                      <option key={client.id} value={client.id} className="bg-gray-800 text-white">
+                        {client.name}{ageText}
+                      </option>
+                    );
+                  })}
                 </select>
                 <button
                   type="button"
@@ -350,7 +491,7 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
                   <label className="text-sm text-white/70">Data de Partida</label>
                   <input
                     type="date"
-                    value={formData.travelDates.departure && formData.travelDates.departure instanceof Date ? formData.travelDates.departure.toISOString().split('T')[0] : ''}
+                    value={formData.travelDates.departure ? (typeof formData.travelDates.departure === 'string' ? formData.travelDates.departure.split('T')[0] : formData.travelDates.departure.toISOString().split('T')[0]) : ''}
                     onChange={(e) => handleInputChange('travelDates.departure', e.target.value ? new Date(e.target.value).toISOString() : '')}
                     className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
@@ -359,7 +500,7 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
                   <label className="text-sm text-white/70">Data de Retorno</label>
                   <input
                     type="date"
-                    value={formData.travelDates.return && formData.travelDates.return instanceof Date ? formData.travelDates.return.toISOString().split('T')[0] : ''}
+                    value={formData.travelDates.return ? (typeof formData.travelDates.return === 'string' ? formData.travelDates.return.split('T')[0] : formData.travelDates.return.toISOString().split('T')[0]) : ''}
                     onChange={(e) => handleInputChange('travelDates.return', e.target.value ? new Date(e.target.value).toISOString() : '')}
                     className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
@@ -381,36 +522,359 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
                 <User className="h-5 w-5 mr-2" />
                 Viajantes
               </h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm text-white/70">Adultos</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.travelers.adults}
-                    onChange={(e) => handleInputChange('travelers.adults', parseInt(e.target.value) || 1)}
-                    className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
+
+              {/* Adultos */}
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <div className="flex-1 bg-white/10 border border-white/20 rounded-lg overflow-hidden">
+                    <div
+                      onClick={() => setShowAdultsSection(!showAdultsSection)}
+                      className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-white/5 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-white">Adultos</span>
+                        {formData.travelers.adultsDetails.filter(a => a?.name).length > 0 && (
+                          <span className="text-xs text-indigo-400">({formData.travelers.adultsDetails.filter(a => a?.name).length})</span>
+                        )}
+                      </div>
+                      {showAdultsSection ? (
+                        <ChevronUp className="h-4 w-4 text-white/50" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-white/50" />
+                      )}
+                    </div>
+
+                    {showAdultsSection && (
+                      <div className="border-t border-white/10 p-3 space-y-2">
+                        {formData.travelers.adultsDetails.map((adult, index) => (
+                      <div key={index}>
+                        {editingAdultIndex === index ? (
+                          <div className="bg-white/10 border border-white/20 rounded-lg p-3 space-y-2">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-white/50 font-semibold">Adulto {index + 1}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveAdult(index)}
+                                className="text-red-400 hover:text-red-300"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                            <div>
+                              <label className="text-xs text-white/60">Nome Completo</label>
+                              <input
+                                type="text"
+                                value={adult?.name || ''}
+                                onChange={(e) => {
+                                  const newDetails = [...formData.travelers.adultsDetails];
+                                  newDetails[index] = { ...newDetails[index], name: e.target.value };
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    travelers: { ...prev.travelers, adultsDetails: newDetails }
+                                  }));
+                                }}
+                                placeholder="Ex: João Silva"
+                                className="w-full bg-white/10 border border-white/20 text-white rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-white/60">Data de Nascimento</label>
+                              <input
+                                type="date"
+                                value={adult?.birthDate || ''}
+                                onChange={(e) => {
+                                  const newDetails = [...formData.travelers.adultsDetails];
+                                  newDetails[index] = { ...newDetails[index], birthDate: e.target.value };
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    travelers: { ...prev.travelers, adultsDetails: newDetails }
+                                  }));
+                                }}
+                                className="w-full bg-white/10 border border-white/20 text-white rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-white/60">Email</label>
+                              <input
+                                type="email"
+                                value={adult?.email || ''}
+                                onChange={(e) => {
+                                  const newDetails = [...formData.travelers.adultsDetails];
+                                  newDetails[index] = { ...newDetails[index], email: e.target.value };
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    travelers: { ...prev.travelers, adultsDetails: newDetails }
+                                  }));
+                                }}
+                                placeholder="email@exemplo.com"
+                                className="w-full bg-white/10 border border-white/20 text-white rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-white/60">Telefone</label>
+                              <input
+                                type="tel"
+                                value={adult?.phone || ''}
+                                onChange={(e) => {
+                                  const newDetails = [...formData.travelers.adultsDetails];
+                                  newDetails[index] = { ...newDetails[index], phone: e.target.value };
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    travelers: { ...prev.travelers, adultsDetails: newDetails }
+                                  }));
+                                }}
+                                placeholder="(00) 00000-0000"
+                                className="w-full bg-white/10 border border-white/20 text-white rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setEditingAdultIndex(null)}
+                              className="w-full px-3 py-1.5 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700 transition-colors"
+                            >
+                              Salvar
+                            </button>
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => setEditingAdultIndex(index)}
+                            className="flex items-center justify-between bg-white/10 hover:bg-white/15 border border-white/20 rounded px-3 py-2 cursor-pointer transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-indigo-400" />
+                              <span className="text-white text-sm">{adult.name}</span>
+                              {adult.birthDate && (
+                                <span className="text-white/60 text-sm">- {calculateAge(adult.birthDate)} anos</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddAdult}
+                    className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
                 </div>
-                <div>
-                  <label className="text-sm text-white/70">Crianças</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.travelers.children}
-                    onChange={(e) => handleInputChange('travelers.children', parseInt(e.target.value) || 0)}
-                    className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
+              </div>
+
+              {/* Crianças */}
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <div className="flex-1 bg-white/10 border border-white/20 rounded-lg overflow-hidden">
+                    <div
+                      onClick={() => setShowChildrenSection(!showChildrenSection)}
+                      className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-white/5 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-white">Crianças (2-11 anos)</span>
+                        {formData.travelers.childrenDetails.filter(c => c?.name).length > 0 && (
+                          <span className="text-xs text-indigo-400">({formData.travelers.childrenDetails.filter(c => c?.name).length})</span>
+                        )}
+                      </div>
+                      {showChildrenSection ? (
+                        <ChevronUp className="h-4 w-4 text-white/50" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-white/50" />
+                      )}
+                    </div>
+
+                    {showChildrenSection && (
+                      <div className="border-t border-white/10 p-3 space-y-2">
+                        {formData.travelers.childrenDetails.map((child, index) => (
+                      <div key={index}>
+                        {editingChildIndex === index ? (
+                          <div className="bg-white/10 border border-white/20 rounded-lg p-3 space-y-2">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-white/50 font-semibold">Criança {index + 1}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveChild(index)}
+                                className="text-red-400 hover:text-red-300"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                            <div>
+                              <label className="text-xs text-white/60">Nome Completo</label>
+                              <input
+                                type="text"
+                                value={child?.name || ''}
+                                onChange={(e) => {
+                                  const newDetails = [...formData.travelers.childrenDetails];
+                                  newDetails[index] = { ...newDetails[index], name: e.target.value };
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    travelers: { ...prev.travelers, childrenDetails: newDetails }
+                                  }));
+                                }}
+                                placeholder="Ex: Maria Silva"
+                                className="w-full bg-white/10 border border-white/20 text-white rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-white/60">Data de Nascimento</label>
+                              <input
+                                type="date"
+                                value={child?.birthDate || ''}
+                                onChange={(e) => {
+                                  const newDetails = [...formData.travelers.childrenDetails];
+                                  newDetails[index] = { ...newDetails[index], birthDate: e.target.value };
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    travelers: { ...prev.travelers, childrenDetails: newDetails }
+                                  }));
+                                }}
+                                className="w-full bg-white/10 border border-white/20 text-white rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setEditingChildIndex(null)}
+                              className="w-full px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors"
+                            >
+                              Salvar
+                            </button>
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => setEditingChildIndex(index)}
+                            className="flex items-center justify-between bg-white/10 hover:bg-white/15 border border-white/20 rounded px-3 py-2 cursor-pointer transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-green-400" />
+                              <span className="text-white text-sm">{child.name}</span>
+                              {child.birthDate && (
+                                <span className="text-white/60 text-sm">- {calculateAge(child.birthDate)} anos</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddChild}
+                    className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
                 </div>
-                <div>
-                  <label className="text-sm text-white/70">Bebês</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.travelers.infants}
-                    onChange={(e) => handleInputChange('travelers.infants', parseInt(e.target.value) || 0)}
-                    className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
+              </div>
+
+              {/* Bebês */}
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <div className="flex-1 bg-white/10 border border-white/20 rounded-lg overflow-hidden">
+                    <div
+                      onClick={() => setShowInfantsSection(!showInfantsSection)}
+                      className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-white/5 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-white">Bebês (0-23 meses)</span>
+                        {formData.travelers.infantsDetails.filter(i => i?.name).length > 0 && (
+                          <span className="text-xs text-indigo-400">({formData.travelers.infantsDetails.filter(i => i?.name).length})</span>
+                        )}
+                      </div>
+                      {showInfantsSection ? (
+                        <ChevronUp className="h-4 w-4 text-white/50" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-white/50" />
+                      )}
+                    </div>
+
+                    {showInfantsSection && (
+                      <div className="border-t border-white/10 p-3 space-y-2">
+                        {formData.travelers.infantsDetails.map((infant, index) => (
+                      <div key={index}>
+                        {editingInfantIndex === index ? (
+                          <div className="bg-white/10 border border-white/20 rounded-lg p-3 space-y-2">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-white/50 font-semibold">Bebê {index + 1}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveInfant(index)}
+                                className="text-red-400 hover:text-red-300"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                            <div>
+                              <label className="text-xs text-white/60">Nome Completo</label>
+                              <input
+                                type="text"
+                                value={infant?.name || ''}
+                                onChange={(e) => {
+                                  const newDetails = [...formData.travelers.infantsDetails];
+                                  newDetails[index] = { ...newDetails[index], name: e.target.value };
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    travelers: { ...prev.travelers, infantsDetails: newDetails }
+                                  }));
+                                }}
+                                placeholder="Ex: Pedro Silva"
+                                className="w-full bg-white/10 border border-white/20 text-white rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-white/60">Data de Nascimento</label>
+                              <input
+                                type="date"
+                                value={infant?.birthDate || ''}
+                                onChange={(e) => {
+                                  const newDetails = [...formData.travelers.infantsDetails];
+                                  newDetails[index] = { ...newDetails[index], birthDate: e.target.value };
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    travelers: { ...prev.travelers, infantsDetails: newDetails }
+                                  }));
+                                }}
+                                className="w-full bg-white/10 border border-white/20 text-white rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setEditingInfantIndex(null)}
+                              className="w-full px-3 py-1.5 bg-pink-600 text-white rounded text-sm hover:bg-pink-700 transition-colors"
+                            >
+                              Salvar
+                            </button>
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => setEditingInfantIndex(index)}
+                            className="flex items-center justify-between bg-white/10 hover:bg-white/15 border border-white/20 rounded px-3 py-2 cursor-pointer transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-pink-400" />
+                              <span className="text-white text-sm">{infant.name}</span>
+                              {infant.birthDate && (
+                                <span className="text-white/60 text-sm">- {calculateAge(infant.birthDate)} anos</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddInfant}
+                    className="px-3 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors flex items-center"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -422,39 +886,105 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
               <DollarSign className="h-5 w-5 mr-2" />
               Orçamento e Valores
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm text-white/70">Valor Mínimo (R$)</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.budget.min}
-                  onChange={(e) => handleInputChange('budget.min', parseFloat(e.target.value) || 0)}
-                  className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Valor Mínimo */}
+              <div className="space-y-2">
+                <label className="text-sm text-white/70">Valor Mínimo</label>
+                <div className="flex gap-2">
+                  <select
+                    value={formData.budget.minCurrency}
+                    onChange={(e) => handleInputChange('budget.minCurrency', e.target.value)}
+                    className="w-32 bg-white/10 border border-white/20 text-white rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    {Object.entries(CURRENCIES).map(([code, currency]) => (
+                      <option key={code} value={code} className="bg-gray-800 text-white">
+                        {currency.symbol} {code}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={getFormattedValue(formData.budget.min, formData.budget.minCurrency)}
+                    onChange={(e) => handleCurrencyInputChange('budget.min', e.target.value, formData.budget.minCurrency)}
+                    placeholder="0,00"
+                    className="flex-1 bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="text-sm text-white/70">Valor Máximo (R$)</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.budget.max}
-                  onChange={(e) => handleInputChange('budget.max', parseFloat(e.target.value) || 0)}
-                  className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+
+              {/* Valor Máximo */}
+              <div className="space-y-2">
+                <label className="text-sm text-white/70">Valor Máximo</label>
+                <div className="flex gap-2">
+                  <select
+                    value={formData.budget.maxCurrency}
+                    onChange={(e) => handleInputChange('budget.maxCurrency', e.target.value)}
+                    className="w-32 bg-white/10 border border-white/20 text-white rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    {Object.entries(CURRENCIES).map(([code, currency]) => (
+                      <option key={code} value={code} className="bg-gray-800 text-white">
+                        {currency.symbol} {code}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={getFormattedValue(formData.budget.max, formData.budget.maxCurrency)}
+                    onChange={(e) => handleCurrencyInputChange('budget.max', e.target.value, formData.budget.maxCurrency)}
+                    placeholder="0,00"
+                    className="flex-1 bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="text-sm text-white/70">Valor Esperado (R$)</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.expectedValue}
-                  onChange={(e) => handleInputChange('expectedValue', parseFloat(e.target.value) || 0)}
-                  className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+
+              {/* Valor Esperado */}
+              <div className="space-y-2">
+                <label className="text-sm text-white/70">Valor Esperado</label>
+                <div className="flex gap-2">
+                  <select
+                    value={formData.expectedValueCurrency}
+                    onChange={(e) => handleInputChange('expectedValueCurrency', e.target.value)}
+                    className="w-32 bg-white/10 border border-white/20 text-white rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    {Object.entries(CURRENCIES).map(([code, currency]) => (
+                      <option key={code} value={code} className="bg-gray-800 text-white">
+                        {currency.symbol} {code}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={getFormattedValue(formData.expectedValue, formData.expectedValueCurrency)}
+                    onChange={(e) => handleCurrencyInputChange('expectedValue', e.target.value, formData.expectedValueCurrency)}
+                    placeholder="0,00"
+                    className="flex-1 bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              {/* Valor Fechado (NOVO) */}
+              <div className="space-y-2">
+                <label className="text-sm text-white/70">Valor Fechado</label>
+                <div className="flex gap-2">
+                  <select
+                    value={formData.closedValueCurrency}
+                    onChange={(e) => handleInputChange('closedValueCurrency', e.target.value)}
+                    className="w-32 bg-white/10 border border-white/20 text-white rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    {Object.entries(CURRENCIES).map(([code, currency]) => (
+                      <option key={code} value={code} className="bg-gray-800 text-white">
+                        {currency.symbol} {code}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={getFormattedValue(formData.closedValue, formData.closedValueCurrency)}
+                    onChange={(e) => handleCurrencyInputChange('closedValue', e.target.value, formData.closedValueCurrency)}
+                    placeholder="0,00"
+                    className="flex-1 bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
               </div>
             </div>
             <label className="flex items-center space-x-2">
