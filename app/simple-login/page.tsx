@@ -4,10 +4,12 @@ export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 export default function SimpleLoginPage() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -18,24 +20,35 @@ export default function SimpleLoginPage() {
     setError('');
 
     try {
-      // Buscar usuário no banco
-      const response = await fetch('/api/user/sync', {
+      // Login com validação de senha
+      const response = await fetch('/api/user/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stack_user_id: email })
+        body: JSON.stringify({ email, password })
       });
 
       const data = await response.json();
 
       if (data.success && data.user) {
+        console.log('[Login] Salvando usuário no localStorage:', data.user);
         // Salvar no localStorage como demo_user
         localStorage.setItem('demo_user', JSON.stringify(data.user));
 
+        // Verificar se salvou corretamente
+        const saved = localStorage.getItem('demo_user');
+        console.log('[Login] Verificação - usuário salvo:', saved);
+
+        // Se precisa trocar senha, redirecionar para página de troca
+        if (data.requirePasswordChange) {
+          router.push('/change-password');
+          return;
+        }
+
         // Redirecionar para dashboard
+        console.log('[Login] Redirecionando para /dashboard');
         router.push('/dashboard');
-        window.location.reload();
       } else {
-        setError('Usuário não encontrado. Use: admin@patagonian.com');
+        setError(data.error || 'Email ou senha incorretos');
       }
     } catch (err) {
       setError('Erro ao fazer login. Tente novamente.');
@@ -71,6 +84,18 @@ export default function SimpleLoginPage() {
             />
           </div>
 
+          <div>
+            <label className="block text-white mb-2 font-medium">Senha</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••"
+              className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-indigo-500"
+              required
+            />
+          </div>
+
           {error && (
             <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm">
               {error}
@@ -78,8 +103,9 @@ export default function SimpleLoginPage() {
           )}
 
           <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-3 text-sm text-blue-200">
-            <p className="font-semibold mb-1">💡 Credenciais:</p>
-            <p>Email: <strong>admin@patagonian.com</strong></p>
+            <p className="font-semibold mb-1">💡 Credenciais de teste:</p>
+            <p>Email: <strong>patagocompany2025@gmail.com</strong></p>
+            <p>Senha: <strong>123456</strong> (temporária)</p>
           </div>
 
           <Button
@@ -89,6 +115,12 @@ export default function SimpleLoginPage() {
           >
             {loading ? 'Entrando...' : 'Entrar'}
           </Button>
+
+          <div className="text-center">
+            <Link href="/register" className="text-white/60 hover:text-white text-sm transition-colors">
+              Não tem uma conta? <strong>Solicitar Acesso</strong>
+            </Link>
+          </div>
         </form>
       </div>
     </div>

@@ -1,17 +1,30 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { ModernLayout } from '@/components/layout/ModernLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, Clock, User, Mail, Calendar } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, User, Mail, Calendar, AlertCircle } from 'lucide-react';
+
+interface PendingUser {
+  id: string;
+  companyId: string;
+  companyName: string;
+  companySlug: string;
+  name: string;
+  email: string;
+  status: string;
+  requestedAt: string;
+}
 
 export default function AdminPage() {
   const { user, isLoading, isAdmin } = useAuth();
-  const [pendingUsers] = useState<{ id: string; name: string; email: string; role: string; createdAt: Date }[]>([]); // Mock data for now
+  const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [processingUser, setProcessingUser] = useState<string | null>(null);
+  const [loadingPending, setLoadingPending] = useState(true);
+  const [error, setError] = useState('');
 
   if (isLoading) {
     return (
@@ -46,24 +59,91 @@ export default function AdminPage() {
     );
   }
 
-  const handleApprove = async (userId: string) => {
-    setProcessingUser(userId);
+  // Buscar pending users ao montar o componente
+  useEffect(() => {
+    const fetchPendingUsers = async () => {
+      if (!user?.id) return;
+
+      try {
+        setLoadingPending(true);
+        const response = await fetch(`/api/admin/pending-users?adminUserId=${user.id}`);
+        const data = await response.json();
+
+        if (data.success) {
+          setPendingUsers(data.pendingUsers);
+        } else {
+          setError(data.error || 'Erro ao buscar solicitações');
+        }
+      } catch (err) {
+        setError('Erro ao conectar com o servidor');
+        console.error(err);
+      } finally {
+        setLoadingPending(false);
+      }
+    };
+
+    fetchPendingUsers();
+  }, [user]);
+
+  const handleApprove = async (pendingUserId: string) => {
+    if (!user?.id) return;
+
+    setProcessingUser(pendingUserId);
+    setError('');
+
     try {
-      // TODO: Implementar aprovação de usuário
-      console.log('Aprovar usuário:', userId);
+      const response = await fetch('/api/admin/approve-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminUserId: user.id,
+          pendingUserId
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Remover da lista
+        setPendingUsers(prev => prev.filter(u => u.id !== pendingUserId));
+      } else {
+        setError(data.error || 'Erro ao aprovar usuário');
+      }
     } catch (error) {
+      setError('Erro ao processar aprovação');
       console.error('Erro ao aprovar usuário:', error);
     } finally {
       setProcessingUser(null);
     }
   };
 
-  const handleReject = async (userId: string) => {
-    setProcessingUser(userId);
+  const handleReject = async (pendingUserId: string) => {
+    if (!user?.id) return;
+
+    setProcessingUser(pendingUserId);
+    setError('');
+
     try {
-      // TODO: Implementar rejeição de usuário
-      console.log('Rejeitar usuário:', userId);
+      const response = await fetch('/api/admin/reject-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminUserId: user.id,
+          pendingUserId,
+          reason: 'Rejeitado pelo administrador'
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Remover da lista
+        setPendingUsers(prev => prev.filter(u => u.id !== pendingUserId));
+      } else {
+        setError(data.error || 'Erro ao rejeitar usuário');
+      }
     } catch (error) {
+      setError('Erro ao processar rejeição');
       console.error('Erro ao rejeitar usuário:', error);
     } finally {
       setProcessingUser(null);
@@ -77,6 +157,13 @@ export default function AdminPage() {
           <h1 className="text-3xl font-bold text-white mb-2">Administração</h1>
           <p className="text-gray-400">Gerencie usuários e aprovações do sistema</p>
         </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center">
+            <AlertCircle className="h-5 w-5 text-red-400 mr-2" />
+            <p className="text-red-200">{error}</p>
+          </div>
+        )}
 
         {/* Estatísticas */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -126,7 +213,12 @@ export default function AdminPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {pendingUsers.length === 0 ? (
+            {loadingPending ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                <p className="text-gray-400">Carregando solicitações...</p>
+              </div>
+            ) : pendingUsers.length === 0 ? (
               <div className="text-center py-8">
                 <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
                 <p className="text-gray-400">Todos os usuários foram processados!</p>
@@ -147,8 +239,13 @@ export default function AdminPage() {
                         </div>
                         <div className="flex items-center space-x-2 text-sm text-gray-400 mt-1">
                           <Calendar className="h-4 w-4" />
-                          <span>{pendingUser.createdAt.toLocaleDateString('pt-BR')}</span>
+                          <span>{new Date(pendingUser.requestedAt).toLocaleDateString('pt-BR')}</span>
                         </div>
+                        {pendingUser.companyName && (
+                          <div className="text-xs text-indigo-400 mt-1">
+                            Empresa: {pendingUser.companyName}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">

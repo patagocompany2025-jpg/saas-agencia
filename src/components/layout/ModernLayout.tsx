@@ -57,23 +57,23 @@ export function ModernLayout({ children }: ModernLayoutProps) {
   // Navegação baseada em roles
   const getNavigationItems = () => {
     const baseItems = [
-      { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['socio', 'vendedor'] },
-      { name: 'CRM', href: '/crm', icon: Users, roles: ['socio', 'vendedor'] },
-      { 
-        name: 'Pipeline', 
-        href: '/kanban', 
-        icon: Kanban, 
-        roles: ['socio', 'vendedor'],
+      { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['super_admin', 'socio', 'vendedor'] },
+      { name: 'CRM', href: '/crm', icon: Users, roles: ['super_admin', 'socio', 'vendedor'] },
+      {
+        name: 'Pipeline',
+        href: '/kanban',
+        icon: Kanban,
+        roles: ['super_admin', 'socio', 'vendedor'],
         submenu: [
           { name: 'Vendas', href: '/kanban', icon: Target },
           { name: 'Entrega de Serviços', href: '/kanban/delivery', icon: CheckCircle },
           { name: 'Pós-Venda', href: '/kanban/post-sale', icon: Heart }
         ]
       },
-      { name: 'Calculadora', href: '/calculator', icon: Calculator, roles: ['socio', 'vendedor'] },
-      { name: 'Financeiro', href: '/financial', icon: DollarSign, roles: ['socio'] },
-      { name: 'Relatórios', href: '/reports', icon: BarChart3, roles: ['socio'] },
-      { name: 'Configurações', href: '/settings', icon: Settings, roles: ['socio', 'vendedor'] },
+      { name: 'Calculadora', href: '/calculator', icon: Calculator, roles: ['super_admin', 'socio', 'vendedor'] },
+      { name: 'Financeiro', href: '/financial', icon: DollarSign, roles: ['super_admin', 'socio'] },
+      { name: 'Relatórios', href: '/reports', icon: BarChart3, roles: ['super_admin', 'socio'] },
+      { name: 'Configurações', href: '/settings', icon: Settings, roles: ['super_admin', 'socio', 'vendedor'] },
     ];
 
     // Filtrar itens baseado no role do usuário

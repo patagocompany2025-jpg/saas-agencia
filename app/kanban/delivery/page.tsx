@@ -125,6 +125,27 @@ export default function DeliveryPage() {
       if (editingTask) {
         // Atualizar tarefa existente
         console.log('Atualizando tarefa:', taskData);
+
+        // Buscar tarefas existentes do localStorage
+        const existingTasks = JSON.parse(localStorage.getItem('deliveryTasks') || '[]');
+
+        // Atualizar a tarefa editada mantendo todos os campos
+        const updatedTasks = existingTasks.map((task: any) => {
+          if (task.id === editingTask.id) {
+            return {
+              ...task,
+              ...taskData,
+              id: editingTask.id, // Manter o ID original
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return task;
+        });
+
+        // Salvar no localStorage
+        localStorage.setItem('deliveryTasks', JSON.stringify(updatedTasks));
+        console.log('✅ Tarefa atualizada e salva no localStorage:', updatedTasks);
+
         alert(`Entrega "${taskData.clientName}" atualizada com sucesso!`);
       } else {
         // Criar nova tarefa

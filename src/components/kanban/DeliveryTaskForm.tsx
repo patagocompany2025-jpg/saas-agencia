@@ -57,6 +57,88 @@ interface DeliveryTaskFormProps {
   onCancel: () => void;
 }
 
+// Definição de serviços da Patagônia
+const PATAGONIA_SERVICES = {
+  'Hospedagem - Luxo': [
+    'Hotel 5 Estrelas Bariloche',
+    'Lodge de Montanha Premium',
+    'Villa Privada com Concierge',
+    'Resort All-Inclusive Luxo',
+    'Casa de Campo Exclusiva'
+  ],
+  'Hospedagem - Média Renda': [
+    'Hotel 4 Estrelas Centro',
+    'Pousada Charming',
+    'Casa de Temporada Familiar',
+    'Hostel Premium Privado',
+    'Cabaña com Vista ao Lago'
+  ],
+  'Transporte - Premium': [
+    'Transfer Privado Aeroporto',
+    'Carro de Luxo com Motorista',
+    'Helicóptero Privado',
+    'Jato Privado Regional',
+    'Iate Privado Lago Nahuel Huapi'
+  ],
+  'Transporte - Econômico': [
+    'Transfer Compartilhado',
+    'Aluguel de Carro Padrão',
+    'Transfer Executivo',
+    'Van Privada para Grupos',
+    'Barco Turístico Lago'
+  ],
+  'Experiências - Exclusivas': [
+    'Trekking Privado com Guia',
+    'Degustação de Vinhos Premium',
+    'Safari Fotográfico Privado',
+    'Spa de Luxo na Montanha',
+    'Jantar Privado no Glaciar',
+    'Voo Panorâmico Privado',
+    'Pesca Esportiva Exclusiva',
+    'Cavalgada Privada na Patagônia'
+  ],
+  'Experiências - Média': [
+    'Trekking em Grupo',
+    'Degustação de Vinhos Local',
+    'Tour Fotográfico Guiado',
+    'Spa Básico',
+    'Jantar Típico Local',
+    'Voo Panorâmico Compartilhado',
+    'Pesca Tradicional',
+    'Cavalgada em Grupo',
+    'Tour de Cervejarias',
+    'Caminhada Ecológica'
+  ],
+  'Concierge - VIP': [
+    'Concierge 24/7 Básico',
+    'Concierge Premium Personalizado',
+    'Concierge VIP com Assistente',
+    'Concierge Ultra Luxo'
+  ],
+  'Concierge - Consultoria': [
+    'Consultoria Básica (2h)',
+    'Planejamento Completo (4h)',
+    'Assistência por WhatsApp',
+    'Consultoria Familiar',
+    'Consultoria para Grupos',
+    'Suporte Durante a Viagem'
+  ],
+  'Gastronomia - Gourmet': [
+    'Jantar em Restaurante Michelin',
+    'Degustação Privada com Sommelier',
+    'Chef Privado na Villa',
+    'Experiência Culinária na Montanha'
+  ],
+  'Gastronomia - Tradicional': [
+    'Jantar em Restaurante Local',
+    'Degustação de Vinhos Regional',
+    'Cooking Class Local',
+    'Jantar Típico Patagônico',
+    'Piquenique no Lago',
+    'Café da Manhã na Montanha'
+  ]
+};
+
 export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormProps) {
   const { clients, addClient, deleteClient } = useClients();
   const [showClientSelector, setShowClientSelector] = useState(false);
@@ -87,6 +169,8 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
     notes: ''
   });
   const [selectedClientId, setSelectedClientId] = useState('');
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [showServicesPanel, setShowServicesPanel] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -96,8 +180,33 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
         startDate: task.startDate,
         endDate: task.endDate
       });
+
+      // Inicializar serviços selecionados se o card já existe
+      if (task.service) {
+        const services = task.service.split(' | ').map(s => s.trim());
+        setSelectedServices(services);
+      }
     }
   }, [task]);
+
+  // Atualizar formData.service quando selectedServices mudar
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      service: selectedServices.join(' | ')
+    }));
+  }, [selectedServices]);
+
+  // Adicionar/remover serviço da lista
+  const toggleService = (serviceName: string) => {
+    setSelectedServices(prev => {
+      if (prev.includes(serviceName)) {
+        return prev.filter(s => s !== serviceName);
+      } else {
+        return [...prev, serviceName];
+      }
+    });
+  };
 
   const handleInputChange = (field: keyof DeliveryTask, value: string | number | boolean) => {
     setFormData(prev => ({
@@ -505,20 +614,77 @@ export function DeliveryTaskForm({ task, onSave, onCancel }: DeliveryTaskFormPro
         </div>
       </div>
 
-      {/* Serviço e Destino */}
+      {/* Serviços */}
       <div className="space-y-2">
-        <Label htmlFor="service" className="text-white/70 flex items-center gap-2">
+        <Label className="text-white/70 flex items-center gap-2">
           <Package className="h-4 w-4" />
-          Serviço *
+          Serviços * ({selectedServices.length} selecionado{selectedServices.length !== 1 ? 's' : ''})
         </Label>
-        <Input
-          id="service"
-          value={formData.service || ''}
-          onChange={(e) => handleInputChange('service', e.target.value)}
-          className="bg-gray-700 border-gray-600 text-white"
-          placeholder="Ex: Pacote Concierge Bariloche - 7 dias"
-          required
-        />
+
+        {/* Serviços selecionados */}
+        {selectedServices.length > 0 && (
+          <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-3 mb-2">
+            <div className="flex flex-wrap gap-2">
+              {selectedServices.map((service) => (
+                <div
+                  key={service}
+                  className="bg-orange-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                >
+                  <span>{service}</span>
+                  <button
+                    type="button"
+                    onClick={() => toggleService(service)}
+                    className="hover:bg-orange-700 rounded-full p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Botão para abrir painel de serviços */}
+        <Button
+          type="button"
+          onClick={() => setShowServicesPanel(!showServicesPanel)}
+          className="w-full bg-gray-700 hover:bg-gray-600 text-white border border-gray-600"
+          variant="outline"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          {showServicesPanel ? 'Fechar Serviços' : 'Adicionar Serviços'}
+        </Button>
+
+        {/* Painel de seleção de serviços */}
+        {showServicesPanel && (
+          <div className="bg-gray-700 border border-gray-600 rounded-lg p-4 max-h-96 overflow-y-auto">
+            <div className="space-y-4">
+              {Object.entries(PATAGONIA_SERVICES).map(([category, services]) => (
+                <div key={category} className="space-y-2">
+                  <h4 className="text-white font-semibold text-sm border-b border-gray-600 pb-1">
+                    {category}
+                  </h4>
+                  <div className="space-y-1 pl-2">
+                    {services.map((service) => (
+                      <label
+                        key={service}
+                        className="flex items-center gap-2 text-white/80 hover:text-white hover:bg-gray-600/50 p-2 rounded cursor-pointer transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedServices.includes(service)}
+                          onChange={() => toggleService(service)}
+                          className="w-4 h-4 rounded border-gray-500 text-orange-600 focus:ring-orange-500 focus:ring-offset-gray-700"
+                        />
+                        <span className="text-sm">{service}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">

@@ -111,6 +111,9 @@ export interface KanbanTask {
   priority: 'baixa' | 'media' | 'alta';
   value: number;
   expectedValue?: number; // Valor esperado para pacotes personalizados
+  expectedValueCurrency?: string; // Moeda do valor esperado
+  closedValue?: number; // Valor fechado da venda
+  closedValueCurrency?: string; // Moeda do valor fechado
   destination: string;
   travelDates: {
     departure?: Date;
@@ -121,10 +124,26 @@ export interface KanbanTask {
     adults: number;
     children: number;
     infants: number;
+    adultsDetails?: Array<{
+      name?: string;
+      birthDate?: string;
+      email?: string;
+      phone?: string;
+    }>;
+    childrenDetails?: Array<{
+      name?: string;
+      birthDate?: string;
+    }>;
+    infantsDetails?: Array<{
+      name?: string;
+      birthDate?: string;
+    }>;
   };
   budget: {
     min?: number;
+    minCurrency?: string; // Moeda do valor mínimo
     max?: number;
+    maxCurrency?: string; // Moeda do valor máximo
     disclosed: boolean;
   };
   interests: string[]; // Ex: aventura, luxo, cultural, relaxamento
@@ -141,6 +160,8 @@ export interface KanbanTask {
   };
   source: 'website' | 'facebook' | 'instagram' | 'google' | 'indicacao' | 'evento' | 'outros';
   assignedTo?: string; // ID do vendedor responsável
+  hidden?: boolean; // Card oculto após 3 minutos
+  completedAt?: Date; // Timestamp de quando chegou em "fechado"
   createdAt: Date;
   updatedAt: Date;
 }

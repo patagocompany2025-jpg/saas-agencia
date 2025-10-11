@@ -37,14 +37,9 @@ export function ClientForm({ client, onSave, onCancel }: ClientFormProps) {
       newErrors.name = 'Nome é obrigatório';
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email é obrigatório';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    // Validar email apenas se foi preenchido
+    if (formData.email.trim() && !/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email inválido';
-    }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Telefone é obrigatório';
     }
 
     if (!formData.source.trim()) {
@@ -89,7 +84,7 @@ export function ClientForm({ client, onSave, onCancel }: ClientFormProps) {
           </div>
         </CardHeader>
         <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-white/70">Nome *</Label>
@@ -106,10 +101,10 @@ export function ClientForm({ client, onSave, onCancel }: ClientFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white/70">Email *</Label>
+              <Label htmlFor="email" className="text-white/70">Email</Label>
               <Input
                 id="email"
-                type="email"
+                type="text"
                 value={formData.email}
                 onChange={(e) => handleChange('email', e.target.value)}
                 placeholder="email@exemplo.com"
@@ -121,7 +116,7 @@ export function ClientForm({ client, onSave, onCancel }: ClientFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-white/70">Telefone *</Label>
+              <Label htmlFor="phone" className="text-white/70">Telefone</Label>
               <Input
                 id="phone"
                 value={formData.phone}
@@ -146,7 +141,7 @@ export function ClientForm({ client, onSave, onCancel }: ClientFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status" className="text-white/70">Status *</Label>
+              <Label htmlFor="status" className="text-white/70">Status</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value) => handleChange('status', value)}

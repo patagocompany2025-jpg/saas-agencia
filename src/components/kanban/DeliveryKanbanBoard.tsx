@@ -379,6 +379,8 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
     }
 
     if (draggedTask && draggedTask.status !== newStatus) {
+      const previousStatus = draggedTask.status; // Guardar status anterior
+
       setTasks(prev => prev.map(task => {
         if (task.id === draggedTask.id) {
           const updatedTask: DeliveryTask = {
@@ -410,34 +412,80 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
 
       // ✨ FLUXO AUTOMÁTICO: Entrega → Pós-Venda
       if (newStatus === 'concluido' && draggedTask) {
-        console.log('🎯 Card movido para CONCLUÍDO! Criando automaticamente em Pós-Venda...');
+        console.log('🎯 Card movido para CONCLUÍDO! Verificando card de pós-venda...');
 
-        // Criar card de pós-venda automaticamente
-        const postSaleTask = {
-          id: `postsale_${Date.now()}_${draggedTask.id}`,
-          clientName: draggedTask.clientName,
-          service: draggedTask.service,
-          value: draggedTask.value,
-          status: 'aguardando' as const,
-          priority: draggedTask.priority,
-          completionDate: new Date().toISOString().split('T')[0],
-          feedbackDate: '',
-          satisfaction: undefined,
-          feedback: '',
-          nextContact: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // +7 dias
-          assignedTo: draggedTask.assignedTo,
-          notes: draggedTask.notes || '',
-          originalDeliveryId: draggedTask.id, // Referência ao card de entrega
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-
-        // Adicionar ao localStorage de pós-venda
         const existingPostSale = JSON.parse(localStorage.getItem('postSaleTasks') || '[]');
-        localStorage.setItem('postSaleTasks', JSON.stringify([...existingPostSale, postSaleTask]));
+        const existingPostSaleCard = existingPostSale.find((p: any) => p.originalDeliveryId === draggedTask.id);
 
-        console.log('✅ Card criado automaticamente em Pós-Venda!', postSaleTask);
-        alert(`✅ Serviço concluído! Um card foi criado automaticamente em "Pós-Venda" na coluna "Aguardando Feedback".`);
+        if (existingPostSaleCard) {
+          // Card já existe, apenas reaparece
+          console.log('🔄 Card de pós-venda já existe - REAPARECENDO');
+          const updatedPostSale = existingPostSale.map((p: any) =>
+            p.originalDeliveryId === draggedTask.id ? { ...p, hidden: false } : p
+          );
+          localStorage.setItem('postSaleTasks', JSON.stringify(updatedPostSale));
+          console.log('✅ Card de pós-venda reapareceu!');
+        } else {
+          // Criar novo card de pós-venda
+          console.log('➕ Criando novo card de pós-venda...');
+          console.log('📦 Transferindo TODOS os dados do card de entrega para pós-venda...');
+
+          // Consolidar notas com informações adicionais do card de entrega
+          let consolidatedNotes = draggedTask.notes || '';
+
+          // Adicionar informações sobre datas de execução
+          consolidatedNotes += `\n\n📅 Período de execução: ${draggedTask.startDate} até ${draggedTask.endDate}`;
+
+          // Adicionar informações sobre número de viajantes
+          consolidatedNotes += `\n\n👥 Total de viajantes: ${draggedTask.travelers} pessoa${draggedTask.travelers !== 1 ? 's' : ''}`;
+
+          // Adicionar informação sobre destino
+          consolidatedNotes += `\n\n📍 Destino: ${draggedTask.destination}`;
+
+          // Adicionar informação sobre pagamento
+          consolidatedNotes += `\n\n💳 Data de pagamento: ${draggedTask.paymentDate}`;
+
+          const postSaleTask = {
+            id: `postsale_${Date.now()}_${draggedTask.id}`,
+            clientName: draggedTask.clientName,
+            service: draggedTask.service,
+            value: draggedTask.closedValue || draggedTask.value,
+            valueCurrency: draggedTask.closedValueCurrency || draggedTask.valueCurrency || 'BRL',
+            closedValue: draggedTask.closedValue || draggedTask.value,
+            closedValueCurrency: draggedTask.closedValueCurrency || draggedTask.valueCurrency || 'BRL',
+            status: 'aguardando' as const,
+            priority: draggedTask.priority,
+            completionDate: new Date().toISOString().split('T')[0],
+            feedbackDate: '',
+            satisfaction: undefined,
+            feedback: '',
+            nextContact: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            assignedTo: draggedTask.assignedTo,
+            notes: consolidatedNotes.trim(),
+            originalDeliveryId: draggedTask.id,
+            hidden: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+
+          console.log('✅ Card de pós-venda criado com TODAS as informações:', postSaleTask);
+
+          localStorage.setItem('postSaleTasks', JSON.stringify([...existingPostSale, postSaleTask]));
+          console.log('✅ Card criado em Pós-Venda!', postSaleTask);
+          alert(`✅ Serviço concluído! Um card foi criado automaticamente em "Pós-Venda" na coluna "Aguardando Feedback".`);
+        }
+      }
+
+      // 🔒 OCULTAR: Quando sai de "concluido" para qualquer outra coluna
+      if (previousStatus === 'concluido' && newStatus !== 'concluido' && draggedTask) {
+        console.log('🔒 Card saiu de CONCLUÍDO - Ocultando card de pós-venda...');
+
+        const existingPostSale = JSON.parse(localStorage.getItem('postSaleTasks') || '[]');
+        const updatedPostSale = existingPostSale.map((p: any) =>
+          p.originalDeliveryId === draggedTask.id ? { ...p, hidden: true } : p
+        );
+        localStorage.setItem('postSaleTasks', JSON.stringify(updatedPostSale));
+        console.log('✅ Card de pós-venda ocultado!');
       }
     }
     setDraggedTask(null);
@@ -800,15 +848,15 @@ export function DeliveryKanbanBoard({ onNewTask, onEditTask, onDeleteTask, custo
                       {/* Header do Card */}
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-white text-base mb-2 truncate">
+                            {task.clientName}
+                          </h4>
                           <div className="flex items-center gap-2 mb-1">
                             <MapPin className="h-3 w-3 text-indigo-400 flex-shrink-0" />
                             <span className="text-xs text-indigo-300 font-medium truncate">
                               {task.destination}
                             </span>
                           </div>
-                          <h4 className="font-semibold text-white text-sm mb-1 truncate">
-                            {task.clientName}
-                          </h4>
                           <p className="text-xs text-white/70 truncate">
                             {task.service}
                           </p>

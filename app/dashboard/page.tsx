@@ -47,8 +47,10 @@ export default function DashboardPage() {
   const { tasks, getTotalValue } = useKanban();
 
   useEffect(() => {
+    console.log('[Dashboard] useEffect - isLoading:', isLoading, 'user:', user);
     if (!isLoading && !user) {
-      router.push('/');
+      console.log('[Dashboard] Redirecionando para / - usuário não encontrado');
+      router.push('/simple-login');
     }
   }, [user, isLoading, router]);
 
@@ -67,8 +69,10 @@ export default function DashboardPage() {
     return null; // Redirecionando...
   }
 
-  const totalValue = tasks.reduce((sum, task) => sum + (task.value || 0), 0);
-  const expectedValue = tasks.reduce((sum, task) => sum + (task.expectedValue || 0), 0);
+  // Filtrar cards ocultos de todas as métricas
+  const visibleTasks = tasks.filter(t => !t.hidden);
+  const totalValue = visibleTasks.reduce((sum, task) => sum + (task.value || 0), 0);
+  const expectedValue = visibleTasks.reduce((sum, task) => sum + (task.expectedValue || 0), 0);
 
   return (
     <ModernLayout>
@@ -91,16 +95,16 @@ export default function DashboardPage() {
                   return;
                 }
                 
-                if (user.role === 'socio') {
+                if (user.role === 'socio' || user.role === 'super_admin') {
                   console.log('Redirecionando para /reports');
                   window.location.href = '/reports';
                 } else {
-                  console.log('Acesso negado - não é sócio');
-                  alert('Apenas sócios têm acesso aos relatórios.');
+                  console.log('Acesso negado - não é sócio/admin');
+                  alert('Apenas sócios e administradores têm acesso aos relatórios.');
                 }
               }}
               className="p-2 bg-white/10 border border-white/20 rounded-lg text-white transition-all hover:bg-white/15 hover:scale-105"
-              title={user?.role === 'socio' ? 'Relatórios e Análises' : 'Acesso restrito - Apenas sócios'}
+              title={(user?.role === 'socio' || user?.role === 'super_admin') ? 'Relatórios e Análises' : 'Acesso restrito - Apenas sócios e admins'}
             >
               <BarChart3 className="w-5 h-5" />
             </button>
@@ -153,10 +157,10 @@ export default function DashboardPage() {
             </div>
             <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse"></div>
           </div>
-          <h3 className="text-2xl font-bold text-white">{tasks.length}</h3>
+          <h3 className="text-2xl font-bold text-white">{visibleTasks.length}</h3>
           <p className="text-white/60 text-sm">Oportunidades</p>
           <div className="mt-3 flex items-center text-purple-400 text-sm">
-            <span>{tasks.filter(t => t.status === 'fechado').length} fechadas</span>
+            <span>{visibleTasks.filter(t => t.status === 'fechado').length} fechadas</span>
           </div>
         </div>
 
@@ -167,10 +171,12 @@ export default function DashboardPage() {
             </div>
             <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
           </div>
-          <h3 className="text-2xl font-bold text-white">98.5%</h3>
+          <h3 className="text-2xl font-bold text-white">
+            {visibleTasks.length > 0 ? ((visibleTasks.filter(t => t.status === 'fechado').length / visibleTasks.length) * 100).toFixed(1) : 0}%
+          </h3>
           <p className="text-white/60 text-sm">Taxa de Conversão</p>
           <div className="mt-3 flex items-center text-orange-400 text-sm">
-            <span>+5.2% vs mês anterior</span>
+            <span>{visibleTasks.filter(t => t.status === 'fechado').length} de {visibleTasks.length} vendas</span>
           </div>
         </div>
       </div>
@@ -203,7 +209,7 @@ export default function DashboardPage() {
               {/* Cards dos estágios */}
               <div className="grid grid-cols-7 gap-4">
                 {['Prospecção', 'Qualificação', 'Consultoria', 'Proposta', 'Negociação', 'Fechado', 'Perdido'].map((stage, index) => {
-                  const stageTasks = tasks.filter(t => {
+                  const stageTasks = visibleTasks.filter(t => {
                     const statusMap = ['prospeccao', 'qualificacao', 'consultoria', 'proposta', 'negociacao', 'fechado', 'perdido'];
                     return t.status === statusMap[index];
                   });
@@ -243,7 +249,7 @@ export default function DashboardPage() {
                             index === 5 ? 'bg-emerald-400' :
                             'bg-red-400'
                           }`}
-                          style={{ width: `${Math.min((stageTasks.length / Math.max(tasks.length, 1)) * 100, 100)}%` }}
+                          style={{ width: `${Math.min((stageTasks.length / Math.max(visibleTasks.length, 1)) * 100, 100)}%` }}
                         />
                       </div>
                     </div>
@@ -256,18 +262,18 @@ export default function DashboardPage() {
             <div className="mt-6 grid grid-cols-3 gap-4">
               <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-lg p-4 border border-blue-500/20">
                 <div className="text-blue-400 text-sm font-medium">Total de Oportunidades</div>
-                <div className="text-white text-xl font-bold">{tasks.length}</div>
+                <div className="text-white text-xl font-bold">{visibleTasks.length}</div>
               </div>
               <div className="bg-gradient-to-r from-green-500/10 to-green-600/10 rounded-lg p-4 border border-green-500/20">
                 <div className="text-green-400 text-sm font-medium">Valor Total</div>
                 <div className="text-white text-xl font-bold">
-                  R$ {tasks.reduce((sum, t) => sum + (t.expectedValue || 0), 0).toLocaleString('pt-BR')}
+                  R$ {visibleTasks.reduce((sum, t) => sum + (t.expectedValue || 0), 0).toLocaleString('pt-BR')}
                 </div>
               </div>
               <div className="bg-gradient-to-r from-purple-500/10 to-purple-600/10 rounded-lg p-4 border border-purple-500/20">
                 <div className="text-purple-400 text-sm font-medium">Taxa de Conversão</div>
                 <div className="text-white text-xl font-bold">
-                  {tasks.length > 0 ? ((tasks.filter(t => t.status === 'fechado').length / tasks.length) * 100).toFixed(1) : 0}%
+                  {visibleTasks.length > 0 ? ((visibleTasks.filter(t => t.status === 'fechado').length / visibleTasks.length) * 100).toFixed(1) : 0}%
                 </div>
               </div>
             </div>
