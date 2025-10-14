@@ -650,7 +650,7 @@ export default function SettingsPage() {
   const handleSaveUser = async () => {
     console.log('Iniciando salvamento do usuário:', userFormData);
     console.log('Usuários atuais:', users);
-    
+
     // Validações
     if (!userFormData.name.trim() || !userFormData.email.trim()) {
       alert('Nome e email são obrigatórios!');
@@ -681,8 +681,8 @@ export default function SettingsPage() {
 
     // Verificar se email foi alterado para um que já existe (para edição)
     if (editingUser && userFormData.email.toLowerCase() !== editingUser.email.toLowerCase()) {
-      const emailExists = users.some(u => 
-        u.id !== editingUser.id && 
+      const emailExists = users.some(u =>
+        u.id !== editingUser.id &&
         u.email.toLowerCase() === userFormData.email.toLowerCase()
       );
       if (emailExists) {
@@ -693,14 +693,12 @@ export default function SettingsPage() {
 
     setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       if (editingUser) {
-        // Atualizar usuário existente
+        // Atualizar usuário existente (ainda só localStorage - TODO: implementar API de update)
         console.log('Atualizando usuário existente:', editingUser.id);
         setUsers(prev => {
-          const updated = prev.map(u => 
-            u.id === editingUser.id 
+          const updated = prev.map(u =>
+            u.id === editingUser.id
               ? { ...u, ...userFormData, updatedAt: new Date().toISOString().split('T')[0] }
               : u
           );
@@ -709,27 +707,50 @@ export default function SettingsPage() {
         });
         alert('Usuário atualizado com sucesso!');
       } else {
-        // Criar novo usuário
-        console.log('Criando novo usuário:', userFormData);
-        const newUser = {
-          id: Date.now().toString(),
-          name: userFormData.name,
-          email: userFormData.email,
-          role: userFormData.role,
-          status: 'active',
-          createdAt: new Date().toISOString().split('T')[0],
-          lastLogin: null,
-          permissions: userFormData.permissions
-        };
+        // Criar novo usuário NO BANCO DE DADOS
+        console.log('Criando novo usuário no banco:', userFormData);
 
-        setUsers(prev => {
-          const updated = [...prev, newUser];
-          console.log('Usuários após criação:', updated);
-          return updated;
+        const response = await fetch('/api/user/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: userFormData.email,
+            name: userFormData.name,
+            role: userFormData.role
+          })
         });
-        alert('Usuário criado com sucesso!');
+
+        const data = await response.json();
+
+        if (data.success && data.user) {
+          console.log('Usuário criado no banco com sucesso:', data.user);
+
+          // Adicionar também ao estado local para exibição imediata
+          const newUser = {
+            id: data.user.id,
+            name: data.user.displayName,
+            email: data.user.email,
+            role: data.user.role,
+            status: 'active',
+            createdAt: new Date().toISOString().split('T')[0],
+            lastLogin: null,
+            permissions: userFormData.permissions
+          };
+
+          setUsers(prev => {
+            const updated = [...prev, newUser];
+            console.log('Usuários após criação:', updated);
+            return updated;
+          });
+
+          alert(`✅ Usuário criado com sucesso!\n\n📧 Email: ${data.user.email}\n🔒 Senha: 123456 (padrão)\n\nO usuário já pode fazer login!`);
+        } else {
+          alert(`Erro ao criar usuário: ${data.error || 'Erro desconhecido'}`);
+          setIsLoading(false);
+          return;
+        }
       }
-      
+
       handleCancelEdit();
     } catch (error) {
       console.error('Erro ao salvar usuário:', error);

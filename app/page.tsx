@@ -7,60 +7,38 @@ import { useRouter } from 'next/navigation';
 const BUILD_VERSION = '2024-01-' + Date.now();
 
 export default function Home() {
-  const [email, setEmail] = useState('patagocompany2025@gmail.com');
-  const [logs, setLogs] = useState<string[]>([]);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
-
-  const addLog = (msg: string) => {
-    const time = new Date().toLocaleTimeString('pt-BR');
-    setLogs(prev => [...prev, `[${time}] ${msg}`]);
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLogs([]); // Limpar logs
-
-    addLog('🚀 INICIANDO LOGIN...');
-    addLog(`📧 Email: ${email}`);
-    addLog(`🔧 Build: ${BUILD_VERSION}`);
+    setLoading(true);
 
     try {
-      addLog('🌐 Enviando para /api/user/sync...');
-
-      const response = await fetch('/api/user/sync', {
+      const response = await fetch('/api/user/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stack_user_id: email })
+        body: JSON.stringify({ email, password })
       });
 
-      addLog(`📊 Status HTTP: ${response.status}`);
-
       const data = await response.json();
-      addLog(`📦 Resposta: ${JSON.stringify(data).substring(0, 80)}...`);
 
       if (data.success && data.user) {
-        addLog('✅ LOGIN SUCESSO!');
-        addLog(`👤 Usuário: ${data.user.displayName || data.user.email}`);
-        addLog(`🔑 Role: ${data.user.role}`);
-
         localStorage.setItem('demo_user', JSON.stringify(data.user));
-        addLog('💾 Salvo no localStorage');
-
-        addLog('🎯 Redirecionando em 2s...');
-        setTimeout(() => {
-          addLog('🚀 REDIRECIONANDO AGORA!');
-          window.location.href = '/dashboard';
-        }, 2000);
+        window.location.href = '/dashboard';
       } else if (data.error) {
-        addLog(`❌ ERRO: ${data.error}`);
-        if (data.details) {
-          addLog(`📋 Detalhes: ${JSON.stringify(data.details)}`);
-        }
+        alert(data.error || 'Email ou senha incorretos');
+        setLoading(false);
       } else {
-        addLog(`❌ Resposta inesperada: ${JSON.stringify(data)}`);
+        alert('Erro ao fazer login. Tente novamente.');
+        setLoading(false);
       }
     } catch (err: any) {
-      addLog(`❌ ERRO CATCH: ${err.message}`);
+      alert('Erro ao fazer login. Tente novamente.');
+      console.error('Erro no login:', err);
+      setLoading(false);
     }
   };
 
@@ -103,7 +81,7 @@ export default function Home() {
             Login Patagonian
           </h1>
           <p style={{ color: 'rgba(255,255,255,0.6)', margin: 0 }}>
-            Sistema de Gestão - v4.0 LOGS
+            Sistema de Gestão
           </p>
         </div>
 
@@ -122,6 +100,7 @@ export default function Home() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="Digite seu email"
               required
               style={{
                 width: '100%',
@@ -137,64 +116,59 @@ export default function Home() {
             />
           </div>
 
-          {/* LOGS EM TEMPO REAL */}
-          {logs.length > 0 && (
-            <div style={{
-              padding: '15px',
-              borderRadius: '10px',
-              marginBottom: '20px',
-              background: '#000',
-              border: '1px solid #00ff00',
-              maxHeight: '200px',
-              overflowY: 'auto'
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              color: 'white',
+              marginBottom: '8px',
+              fontWeight: '500'
             }}>
-              {logs.map((log, i) => (
-                <div key={i} style={{
-                  color: '#00ff00',
-                  fontSize: '11px',
-                  fontFamily: 'monospace',
-                  marginBottom: '3px'
-                }}>
-                  {log}
-                </div>
-              ))}
-            </div>
-          )}
+              Senha
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Digite sua senha"
+              required
+              style={{
+                width: '100%',
+                padding: '15px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255,255,255,0.2)',
+                background: 'rgba(255,255,255,0.05)',
+                color: 'white',
+                fontSize: '16px',
+                outline: 'none',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
 
           <button
             type="submit"
+            disabled={loading}
             style={{
               width: '100%',
               padding: '15px',
               borderRadius: '10px',
               border: 'none',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: loading ? 'rgba(102, 126, 234, 0.5)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               color: 'white',
               fontSize: '18px',
               fontWeight: 'bold',
-              cursor: 'pointer',
+              cursor: loading ? 'not-allowed' : 'pointer',
               transition: 'transform 0.2s',
-              boxSizing: 'border-box'
+              boxSizing: 'border-box',
+              opacity: loading ? 0.7 : 1
             }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseOver={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-2px)')}
             onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
           >
-            Entrar no Sistema
+            {loading ? 'Entrando...' : 'Entrar no Sistema'}
           </button>
         </form>
 
-        {/* Info */}
-        <div style={{
-          marginTop: '25px',
-          padding: '15px',
-          borderRadius: '10px',
-          background: 'rgba(59, 130, 246, 0.1)',
-          border: '1px solid rgba(59, 130, 246, 0.3)'
-        }}>
-          <div style={{ color: 'rgba(147, 197, 253, 1)', fontSize: '13px', textAlign: 'center' }}>
-            <strong>Email:</strong> patagocompany2025@gmail.com
-          </div>
-        </div>
       </div>
     </div>
   );
