@@ -42,8 +42,8 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
     closedValueCurrency: task?.closedValueCurrency || 'BRL' as CurrencyCode,
     destination: task?.destination || '',
     travelDates: {
-      departure: task?.travelDates?.departure || undefined,
-      return: task?.travelDates?.return || undefined,
+      departure: task?.travelDates?.departure,
+      return: task?.travelDates?.return,
       flexible: task?.travelDates?.flexible || false,
     },
     travelers: {
@@ -111,7 +111,7 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
     }
   };
 
-  const handleInputChange = (field: string, value: string | number | boolean) => {
+  const handleInputChange = (field: string, value: string | number | boolean | Date | undefined) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
       setFormData(prev => ({
@@ -124,7 +124,7 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
     }
-    
+
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -491,8 +491,8 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
                   <label className="text-sm text-white/70">Data de Partida</label>
                   <input
                     type="date"
-                    value={formData.travelDates.departure ? (typeof formData.travelDates.departure === 'string' ? formData.travelDates.departure.split('T')[0] : formData.travelDates.departure.toISOString().split('T')[0]) : ''}
-                    onChange={(e) => handleInputChange('travelDates.departure', e.target.value ? new Date(e.target.value).toISOString() : '')}
+                    value={formData.travelDates.departure ? (formData.travelDates.departure instanceof Date ? formData.travelDates.departure.toISOString().split('T')[0] : '') : ''}
+                    onChange={(e) => handleInputChange('travelDates.departure', e.target.value ? new Date(e.target.value) : undefined)}
                     className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
@@ -500,8 +500,8 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
                   <label className="text-sm text-white/70">Data de Retorno</label>
                   <input
                     type="date"
-                    value={formData.travelDates.return ? (typeof formData.travelDates.return === 'string' ? formData.travelDates.return.split('T')[0] : formData.travelDates.return.toISOString().split('T')[0]) : ''}
-                    onChange={(e) => handleInputChange('travelDates.return', e.target.value ? new Date(e.target.value).toISOString() : '')}
+                    value={formData.travelDates.return ? (formData.travelDates.return instanceof Date ? formData.travelDates.return.toISOString().split('T')[0] : '') : ''}
+                    onChange={(e) => handleInputChange('travelDates.return', e.target.value ? new Date(e.target.value) : undefined)}
                     className="w-full bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
@@ -904,8 +904,8 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
                   </select>
                   <input
                     type="text"
-                    value={getFormattedValue(formData.budget.min, formData.budget.minCurrency)}
-                    onChange={(e) => handleCurrencyInputChange('budget.min', e.target.value, formData.budget.minCurrency)}
+                    value={getFormattedValue(formData.budget.min || 0, formData.budget.minCurrency as CurrencyCode)}
+                    onChange={(e) => handleCurrencyInputChange('budget.min', e.target.value, formData.budget.minCurrency as CurrencyCode)}
                     placeholder="0,00"
                     className="flex-1 bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
@@ -929,8 +929,8 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
                   </select>
                   <input
                     type="text"
-                    value={getFormattedValue(formData.budget.max, formData.budget.maxCurrency)}
-                    onChange={(e) => handleCurrencyInputChange('budget.max', e.target.value, formData.budget.maxCurrency)}
+                    value={getFormattedValue(formData.budget.max || 0, formData.budget.maxCurrency as CurrencyCode)}
+                    onChange={(e) => handleCurrencyInputChange('budget.max', e.target.value, formData.budget.maxCurrency as CurrencyCode)}
                     placeholder="0,00"
                     className="flex-1 bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
@@ -954,8 +954,8 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
                   </select>
                   <input
                     type="text"
-                    value={getFormattedValue(formData.expectedValue, formData.expectedValueCurrency)}
-                    onChange={(e) => handleCurrencyInputChange('expectedValue', e.target.value, formData.expectedValueCurrency)}
+                    value={getFormattedValue(formData.expectedValue || 0, formData.expectedValueCurrency as CurrencyCode)}
+                    onChange={(e) => handleCurrencyInputChange('expectedValue', e.target.value, formData.expectedValueCurrency as CurrencyCode)}
                     placeholder="0,00"
                     className="flex-1 bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
@@ -979,8 +979,8 @@ export function TaskForm({ task, onSave, onCancel, onDelete }: TaskFormProps) {
                   </select>
                   <input
                     type="text"
-                    value={getFormattedValue(formData.closedValue, formData.closedValueCurrency)}
-                    onChange={(e) => handleCurrencyInputChange('closedValue', e.target.value, formData.closedValueCurrency)}
+                    value={getFormattedValue(formData.closedValue || 0, formData.closedValueCurrency as CurrencyCode)}
+                    onChange={(e) => handleCurrencyInputChange('closedValue', e.target.value, formData.closedValueCurrency as CurrencyCode)}
                     placeholder="0,00"
                     className="flex-1 bg-white/10 border border-white/20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
